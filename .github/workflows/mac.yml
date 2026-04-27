@@ -41,6 +41,11 @@ jobs:
       with:
         version: 10
         run_install: false
+
+    - name: Setup Zig
+      uses: mlugg/setup-zig@v2
+      with:
+        version: 0.15.2
     
     - name: Cache Homebrew packages
       uses: actions/cache@v4
@@ -90,7 +95,7 @@ jobs:
           
           # Install tools without updating Homebrew
           # brew install automatically upgrades if already installed
-          if brew install swiftlint swiftformat xcbeautify jq zig; then
+          if brew install swiftlint swiftformat xcbeautify jq; then
             echo "Successfully installed/upgraded all tools"
             break
           else
