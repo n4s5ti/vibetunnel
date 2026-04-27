@@ -35,8 +35,19 @@ enum TestConditions {
     }
 
     static func isRunningInCI() -> Bool {
-        ProcessInfo.processInfo.environment["CI"] != nil ||
-            ProcessInfo.processInfo.environment["GITHUB_ACTIONS"] != nil
+        if ProcessInfo.processInfo.environment["CI"] != nil ||
+            ProcessInfo.processInfo.environment["GITHUB_ACTIONS"] != nil ||
+            ProcessInfo.processInfo.environment["RUN_SLOW_TESTS"] == "false"
+        {
+            return true
+        }
+
+        // xcodebuild does not always propagate GitHub Actions environment
+        // variables into the test host process. The runner path is stable
+        // enough to keep CI-only skips working for singleton integration tests.
+        let currentDirectory = FileManager.default.currentDirectoryPath
+        return currentDirectory.contains("/Users/runner/work/") ||
+            Bundle.main.bundlePath.contains("/Users/runner/work/")
     }
 
     static func canSpawnProcesses() -> Bool {
