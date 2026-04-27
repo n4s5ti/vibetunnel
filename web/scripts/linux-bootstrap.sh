@@ -40,8 +40,13 @@ if [ "$need_node" -eq 1 ]; then
   ${SUDO} apt-get install -y -qq nodejs > /dev/null
 fi
 
-# Zig (latest stable) if missing
-if ! command -v zig >/dev/null 2>&1; then
+# Zig if missing. Keep this aligned with CI and Dockerfile.standalone.
+export ZIG_VERSION="${ZIG_VERSION:-0.15.2}"
+need_zig=1
+if command -v zig >/dev/null 2>&1 && [ "$(zig version)" = "$ZIG_VERSION" ]; then
+  need_zig=0
+fi
+if [ "$need_zig" -eq 1 ]; then
   arch="$(uname -m)"
   case "$arch" in
     aarch64|arm64) export ZIG_TARGET="aarch64-linux";;
@@ -53,21 +58,12 @@ if ! command -v zig >/dev/null 2>&1; then
 import json, urllib.request, os, sys
 
 target = os.environ.get('ZIG_TARGET')
+version = os.environ.get('ZIG_VERSION', '0.15.2')
 data = json.load(urllib.request.urlopen('https://ziglang.org/download/index.json'))
-versions = [k for k in data.keys() if k and k[0].isdigit()]
-
-def parse(v):
-  try:
-    return tuple(int(x) for x in v.split('.'))
-  except Exception:
-    return (0,)
-
-versions.sort(key=parse, reverse=True)
-for v in versions:
-  entry = data[v]
-  if target in entry:
-    print(entry[target]['tarball'])
-    sys.exit(0)
+entry = data.get(version)
+if entry and target in entry:
+  print(entry[target]['tarball'])
+  sys.exit(0)
 print('')
 PY
 )"
