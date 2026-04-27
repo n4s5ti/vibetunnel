@@ -48,7 +48,7 @@ jobs:
       - name: Setup Zig
         uses: mlugg/setup-zig@v2
         with:
-          version: latest
+          version: 0.15.2
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
@@ -93,7 +93,7 @@ jobs:
       - name: Setup Zig
         uses: mlugg/setup-zig@v2
         with:
-          version: latest
+          version: 0.15.2
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
@@ -141,7 +141,7 @@ jobs:
       - name: Setup Zig
         uses: mlugg/setup-zig@v2
         with:
-          version: latest
+          version: 0.15.2
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
