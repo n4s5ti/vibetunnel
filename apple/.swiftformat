@@ -41,6 +41,7 @@
 
 # Swift 6 specific
 --swiftversion 6.2
+--disable swiftTestingTestCaseNames # Xcode 16 CI rejects escaped test identifiers with spaces
 
 # Other
 --stripunusedargs closure-only

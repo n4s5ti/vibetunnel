@@ -7,7 +7,7 @@ import Testing
 struct StartupManagerTests {
     @Test
     @MainActor
-    func `Create instance`() {
+    func createInstance() {
         let manager = StartupManager()
         // Just verify we can create an instance
         #expect(manager.isLaunchAtLoginEnabled == true || manager.isLaunchAtLoginEnabled == false)
@@ -15,7 +15,7 @@ struct StartupManagerTests {
 
     @Test
     @MainActor
-    func `Initial launch at login state`() {
+    func initialLaunchAtLoginState() {
         let manager = StartupManager()
 
         // The initial state depends on system configuration
@@ -26,7 +26,7 @@ struct StartupManagerTests {
 
     @Test
     @MainActor
-    func `Set launch at login`() {
+    func setLaunchAtLogin() {
         let manager = StartupManager()
 
         // Try to enable (may fail in test environment)
@@ -42,7 +42,7 @@ struct StartupManagerTests {
 
     @Test
     @available(macOS 13.0, *)
-    func `Service management availability`() {
+    func serviceManagementAvailability() {
         // Test that we can at least query the service status
         let service = SMAppService.mainApp
 
@@ -55,7 +55,7 @@ struct StartupManagerTests {
     }
 
     @Test
-    func `App bundle identifier`() {
+    func appBundleIdentifier() {
         // In test environment, bundle identifier might be nil
         let bundleId = Bundle.main.bundleIdentifier
 
@@ -72,7 +72,7 @@ struct StartupManagerTests {
 
     @Test
     @MainActor
-    func `Multiple operations`() {
+    func multipleOperations() {
         let manager = StartupManager()
 
         // Perform multiple operations

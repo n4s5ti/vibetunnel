@@ -5,7 +5,7 @@ import Testing
 struct WsV3SocketClientRequestTests {
     @Test
     @MainActor
-    func `Local auth tokens use X-VibeTunnel-Local header`() {
+    func localAuthTokensUseXVibetunnelLocalHeader() {
         let token = "local-token-value"
         let request = WsV3SocketClient.shared.makeRequest(serverPort: "4020", token: token)
 
@@ -17,7 +17,7 @@ struct WsV3SocketClientRequestTests {
 
     @Test
     @MainActor
-    func `JWT tokens use Bearer auth + query token`() {
+    func jwtTokensUseBearerAuthQueryToken() {
         let token = "header.payload.signature"
         let request = WsV3SocketClient.shared.makeRequest(serverPort: "4020", token: token)
 

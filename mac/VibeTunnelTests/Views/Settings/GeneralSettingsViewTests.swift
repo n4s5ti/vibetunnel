@@ -20,7 +20,7 @@ struct GeneralSettingsViewTests {
     }
 
     @Test
-    func `Notification preferences have correct default values`() {
+    func notificationPreferencesHaveCorrectDefaultValues() {
         // Get default preferences from ConfigManager
         let configManager = ConfigManager.shared
         self.resetNotificationDefaults(configManager)
@@ -42,7 +42,7 @@ struct GeneralSettingsViewTests {
     }
 
     @Test
-    func `Notification checkbox toggle updates preferences`() {
+    func notificationCheckboxToggleUpdatesPreferences() {
         let configManager = ConfigManager.shared
         self.resetNotificationDefaults(configManager)
 
@@ -67,7 +67,7 @@ struct GeneralSettingsViewTests {
     }
 
     @Test
-    func `Notification preferences save correctly`() {
+    func notificationPreferencesSaveCorrectly() {
         // Test that ConfigManager properties work correctly
         let configManager = ConfigManager.shared
         self.resetNotificationDefaults(configManager)
@@ -105,7 +105,7 @@ struct GeneralSettingsViewTests {
     }
 
     @Test
-    func `Notification checkboxes visibility logic`() {
+    func notificationCheckboxesVisibilityLogic() {
         // This would require UI testing framework to verify actual visibility
         // For now, we test the logic that controls visibility
 

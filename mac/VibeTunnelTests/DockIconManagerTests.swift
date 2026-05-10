@@ -7,7 +7,7 @@ import Testing
 struct DockIconManagerTests {
     @Test
     @MainActor
-    func `Singleton instance`() {
+    func singletonInstance() {
         let instance1 = DockIconManager.shared
         let instance2 = DockIconManager.shared
         #expect(instance1 === instance2)
@@ -15,7 +15,7 @@ struct DockIconManagerTests {
 
     @Test
     @MainActor
-    func `Update dock visibility based on windows`() {
+    func updateDockVisibilityBasedOnWindows() {
         let manager = DockIconManager.shared
 
         // Save original preference
@@ -42,7 +42,7 @@ struct DockIconManagerTests {
 
     @Test
     @MainActor
-    func `Temporarily show dock`() {
+    func temporarilyShowDock() {
         let manager = DockIconManager.shared
 
         // Call temporarilyShowDock
@@ -60,7 +60,7 @@ struct DockIconManagerTests {
 
     @Test
     @MainActor
-    func `Dock visibility with user preference`() {
+    func dockVisibilityWithUserPreference() {
         let manager = DockIconManager.shared
         let originalPref = UserDefaults.standard.bool(forKey: "showInDock")
 

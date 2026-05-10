@@ -9,7 +9,7 @@ struct NgrokServiceTests {
 
     @Test
     @MainActor
-    func `Singleton instance`() {
+    func singletonInstance() {
         let instance1 = NgrokService.shared
         let instance2 = NgrokService.shared
         #expect(instance1 === instance2)
@@ -17,7 +17,7 @@ struct NgrokServiceTests {
 
     @Test
     @MainActor
-    func `Initial state`() {
+    func initialState() {
         let service = NgrokService.shared
         #expect(service.isActive == false)
         #expect(service.publicUrl == nil)
@@ -26,7 +26,7 @@ struct NgrokServiceTests {
 
     @Test
     @MainActor
-    func `Auth token management`() {
+    func authTokenManagement() {
         let service = NgrokService.shared
 
         // Save original token
@@ -48,7 +48,7 @@ struct NgrokServiceTests {
 
     @Test
     @MainActor
-    func `Start without auth token fails`() async throws {
+    func startWithoutAuthTokenFails() async throws {
         let service = NgrokService.shared
 
         // Save original token
@@ -72,7 +72,7 @@ struct NgrokServiceTests {
 
     @Test
     @MainActor
-    func `Stop when not running`() async throws {
+    func stopWhenNotRunning() async throws {
         let service = NgrokService.shared
 
         // Ensure not running
@@ -89,7 +89,7 @@ struct NgrokServiceTests {
 
     @Test
     @MainActor
-    func `Is running check`() async {
+    func isRunningCheck() async {
         let service = NgrokService.shared
 
         let running = await service.isRunning()
@@ -98,7 +98,7 @@ struct NgrokServiceTests {
 
     @Test
     @MainActor
-    func `Get status when inactive`() async {
+    func getStatusWhenInactive() async {
         let service = NgrokService.shared
 
         // Ensure not running
@@ -111,7 +111,7 @@ struct NgrokServiceTests {
     }
 
     @Test
-    func `NgrokError descriptions`() throws {
+    func ngrokerrorDescriptions() throws {
         let errors: [NgrokError] = [
             .notInstalled,
             .authTokenMissing,
@@ -128,7 +128,7 @@ struct NgrokServiceTests {
     }
 
     @Test
-    func `NgrokError equality`() {
+    func ngrokerrorEquality() {
         #expect(NgrokError.notInstalled == NgrokError.notInstalled)
         #expect(NgrokError.authTokenMissing == NgrokError.authTokenMissing)
         #expect(NgrokError.tunnelCreationFailed("a") == NgrokError.tunnelCreationFailed("a"))

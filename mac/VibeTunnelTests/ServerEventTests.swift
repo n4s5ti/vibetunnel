@@ -9,7 +9,7 @@ struct ServerEventTests {
     // These are valuable - testing JSON encoding/decoding with optional fields
 
     @Test
-    func `Codable round-trip with multiple optional fields`() throws {
+    func codableRoundTripWithMultipleOptionalFields() throws {
         let originalEvent = ServerEvent(
             type: .sessionStart,
             sessionId: "test-session-123",
@@ -31,7 +31,7 @@ struct ServerEventTests {
     }
 
     @Test
-    func `Codable with all fields populated`() throws {
+    func codableWithAllFieldsPopulated() throws {
         let event = ServerEvent(
             type: .commandFinished,
             sessionId: "session-456",
@@ -56,7 +56,7 @@ struct ServerEventTests {
     }
 
     @Test
-    func `Codable with minimal fields preserves nils`() throws {
+    func codableWithMinimalFieldsPreservesNils() throws {
         let event = ServerEvent(type: .bell)
 
         let data = try JSONEncoder().encode(event)
@@ -80,7 +80,7 @@ struct ServerEventTests {
     // Testing actual business logic, not Swift's enum implementation
 
     @Test
-    func `Event type descriptions are user-friendly`() {
+    func eventTypeDescriptionsAreUserFriendly() {
         #expect(ServerEventType.sessionStart.description == "Session Started")
         #expect(ServerEventType.sessionExit.description == "Session Ended")
         #expect(ServerEventType.commandFinished.description == "Command Completed")
@@ -91,7 +91,7 @@ struct ServerEventTests {
     }
 
     @Test
-    func `shouldNotify returns correct values for notification logic`() {
+    func shouldnotifyReturnsCorrectValuesForNotificationLogic() {
         // These events should trigger notifications
         #expect(ServerEventType.sessionStart.shouldNotify)
         #expect(ServerEventType.sessionExit.shouldNotify)
@@ -109,7 +109,7 @@ struct ServerEventTests {
     // These test important edge cases for data integrity
 
     @Test
-    func `Handles empty strings correctly`() throws {
+    func handlesEmptyStringsCorrectly() throws {
         let event = ServerEvent(
             type: .sessionStart,
             sessionId: "",
@@ -128,7 +128,7 @@ struct ServerEventTests {
     }
 
     @Test
-    func `Handles special characters in JSON encoding`() throws {
+    func handlesSpecialCharactersInJsonEncoding() throws {
         let event = ServerEvent(
             type: .commandError,
             sessionId: "session-123",
@@ -150,7 +150,7 @@ struct ServerEventTests {
     // These test that convenience initializers create properly configured events
 
     @Test
-    func `sessionStart convenience initializer sets correct fields`() {
+    func sessionstartConvenienceInitializerSetsCorrectFields() {
         let event = ServerEvent.sessionStart(
             sessionId: "test-123",
             sessionName: "Test Session",
@@ -164,7 +164,7 @@ struct ServerEventTests {
     }
 
     @Test
-    func `sessionExit convenience initializer sets correct fields`() {
+    func sessionexitConvenienceInitializerSetsCorrectFields() {
         let event = ServerEvent.sessionExit(
             sessionId: "test-456",
             sessionName: "Test Session",
@@ -178,7 +178,7 @@ struct ServerEventTests {
     }
 
     @Test
-    func `commandFinished convenience initializer sets correct fields`() {
+    func commandfinishedConvenienceInitializerSetsCorrectFields() {
         let event = ServerEvent.commandFinished(
             sessionId: "test-789",
             command: "npm install",
@@ -194,7 +194,7 @@ struct ServerEventTests {
     }
 
     @Test
-    func `bell convenience initializer includes default message`() {
+    func bellConvenienceInitializerIncludesDefaultMessage() {
         let event = ServerEvent.bell(sessionId: "bell-session")
 
         #expect(event.type == .bell)
@@ -208,7 +208,7 @@ struct ServerEventTests {
     // These test actual business logic in computed properties
 
     @Test
-    func `displayName fallback logic works correctly`() {
+    func displaynameFallbackLogicWorksCorrectly() {
         // Priority 1: Session name
         let event1 = ServerEvent(type: .sessionStart, sessionName: "My Session")
         #expect(event1.displayName == "My Session")
@@ -232,19 +232,19 @@ struct ServerEventTests {
         (125_000, "2m 5s"),
         (3_661_000, "1h 1m 1s")
     ])
-    func `formattedDuration handles different time ranges`(duration: Int, expected: String) {
+    func formatteddurationHandlesDifferentTimeRanges(duration: Int, expected: String) {
         let event = ServerEvent(type: .commandFinished, duration: duration)
         #expect(event.formattedDuration == expected)
     }
 
     @Test
-    func `formattedDuration returns nil when duration is nil`() {
+    func formatteddurationReturnsNilWhenDurationIsNil() {
         let event = ServerEvent(type: .sessionStart)
         #expect(event.formattedDuration == nil)
     }
 
     @Test
-    func `formattedTimestamp uses correct format`() {
+    func formattedtimestampUsesCorrectFormat() {
         let timestamp = Date()
         let event = ServerEvent(type: .sessionStart, timestamp: timestamp)
 

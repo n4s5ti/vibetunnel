@@ -10,7 +10,7 @@ struct PowerManagementServiceTests {
     // We need to ensure proper cleanup between tests
 
     @Test
-    func `Sleep prevention defaults to true when key doesn't exist`() {
+    func sleepPreventionDefaultsToTrueWhenKeyDoesnTExist() {
         // Save current value
         let currentValue = UserDefaults.standard.object(forKey: AppConstants.UserDefaultsKeys.preventSleepWhenRunning)
         defer {
@@ -35,7 +35,7 @@ struct PowerManagementServiceTests {
     }
 
     @Test
-    func `Update sleep prevention logic with all combinations`() {
+    func updateSleepPreventionLogicWithAllCombinations() {
         let service = PowerManagementService.shared
 
         // Ensure clean state
@@ -62,7 +62,7 @@ struct PowerManagementServiceTests {
     }
 
     @Test
-    func `Multiple prevent sleep calls are idempotent`() {
+    func multiplePreventSleepCallsAreIdempotent() {
         let service = PowerManagementService.shared
 
         // Ensure clean state
@@ -83,7 +83,7 @@ struct PowerManagementServiceTests {
     }
 
     @Test
-    func `Multiple allow sleep calls are idempotent`() {
+    func multipleAllowSleepCallsAreIdempotent() {
         let service = PowerManagementService.shared
 
         // Set up initial state
@@ -101,7 +101,7 @@ struct PowerManagementServiceTests {
     }
 
     @Test
-    func `State transitions work correctly`() {
+    func stateTransitionsWorkCorrectly() {
         let service = PowerManagementService.shared
 
         // Ensure clean state
@@ -134,7 +134,7 @@ struct PowerManagementServiceTests {
 @MainActor
 struct PowerManagementEdgeCaseTests {
     @Test
-    func `Rapid state changes handle correctly`() {
+    func rapidStateChangesHandleCorrectly() {
         let service = PowerManagementService.shared
 
         // Ensure clean state

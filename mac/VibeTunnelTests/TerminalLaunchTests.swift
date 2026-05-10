@@ -17,7 +17,7 @@ struct TerminalLaunchTests {
         (Terminal.hyper, "echo test", nil),
         (Terminal.wezterm, "echo test", nil),
     ])
-    func `Terminal URL generation`(terminal: Terminal, command: String, expectedURL: String?) {
+    func terminalUrlGeneration(terminal: Terminal, command: String, expectedURL: String?) {
         if let url = terminal.commandURL(for: command) {
             #expect(url.absoluteString == expectedURL)
         } else {
@@ -28,7 +28,7 @@ struct TerminalLaunchTests {
     // MARK: - Command Arguments Tests
 
     @Test
-    func `Command argument generation for terminals`() {
+    func commandArgumentGenerationForTerminals() {
         let command = "echo 'Hello World'"
 
         // Test Alacritty arguments
@@ -47,7 +47,7 @@ struct TerminalLaunchTests {
     // MARK: - Working Directory Tests
 
     @Test
-    func `Working directory support`() {
+    func workingDirectorySupport() {
         let workDir = "/Users/test/projects"
         let command = "ls -la"
 
@@ -81,7 +81,7 @@ struct TerminalLaunchTests {
     // MARK: - Complex Command Tests
 
     @Test
-    func `Complex command encoding`() {
+    func complexCommandEncoding() {
         let complexCommand = "git log --oneline -10 && echo 'Done!'"
 
         // Test iTerm2 URL encoding
@@ -99,7 +99,7 @@ struct TerminalLaunchTests {
     // MARK: - Terminal Detection Tests
 
     @Test
-    func `Terminal detection`() {
+    func terminalDetection() {
         // At least Terminal.app should be available on macOS
         #expect(Terminal.installed.contains(.terminal))
 
@@ -114,7 +114,7 @@ struct TerminalLaunchTests {
 
     @Test
     @MainActor
-    func `Launching with environment variables`() {
+    func launchingWithEnvironmentVariables() {
         _ = ["MY_VAR": "test_value", "PATH": "/custom/path:/usr/bin"]
         _ = "echo $MY_VAR"
 
@@ -129,7 +129,7 @@ struct TerminalLaunchTests {
     // MARK: - Script File Tests
 
     @Test
-    func `Script file execution`() throws {
+    func scriptFileExecution() throws {
         let tempDir = FileManager.default.temporaryDirectory
         let scriptPath = tempDir.appendingPathComponent("test_script.sh")
 

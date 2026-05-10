@@ -33,7 +33,7 @@ final class TailscaleFallbackRegressionTests {
     @Test(
         .tags(.critical),
         .timeLimit(.minutes(1)))
-    func `Tailscale toggle does not auto-disable after 10 seconds`() async throws {
+    func tailscaleToggleDoesNotAutoDisableAfter10Seconds() async throws {
         self.logger.info("Testing that Tailscale toggle remains enabled in fallback mode")
 
         // Enable Tailscale Serve in settings
@@ -65,7 +65,7 @@ final class TailscaleFallbackRegressionTests {
     @Test(
         .tags(.critical),
         .disabled("Flaky due to shared server singleton and port timing"))
-    func `Server binds to network interface with Tailscale fallback`() async throws {
+    func serverBindsToNetworkInterfaceWithTailscaleFallback() async throws {
         self.logger.info("Testing that server doesn't force localhost binding")
 
         // Set dashboard access to network mode
@@ -106,7 +106,7 @@ final class TailscaleFallbackRegressionTests {
     @Test(
         .tags(.critical),
         .disabled("Flaky due to shared server singleton and port timing"))
-    func `Tailscale fallback mode activates without errors`() async throws {
+    func tailscaleFallbackModeActivatesWithoutErrors() async throws {
         self.logger.info("Testing fallback mode activation when Tailscale Serve unavailable")
 
         // Enable Tailscale
@@ -159,7 +159,7 @@ final class TailscaleFallbackRegressionTests {
 
     @Test(
         .tags(.integration))
-    func `UI shows correct status in fallback mode`() async throws {
+    func uiShowsCorrectStatusInFallbackMode() async throws {
         self.logger.info("Testing UI status display in fallback mode")
 
         // Enable Tailscale
@@ -200,7 +200,7 @@ final class TailscaleFallbackRegressionTests {
         .disabled(
             if: !ProcessInfo.processInfo.environment.keys.contains("TEST_TAILSCALE_HELPERS"),
             "Helper test only runs with TEST_TAILSCALE_HELPERS=1"))
-    func `Helper: Simulate Tailscale Serve permanently disabled`() {
+    func helperSimulateTailscaleServePermanentlyDisabled() {
         // This helper test can be used to manually trigger the fallback scenario
         self.logger.info("Simulating Tailscale Serve unavailable scenario")
 

@@ -6,7 +6,7 @@ import Testing
 struct SystemControlHandlerTests {
     @MainActor
     @Test
-    func `Handles system ready event`() async throws {
+    func handlesSystemReadyEvent() async throws {
         // Given
         var systemReadyCalled = false
         let handler = SystemControlHandler(onSystemReady: {
@@ -33,7 +33,7 @@ struct SystemControlHandlerTests {
 
     @MainActor
     @Test
-    func `Handles ping request`() async throws {
+    func handlesPingRequest() async throws {
         let handler = SystemControlHandler()
 
         // Create ping request

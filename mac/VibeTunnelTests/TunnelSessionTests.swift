@@ -9,7 +9,7 @@ struct TunnelSessionTests {
     // Only testing actual logic, not property synthesis
 
     @Test
-    func `updateActivity updates lastActivity timestamp`() async throws {
+    func updateactivityUpdatesLastactivityTimestamp() async throws {
         var session = TunnelSession()
         let originalActivity = session.lastActivity
 
@@ -22,7 +22,7 @@ struct TunnelSessionTests {
     }
 
     @Test
-    func `TunnelSession is Codable with all fields`() throws {
+    func tunnelsessionIsCodableWithAllFields() throws {
         var originalSession = TunnelSession(processID: 67890)
         originalSession.updateActivity()
 
@@ -42,7 +42,7 @@ struct TunnelSessionTests {
     // Testing optional field handling in Codable
 
     @Test
-    func `CreateSessionRequest encodes/decodes with all optional fields`() throws {
+    func createsessionrequestEncodesDecodesWithAllOptionalFields() throws {
         let originalRequest = CreateSessionRequest(
             workingDirectory: "/test/dir",
             environment: ["TEST": "value", "PATH": "/usr/bin"],
@@ -57,7 +57,7 @@ struct TunnelSessionTests {
     }
 
     @Test
-    func `CreateSessionRequest handles empty and nil values correctly`() throws {
+    func createsessionrequestHandlesEmptyAndNilValuesCorrectly() throws {
         // Test with empty environment (not nil)
         let requestWithEmpty = CreateSessionRequest(environment: [:])
         let data1 = try JSONEncoder().encode(requestWithEmpty)
@@ -74,7 +74,7 @@ struct TunnelSessionTests {
     }
 
     @Test
-    func `CreateSessionRequest handles special characters in paths and environment`() throws {
+    func createsessionrequestHandlesSpecialCharactersInPathsAndEnvironment() throws {
         let request = CreateSessionRequest(
             workingDirectory: "/path/with spaces/and\"quotes\"",
             environment: ["PATH": "/usr/bin:/usr/local/bin", "HOME": "/home/user with spaces"],
@@ -94,7 +94,7 @@ struct TunnelSessionTests {
     // Simple type but worth testing Codable with Date precision
 
     @Test
-    func `CreateSessionResponse handles date encoding correctly`() throws {
+    func createsessionresponseHandlesDateEncodingCorrectly() throws {
         let originalResponse = CreateSessionResponse(
             sessionId: "response-test-456",
             createdAt: Date())

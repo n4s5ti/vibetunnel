@@ -6,7 +6,7 @@ import Testing
 struct RepositoryDiscoveryServiceTests {
     @Test
     @MainActor
-    func `repository discovery initialization`() {
+    func repositoryDiscoveryInitialization() {
         let service = RepositoryDiscoveryService()
 
         #expect(service.repositories.isEmpty)
@@ -16,7 +16,7 @@ struct RepositoryDiscoveryServiceTests {
 
     @Test
     @MainActor
-    func `discovery state management`() async {
+    func discoveryStateManagement() async {
         let service = RepositoryDiscoveryService()
 
         // Start discovery
@@ -39,7 +39,7 @@ struct RepositoryDiscoveryServiceTests {
 
     @Test
     @MainActor
-    func `cache functionality`() async throws {
+    func cacheFunctionality() async throws {
         let service = RepositoryDiscoveryService()
         let testPath = NSTemporaryDirectory()
 
@@ -61,7 +61,7 @@ struct RepositoryDiscoveryServiceTests {
 
     @Test
     @MainActor
-    func `race condition handling`() async throws {
+    func raceConditionHandling() async throws {
         // Create a service that will be deallocated during discovery
         var service: RepositoryDiscoveryService? = RepositoryDiscoveryService()
 
@@ -83,7 +83,7 @@ struct RepositoryDiscoveryServiceTests {
 
     @Test
     @MainActor
-    func `tilde expansion in path`() async {
+    func tildeExpansionInPath() async {
         let service = RepositoryDiscoveryService()
 
         // Test with tilde path

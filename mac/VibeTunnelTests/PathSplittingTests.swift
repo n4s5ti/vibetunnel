@@ -4,7 +4,7 @@ import Testing
 @Suite("Path Splitting Tests")
 struct PathSplittingTests {
     @Test
-    func `Path expansion with tilde`() {
+    func pathExpansionWithTilde() {
         // Test 1: Expanding "~/Pr"
         let shortPath = "~/Pr"
         let expandedPath = NSString(string: shortPath).expandingTildeInPath
@@ -16,7 +16,7 @@ struct PathSplittingTests {
     }
 
     @Test
-    func `URL handling of non-existent paths`() {
+    func urlHandlingOfNonExistentPaths() {
         // Test 2: How URL handles non-existent paths
         let nonExistentPath = NSString(string: "~/Pr").expandingTildeInPath
         let url = URL(fileURLWithPath: nonExistentPath)
@@ -36,7 +36,7 @@ struct PathSplittingTests {
         "/Users/steipete/Projects",
         "/Users/steipete/Projects/vibetunnel"
     ])
-    func `Path components extraction`(path: String) {
+    func pathComponentsExtraction(path: String) {
         // Test 3: deletingLastPathComponent and lastPathComponent
         let url = URL(fileURLWithPath: path.starts(with: "~") ? NSString(string: path).expandingTildeInPath : path)
         let parent = url.deletingLastPathComponent()
@@ -48,7 +48,7 @@ struct PathSplittingTests {
     }
 
     @Test
-    func `Special path cases`() {
+    func specialPathCases() {
         // Test with trailing slash
         let pathWithSlash = "~/Pr/"
         let expandedWithSlash = NSString(string: pathWithSlash).expandingTildeInPath
@@ -72,7 +72,7 @@ struct PathSplittingTests {
     }
 
     @Test
-    func `Autocomplete scenario`() throws {
+    func autocompleteScenario() throws {
         // Test the actual autocomplete scenario
         let input = "~/Pr"
         let expandedInput = NSString(string: input).expandingTildeInPath

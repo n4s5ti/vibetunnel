@@ -5,7 +5,7 @@ import Testing
 @Suite("JSONValue Tests", .tags(.models))
 struct JSONValueTests {
     @Test
-    func `Decodes object with nested values`() throws {
+    func decodesObjectWithNestedValues() throws {
         let json = """
         {
             "name": "VibeTunnel",
@@ -27,7 +27,7 @@ struct JSONValueTests {
     }
 
     @Test
-    func `Round-trips via JSONEncoder/Decoder`() throws {
+    func roundTripsViaJsonencoderDecoder() throws {
         let value: JSONValue = .object([
             "name": .string("vibe"),
             "count": .number(2),
@@ -41,7 +41,7 @@ struct JSONValueTests {
     }
 
     @Test
-    func `Converts from Any payloads`() throws {
+    func convertsFromAnyPayloads() throws {
         let payload: [String: Any] = [
             "name": "vibe",
             "count": 2,

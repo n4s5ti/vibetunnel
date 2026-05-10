@@ -6,7 +6,7 @@ import UserNotifications
 struct NotificationServiceTests {
     @Test
     @MainActor
-    func `Notification preferences are loaded correctly from ConfigManager`() {
+    func notificationPreferencesAreLoadedCorrectlyFromConfigmanager() {
         // This test verifies that NotificationPreferences correctly loads values from ConfigManager
         let configManager = ConfigManager.shared
         let preferences = NotificationService.NotificationPreferences(fromConfig: configManager)
@@ -23,7 +23,7 @@ struct NotificationServiceTests {
 
     @Test
     @MainActor
-    func `Default notification values match expected defaults`() {
+    func defaultNotificationValuesMatchExpectedDefaults() {
         // This test documents what the default values SHOULD be
         // In production, these would be set when no config file exists
 
@@ -61,7 +61,7 @@ struct NotificationServiceTests {
 
     @Test
     @MainActor
-    func `Notification preferences can be updated`() {
+    func notificationPreferencesCanBeUpdated() {
         let service = NotificationService.shared
         let configManager = ConfigManager.shared
 
@@ -80,7 +80,7 @@ struct NotificationServiceTests {
 
     @Test
     @MainActor
-    func `Session start notification is sent when enabled`() async {
+    func sessionStartNotificationIsSentWhenEnabled() async {
         let service = NotificationService.shared
         let configManager = ConfigManager.shared
 
@@ -104,7 +104,7 @@ struct NotificationServiceTests {
 
     @Test
     @MainActor
-    func `Session exit notification includes exit code`() async {
+    func sessionExitNotificationIncludesExitCode() async {
         let service = NotificationService.shared
         let configManager = ConfigManager.shared
 
@@ -136,7 +136,7 @@ struct NotificationServiceTests {
 
     @Test
     @MainActor
-    func `Command completion notification respects duration threshold`() async {
+    func commandCompletionNotificationRespectsDurationThreshold() async {
         let service = NotificationService.shared
         let configManager = ConfigManager.shared
 
@@ -168,7 +168,7 @@ struct NotificationServiceTests {
 
     @Test
     @MainActor
-    func `Command error notification is sent for non-zero exit codes`() async {
+    func commandErrorNotificationIsSentForNonZeroExitCodes() async {
         let service = NotificationService.shared
         let configManager = ConfigManager.shared
 
@@ -194,7 +194,7 @@ struct NotificationServiceTests {
 
     @Test
     @MainActor
-    func `Bell notification is sent when enabled`() async {
+    func bellNotificationIsSentWhenEnabled() async {
         let service = NotificationService.shared
         let configManager = ConfigManager.shared
 
@@ -215,7 +215,7 @@ struct NotificationServiceTests {
 
     @Test
     @MainActor
-    func `Notifications are not sent when disabled`() async {
+    func notificationsAreNotSentWhenDisabled() async {
         let service = NotificationService.shared
         let configManager = ConfigManager.shared
 
@@ -277,7 +277,7 @@ struct NotificationServiceTests {
 
     @Test
     @MainActor
-    func `Service handles missing session names gracefully`() async {
+    func serviceHandlesMissingSessionNamesGracefully() async {
         let service = NotificationService.shared
         let configManager = ConfigManager.shared
 

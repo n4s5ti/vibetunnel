@@ -9,7 +9,7 @@ import Testing
 struct AppleScriptExecutorTests {
     @Test
     @MainActor
-    func `Execute simple AppleScript`() throws {
+    func executeSimpleApplescript() throws {
         let script = """
         return "Hello from AppleScript"
         """
@@ -20,7 +20,7 @@ struct AppleScriptExecutorTests {
 
     @Test
     @MainActor
-    func `Execute script with math`() throws {
+    func executeScriptWithMath() throws {
         let script = """
         return 2 + 2
         """
@@ -31,7 +31,7 @@ struct AppleScriptExecutorTests {
 
     @Test
     @MainActor
-    func `Handle script error`() throws {
+    func handleScriptError() throws {
         let script = """
         error "This is a test error"
         """
@@ -46,7 +46,7 @@ struct AppleScriptExecutorTests {
 
     @Test
     @MainActor
-    func `Handle invalid syntax`() throws {
+    func handleInvalidSyntax() throws {
         let script = """
         this is not valid applescript syntax
         """
@@ -62,7 +62,7 @@ struct AppleScriptExecutorTests {
 
     @Test
     @MainActor
-    func `Execute empty script`() throws {
+    func executeEmptyScript() throws {
         let script = ""
 
         do {
@@ -76,7 +76,7 @@ struct AppleScriptExecutorTests {
 
     @Test(.tags(.slow))
     @MainActor
-    func `Check Terminal application`() throws {
+    func checkTerminalApplication() throws {
         // Skip in CI to avoid timing issues
         try #require(!TestConditions.isRunningInCI(), "Skipping AppleScript permission test in CI")
         let script = """
@@ -91,7 +91,7 @@ struct AppleScriptExecutorTests {
     }
 
     @Test(.tags(.slow))
-    func `async execution`() async throws {
+    func asyncExecution() async throws {
         // Skip in CI to avoid timing issues
         try #require(!TestConditions.isRunningInCI(), "Skipping async AppleScript test in CI")
         // Test the async method
@@ -101,7 +101,7 @@ struct AppleScriptExecutorTests {
 
     @Test
     @MainActor
-    func `Singleton instance`() {
+    func singletonInstance() {
         let instance1 = AppleScriptExecutor.shared
         let instance2 = AppleScriptExecutor.shared
         #expect(instance1 === instance2)

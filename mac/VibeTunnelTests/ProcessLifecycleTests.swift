@@ -7,7 +7,7 @@ import Testing
 @Suite("Process Lifecycle Tests", .tags(.reliability))
 struct ProcessLifecycleTests {
     @Test(.tags(.attachmentTests))
-    func `Basic process spawning validation`() async throws {
+    func basicProcessSpawningValidation() async throws {
         let result = try await runProcessWithTimeout(
             executablePath: "/bin/echo",
             arguments: ["Hello from VibeTunnel test"],
@@ -18,7 +18,7 @@ struct ProcessLifecycleTests {
     }
 
     @Test(.tags(.attachmentTests))
-    func `Process error handling`() async throws {
+    func processErrorHandling() async throws {
         let result = try await runProcessWithTimeout(
             executablePath: "/bin/sh",
             arguments: ["-c", "exit 1"],
@@ -29,7 +29,7 @@ struct ProcessLifecycleTests {
     }
 
     @Test(.tags(.attachmentTests, .integration))
-    func `Shell command execution`() throws {
+    func shellCommandExecution() throws {
         // Test shell command execution patterns used in VibeTunnel
 
         let process = Process()
@@ -54,7 +54,7 @@ struct ProcessLifecycleTests {
     @Test(
         .tags(.attachmentTests, .requiresNetwork),
         .enabled(if: TestConditions.hasNetworkInterfaces()))
-    func `Network command validation`() throws {
+    func networkCommandValidation() throws {
         // Test network-related commands that VibeTunnel might use
 
         let process = Process()

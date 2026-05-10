@@ -5,7 +5,7 @@ import Testing
 @Suite("WS v3 framing (mac)")
 struct WsV3SocketClientFrameTests {
     @Test
-    func `encode/decode round-trip preserves fields`() throws {
+    func encodeDecodeRoundTripPreservesFields() throws {
         let payload = Data([0x01, 0x02, 0x03])
         let encoded = WsV3SocketClient.encodeFrame(type: .ping, sessionId: "session-123", payload: payload)
         let decoded = try WsV3SocketClient.decodeFrame(encoded)
@@ -16,7 +16,7 @@ struct WsV3SocketClientFrameTests {
     }
 
     @Test
-    func `subscribe payload is 12 bytes, little-endian`() {
+    func subscribePayloadIs12BytesLittleEndian() {
         let payload = WsV3SocketClient.encodeSubscribePayload(
             flags: [.events],
             snapshotMinIntervalMs: 10,

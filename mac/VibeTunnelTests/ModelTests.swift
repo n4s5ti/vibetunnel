@@ -11,7 +11,7 @@ struct ModelTests {
     @Suite("TunnelSession Tests")
     struct TunnelSessionTests {
         @Test
-        func `TunnelSession initialization`() {
+        func tunnelsessionInitialization() {
             let session = TunnelSession()
 
             #expect(session.id != UUID())
@@ -22,7 +22,7 @@ struct ModelTests {
         }
 
         @Test
-        func `TunnelSession with process ID`() {
+        func tunnelsessionWithProcessId() {
             let pid: Int32 = 12345
             let session = TunnelSession(processID: pid)
 
@@ -31,7 +31,7 @@ struct ModelTests {
         }
 
         @Test
-        func `TunnelSession activity update`() {
+        func tunnelsessionActivityUpdate() {
             var session = TunnelSession()
             let initialActivity = session.lastActivity
 
@@ -45,7 +45,7 @@ struct ModelTests {
         }
 
         @Test(.tags(.models))
-        func `TunnelSession serialization`() throws {
+        func tunnelsessionSerialization() throws {
             let session = TunnelSession(id: UUID(), processID: 99999)
 
             // Encode
@@ -63,7 +63,7 @@ struct ModelTests {
         }
 
         @Test
-        func `TunnelSession Sendable conformance`() async {
+        func tunnelsessionSendableConformance() async {
             let session = TunnelSession()
 
             // Test that we can send across actor boundaries
@@ -80,7 +80,7 @@ struct ModelTests {
     @Suite("CreateSessionRequest Tests")
     struct CreateSessionRequestTests {
         @Test
-        func `CreateSessionRequest initialization`() {
+        func createsessionrequestInitialization() {
             // Default initialization
             let request1 = CreateSessionRequest()
             #expect(request1.workingDirectory == nil)
@@ -98,7 +98,7 @@ struct ModelTests {
         }
 
         @Test
-        func `CreateSessionRequest serialization`() throws {
+        func createsessionrequestSerialization() throws {
             let request = CreateSessionRequest(
                 workingDirectory: "/Users/test",
                 environment: ["PATH": "/usr/bin", "LANG": "en_US.UTF-8"],
@@ -119,7 +119,7 @@ struct ModelTests {
     @Suite("DashboardAccessMode Tests")
     struct DashboardAccessModeTests {
         @Test(arguments: DashboardAccessMode.allCases)
-        func `DashboardAccessMode validation`(mode: DashboardAccessMode) {
+        func dashboardaccessmodeValidation(mode: DashboardAccessMode) {
             // Each mode should have valid properties
             #expect(!mode.displayName.isEmpty)
             #expect(!mode.bindAddress.isEmpty)
@@ -135,19 +135,19 @@ struct ModelTests {
         }
 
         @Test
-        func `DashboardAccessMode raw values`() {
+        func dashboardaccessmodeRawValues() {
             #expect(DashboardAccessMode.localhost.rawValue == AppConstants.DashboardAccessModeRawValues.localhost)
             #expect(DashboardAccessMode.network.rawValue == AppConstants.DashboardAccessModeRawValues.network)
         }
 
         @Test
-        func `DashboardAccessMode descriptions`() {
+        func dashboardaccessmodeDescriptions() {
             #expect(DashboardAccessMode.localhost.description.contains("this Mac"))
             #expect(DashboardAccessMode.network.description.contains("other devices"))
         }
 
         @Test
-        func `DashboardAccessMode default value`() {
+        func dashboardaccessmodeDefaultValue() {
             // Verify the default is network mode
             #expect(AppConstants.Defaults.dashboardAccessMode == DashboardAccessMode.network.rawValue)
 
@@ -158,7 +158,7 @@ struct ModelTests {
         }
 
         @Test
-        func `DashboardAccessMode from invalid raw value`() {
+        func dashboardaccessmodeFromInvalidRawValue() {
             let mode = DashboardAccessMode(rawValue: "invalid")
             #expect(mode == nil)
 
@@ -174,12 +174,12 @@ struct ModelTests {
         @Test(arguments: zip(
             UpdateChannel.allCases,
             ["stable", "prerelease"]))
-        func `UpdateChannel precedence`(channel: UpdateChannel, expectedRawValue: String) {
+        func updatechannelPrecedence(channel: UpdateChannel, expectedRawValue: String) {
             #expect(channel.rawValue == expectedRawValue)
         }
 
         @Test
-        func `UpdateChannel properties`() {
+        func updatechannelProperties() {
             // Stable channel
             let stable = UpdateChannel.stable
             #expect(stable.displayName == "Stable Only")
@@ -202,13 +202,13 @@ struct ModelTests {
             ("1.0.0-dev", UpdateChannel.prerelease),
             ("1.2.3", UpdateChannel.stable),
         ])
-        func `UpdateChannel default detection`(version: String, expectedChannel: UpdateChannel) {
+        func updatechannelDefaultDetection(version: String, expectedChannel: UpdateChannel) {
             let detectedChannel = UpdateChannel.defaultChannel(for: version)
             #expect(detectedChannel == expectedChannel)
         }
 
         @Test
-        func `UpdateChannel appcast URLs`() {
+        func updatechannelAppcastUrls() {
             // URLs should be valid
             for channel in UpdateChannel.allCases {
                 let url = channel.appcastURL
@@ -219,7 +219,7 @@ struct ModelTests {
         }
 
         @Test
-        func `UpdateChannel serialization`() throws {
+        func updatechannelSerialization() throws {
             for channel in UpdateChannel.allCases {
                 let data = try JSONEncoder().encode(channel)
                 let decoded = try JSONDecoder().decode(UpdateChannel.self, from: data)
@@ -228,7 +228,7 @@ struct ModelTests {
         }
 
         @Test
-        func `UpdateChannel UserDefaults integration`() {
+        func updatechannelUserdefaultsIntegration() {
             let defaults = UserDefaults.standard
             let originalValue = defaults.updateChannel
 
@@ -244,7 +244,7 @@ struct ModelTests {
         }
 
         @Test
-        func `UpdateChannel Identifiable conformance`() {
+        func updatechannelIdentifiableConformance() {
             #expect(UpdateChannel.stable.id == "stable")
             #expect(UpdateChannel.prerelease.id == "prerelease")
         }
@@ -255,20 +255,20 @@ struct ModelTests {
     @Suite("AppConstants Tests")
     struct AppConstantsTests {
         @Test
-        func `Welcome version constant`() {
+        func welcomeVersionConstant() {
             #expect(AppConstants.currentWelcomeVersion > 0)
             #expect(AppConstants.currentWelcomeVersion == 5)
         }
 
         @Test
-        func `UserDefaults keys`() {
+        func userdefaultsKeys() {
             #expect(AppConstants.UserDefaultsKeys.welcomeVersion == "welcomeVersion")
             #expect(AppConstants.UserDefaultsKeys.dashboardAccessMode == "dashboardAccessMode")
             #expect(AppConstants.UserDefaultsKeys.serverPort == "serverPort")
         }
 
         @Test
-        func `AppConstants default values`() {
+        func appconstantsDefaultValues() {
             // Verify dashboard access mode default
             #expect(AppConstants.Defaults.dashboardAccessMode == DashboardAccessMode.network.rawValue)
 
@@ -281,7 +281,7 @@ struct ModelTests {
         }
 
         @Test
-        func `AppConstants stringValue helper with dashboardAccessMode`() {
+        func appconstantsStringvalueHelperWithDashboardaccessmode() {
             // Store original value
             let originalValue = UserDefaults.standard.string(forKey: AppConstants.UserDefaultsKeys.dashboardAccessMode)
 

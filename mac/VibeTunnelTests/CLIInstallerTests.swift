@@ -130,7 +130,7 @@ struct CLIInstallerTests {
     // MARK: - Installation Status Tests
 
     @Test
-    func `Check installation status`() {
+    func checkInstallationStatus() {
         let installer = MockCLIInstaller()
 
         // Not installed
@@ -149,7 +149,7 @@ struct CLIInstallerTests {
     }
 
     @Test
-    func `Installation status detects existing symlink`() {
+    func installationStatusDetectsExistingSymlink() {
         let installer = CLIInstaller()
 
         // Check real status (may or may not be installed)
@@ -162,7 +162,7 @@ struct CLIInstallerTests {
     // MARK: - Installation Process Tests
 
     @Test
-    func `Installing CLI tool to custom location`() async {
+    func installingCliToolToCustomLocation() async {
         let installer = MockCLIInstaller()
 
         // Set up mock
@@ -180,7 +180,7 @@ struct CLIInstallerTests {
     }
 
     @Test
-    func `Installation failure handling`() async {
+    func installationFailureHandling() async {
         let installer = MockCLIInstaller()
 
         // Set up failure
@@ -198,7 +198,7 @@ struct CLIInstallerTests {
     }
 
     @Test
-    func `Updating existing CLI installation`() async {
+    func updatingExistingCliInstallation() async {
         let installer = MockCLIInstaller()
 
         // Simulate existing installation
@@ -217,7 +217,7 @@ struct CLIInstallerTests {
     // MARK: - Resource Validation Tests
 
     @Test
-    func `Missing CLI binary in bundle`() async {
+    func missingCliBinaryInBundle() async {
         let installer = MockCLIInstaller()
 
         // Simulate missing resource
@@ -232,7 +232,7 @@ struct CLIInstallerTests {
     }
 
     @Test
-    func `Valid resource path`() {
+    func validResourcePath() {
         // Check if vt binary exists in bundle
         let resourcePath = Bundle.main.path(forResource: "vt", ofType: nil)
 
@@ -245,7 +245,7 @@ struct CLIInstallerTests {
     // MARK: - Permission Tests
 
     @Test(.enabled(if: ProcessInfo.processInfo.environment["CI"] == nil))
-    func `Permission handling`() async {
+    func permissionHandling() async {
         let installer = MockCLIInstaller()
 
         // Simulate permission error
@@ -259,7 +259,7 @@ struct CLIInstallerTests {
     }
 
     @Test
-    func `Administrator privileges required`() {
+    func administratorPrivilegesRequired() {
         // This test documents that admin privileges are required
         // The actual installation uses osascript with administrator privileges
 
@@ -277,7 +277,7 @@ struct CLIInstallerTests {
     // MARK: - Script Generation Tests
 
     @Test
-    func `Installation script generation`() {
+    func installationScriptGeneration() {
         let sourcePath = "/Applications/VibeTunnel.app/Contents/Resources/vt"
         let targetPath = "/usr/local/bin/vt"
 
@@ -318,7 +318,7 @@ struct CLIInstallerTests {
     // MARK: - State Management Tests
 
     @Test
-    func `Installation state transitions`() {
+    func installationStateTransitions() {
         let installer = MockCLIInstaller()
 
         // Initial state
@@ -351,7 +351,7 @@ struct CLIInstallerTests {
     // MARK: - UI Alert Tests
 
     @Test
-    func `User confirmation dialogs`() async {
+    func userConfirmationDialogs() async {
         let installer = MockCLIInstaller()
 
         // Test shows appropriate dialogs
@@ -374,7 +374,7 @@ struct CLIInstallerTests {
     // MARK: - Concurrent Installation Tests
 
     @Test(.tags(.concurrency))
-    func `Concurrent installation attempts`() async {
+    func concurrentInstallationAttempts() async {
         let installer = MockCLIInstaller()
 
         // Attempt multiple installations concurrently
@@ -397,7 +397,7 @@ struct CLIInstallerTests {
     // MARK: - Integration Tests
 
     @Test(.tags(.integration))
-    func `Full installation workflow`() async {
+    func fullInstallationWorkflow() async {
         let installer = MockCLIInstaller()
 
         // 1. Check initial status
@@ -420,7 +420,7 @@ struct CLIInstallerTests {
     // MARK: - PR #153 Regression Test
 
     @Test(.tags(.regression))
-    func `Script with TITLE_MODE_ARGS detected correctly`() async throws {
+    func scriptWithTitleModeArgsDetectedCorrectly() async throws {
         let script = """
         #!/bin/bash
         # VibeTunnel CLI wrapper
@@ -448,7 +448,7 @@ struct CLIInstallerTests {
     }
 
     @Test(.tags(.regression))
-    func `Installed script matching bundle is not marked outdated`() async throws {
+    func installedScriptMatchingBundleIsNotMarkedOutdated() async throws {
         let installer = CLIInstaller(binDirectory: tempDirectory.path)
 
         guard let bundledPath = Bundle.main.path(forResource: "vt", ofType: nil) else {

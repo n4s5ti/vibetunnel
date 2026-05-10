@@ -28,7 +28,7 @@ struct GitRepositoryMonitorWorktreeTests {
     // MARK: - Tests
 
     @Test
-    func `Git repository info response includes worktree field`() throws {
+    func gitRepositoryInfoResponseIncludesWorktreeField() throws {
         // Test that GitRepositoryInfoResponse properly decodes isWorktree field
         let jsonWithWorktree = """
         {
@@ -53,7 +53,7 @@ struct GitRepositoryMonitorWorktreeTests {
     }
 
     @Test
-    func `Git repository info response handles missing worktree field`() throws {
+    func gitRepositoryInfoResponseHandlesMissingWorktreeField() throws {
         // Test backward compatibility when isWorktree is not present
         let jsonWithoutWorktree = """
         {
@@ -77,7 +77,7 @@ struct GitRepositoryMonitorWorktreeTests {
     }
 
     @Test
-    func `Git repository detects regular repository as non-worktree`() async {
+    func gitRepositoryDetectsRegularRepositoryAsNonWorktree() async {
         // Mock a regular repository response
         let mockResponse = GitRepositoryInfoResponse(
             isGitRepo: true,
@@ -105,7 +105,7 @@ struct GitRepositoryMonitorWorktreeTests {
     }
 
     @Test
-    func `Git repository detects worktree repository`() {
+    func gitRepositoryDetectsWorktreeRepository() {
         // Mock a worktree repository response
         let mockResponse = GitRepositoryInfoResponse(
             isGitRepo: true,
@@ -129,7 +129,7 @@ struct GitRepositoryMonitorWorktreeTests {
     }
 
     @Test
-    func `Git repository handles nil worktree status with fallback`() {
+    func gitRepositoryHandlesNilWorktreeStatusWithFallback() {
         // Test the fallback mechanism when server doesn't provide isWorktree
         let mockResponse = GitRepositoryInfoResponse(
             isGitRepo: true,
@@ -154,7 +154,7 @@ struct GitRepositoryMonitorWorktreeTests {
     }
 
     @Test
-    func `GitRepository model includes worktree status`() {
+    func gitrepositoryModelIncludesWorktreeStatus() {
         // Test that GitRepository properly stores worktree status
         let regularRepo = GitRepository(
             path: "/Users/test/regular-repo",
@@ -187,7 +187,7 @@ struct GitRepositoryMonitorWorktreeTests {
     }
 
     @Test
-    func `Cache preserves worktree status`() {
+    func cachePreservesWorktreeStatus() {
         // Clear cache first
         self.monitor.clearCache()
 
@@ -228,7 +228,7 @@ struct GitRepositoryMonitorWorktreeTests {
     }
 
     @Test
-    func `Repository status update preserves worktree flag`() {
+    func repositoryStatusUpdatePreservesWorktreeFlag() {
         // Test that when updating repository status (e.g., file counts),
         // the worktree status is preserved
         let initialRepo = GitRepository(
@@ -263,7 +263,7 @@ struct GitRepositoryMonitorWorktreeTests {
     }
 
     @Test
-    func `Worktree detection for deeply nested paths`() {
+    func worktreeDetectionForDeeplyNestedPaths() {
         // Test that worktree detection works for deeply nested file paths
         let deepPaths = [
             "/Users/dev/projects/main-repo/src/components/ui/Button.tsx",
@@ -279,7 +279,7 @@ struct GitRepositoryMonitorWorktreeTests {
     }
 
     @Test
-    func `Remote response includes GitHub URL for worktrees`() {
+    func remoteResponseIncludesGithubUrlForWorktrees() {
         // Test that worktrees properly report their GitHub URLs
         struct RemoteResponse: Codable {
             let isGitRepo: Bool
@@ -304,7 +304,7 @@ struct GitRepositoryMonitorWorktreeTests {
 @Suite("GitRepositoryMonitor Static Method Tests")
 struct GitRepositoryMonitorStaticTests {
     @Test
-    func `checkIfWorktree detects regular repository`() {
+    func checkifworktreeDetectsRegularRepository() {
         // In a regular repo, .git is a directory
         // This test would need file system mocking in production
 

@@ -17,7 +17,7 @@ final class SessionMonitorTests {
     // MARK: - JSON Decoding Tests
 
     @Test
-    func `detectEndedSessions identifies completed sessions`() {
+    func detectendedsessionsIdentifiesCompletedSessions() {
         let running = ServerSessionInfo(
             id: "one",
             name: "bash",
@@ -82,7 +82,7 @@ final class SessionMonitorTests {
     }
 
     @Test
-    func `Decode valid session with all fields`() throws {
+    func decodeValidSessionWithAllFields() throws {
         let json = """
         {
             "id": "test-session-123",
@@ -119,7 +119,7 @@ final class SessionMonitorTests {
     }
 
     @Test
-    func `Decode session with minimal fields`() throws {
+    func decodeSessionWithMinimalFields() throws {
         let json = """
         {
             "id": "minimal-session",
@@ -149,7 +149,7 @@ final class SessionMonitorTests {
     }
 
     @Test
-    func `Decode session with command array bug reproduction`() throws {
+    func decodeSessionWithCommandArrayBugReproduction() throws {
         // This test reproduces the exact bug where command was an array
         let json = """
         {
@@ -180,7 +180,7 @@ final class SessionMonitorTests {
     }
 
     @Test
-    func `Decode session with activity status`() throws {
+    func decodeSessionWithActivityStatus() throws {
         let json = """
         {
             "id": "activity-session",
@@ -206,7 +206,7 @@ final class SessionMonitorTests {
     }
 
     @Test
-    func `isActivityActive uses isActive only`() throws {
+    func isactivityactiveUsesIsactiveOnly() throws {
         let json = """
         {
             "id": "idle-session",
@@ -230,7 +230,7 @@ final class SessionMonitorTests {
     }
 
     @Test
-    func `Decode session array from API response`() throws {
+    func decodeSessionArrayFromApiResponse() throws {
         let json = """
         [
             {
@@ -295,7 +295,7 @@ final class SessionMonitorTests {
     // MARK: - Edge Case Tests
 
     @Test
-    func `Handle empty JSON array response`() throws {
+    func handleEmptyJsonArrayResponse() throws {
         let json = "[]"
         let data = try #require(json.data(using: .utf8))
         let sessions = try JSONDecoder().decode([ServerSessionInfo].self, from: data)
@@ -304,7 +304,7 @@ final class SessionMonitorTests {
     }
 
     @Test(.tags(.reliability))
-    func `Handle malformed JSON`() throws {
+    func handleMalformedJson() throws {
         let malformedJson = """
         {
             "id": "broken",
@@ -322,7 +322,7 @@ final class SessionMonitorTests {
     }
 
     @Test
-    func `Handle missing required fields`() throws {
+    func handleMissingRequiredFields() throws {
         let incompleteJson = """
         {
             "id": "incomplete",
@@ -338,7 +338,7 @@ final class SessionMonitorTests {
     }
 
     @Test
-    func `Handle unexpected session status values`() throws {
+    func handleUnexpectedSessionStatusValues() throws {
         // The status field is just a string, so any value should work
         let json = """
         {
@@ -362,7 +362,7 @@ final class SessionMonitorTests {
     // MARK: - isRunning Calculation Tests
 
     @Test
-    func `isRunning calculation for different statuses`() throws {
+    func isrunningCalculationForDifferentStatuses() throws {
         let statuses = [
             ("running", true),
             ("exited", false),
@@ -399,7 +399,7 @@ final class SessionMonitorTests {
     // MARK: - Remote Session Tests
 
     @Test
-    func `Decode remote session with HQ mode fields`() throws {
+    func decodeRemoteSessionWithHqModeFields() throws {
         let json = """
         {
             "id": "remote-session-456",
@@ -428,7 +428,7 @@ final class SessionMonitorTests {
     // MARK: - Session Count Tests
 
     @Test
-    func `Session count calculation`() async {
+    func sessionCountCalculation() async {
         // Force a refresh to get current state
         await self.monitor.refresh()
 
@@ -452,7 +452,7 @@ final class SessionMonitorTests {
     // MARK: - Cache Behavior Tests
 
     @Test(.tags(.performance))
-    func `Cache behavior`() async {
+    func cacheBehavior() async {
         // First call should fetch
         _ = await self.monitor.getSessions()
 
@@ -464,7 +464,7 @@ final class SessionMonitorTests {
     }
 
     @Test
-    func `Force refresh clears cache`() async {
+    func forceRefreshClearsCache() async {
         // Get initial sessions
         let initialSessions = await monitor.getSessions()
 
@@ -481,7 +481,7 @@ final class SessionMonitorTests {
     // MARK: - Mock API Response Tests
 
     @Test
-    func `Parse real-world API response`() throws {
+    func parseRealWorldApiResponse() throws {
         // This mimics an actual response from the server
         let realWorldJson = """
         [
@@ -552,7 +552,7 @@ final class SessionMonitorTests {
     // MARK: - Concurrent Access Tests
 
     @Test(.tags(.concurrency))
-    func `Concurrent session access`() async {
+    func concurrentSessionAccess() async {
         await withTaskGroup(of: [String: ServerSessionInfo].self) { group in
             // Multiple concurrent getSessions calls
             for _ in 0..<5 {
@@ -578,7 +578,7 @@ final class SessionMonitorTests {
     // MARK: - Performance Tests
 
     @Test(.tags(.performance))
-    func `Cache performance`() async {
+    func cachePerformance() async {
         // Skip this test on macOS < 13
         #if os(macOS)
         if #unavailable(macOS 13.0) {
