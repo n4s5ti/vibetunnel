@@ -64,6 +64,22 @@ struct ServerConfigTests {
         #expect(httpsConfig.baseURL.absoluteString == "http://example.com:443")
     }
 
+    @Test("Uses HTTPS when SSL is available and preferred")
+    func httpsBaseURLWhenSSLPreferred() {
+        let config = ServerConfig(
+            host: "n4s5ti.cyprus-ling.ts.net",
+            port: 443,
+            httpsAvailable: true,
+            preferSSL: true)
+
+        let url = config.baseURL
+
+        #expect(url.absoluteString == "https://n4s5ti.cyprus-ling.ts.net:443")
+        #expect(url.scheme == "https")
+        #expect(url.host == "n4s5ti.cyprus-ling.ts.net")
+        #expect(url.port == 443)
+    }
+
     @Test("Encodes and decodes correctly")
     func codable() throws {
         // Arrange

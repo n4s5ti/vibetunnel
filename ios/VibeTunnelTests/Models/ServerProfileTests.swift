@@ -73,6 +73,47 @@ struct ServerProfileTests {
         #expect(connectionUrl.port == 4_020)
     }
 
+    @Test("Preserves HTTPS URLs for Tailnet Serve")
+    func toServerConfigFromHTTPSTailnetServeURL() {
+        let profile = ServerProfile(
+            id: UUID(),
+            name: "Tailnet Server",
+            url: "https://n4s5ti.cyprus-ling.ts.net"
+        )
+
+        let config = profile.toServerConfig()
+
+        #expect(config != nil)
+        guard let config else { return }
+
+        #expect(config.host == "n4s5ti.cyprus-ling.ts.net")
+        #expect(config.port == 443)
+        #expect(config.httpsAvailable == true)
+        #expect(config.preferSSL == true)
+
+        let connectionURL = config.connectionURL()
+        #expect(connectionURL.absoluteString == "https://n4s5ti.cyprus-ling.ts.net:443")
+        #expect(connectionURL.scheme == "https")
+    }
+
+    @Test("Preserves explicit HTTPS port")
+    func toServerConfigFromHTTPSURLWithExplicitPort() {
+        let profile = ServerProfile(
+            id: UUID(),
+            name: "Custom HTTPS Server",
+            url: "https://example.com:8443"
+        )
+
+        let config = profile.toServerConfig()
+
+        #expect(config != nil)
+        guard let config else { return }
+
+        #expect(config.host == "example.com")
+        #expect(config.port == 8_443)
+        #expect(config.connectionURL().absoluteString == "https://example.com:8443")
+    }
+
     @Test("Handles IPv6 addresses correctly")
     func toServerConfigWithIPv6() {
         // Arrange
