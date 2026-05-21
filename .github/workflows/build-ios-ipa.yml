@@ -1,0 +1,82 @@
+name: Build iOS IPA
+
+on:
+  push:
+    branches:
+      - tmp/ios-tailscale-serve-fix-20260520
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  build-ipa:
+    name: Build unsigned iOS IPA
+    runs-on: macos-latest
+    timeout-minutes: 45
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Select Xcode 16.4
+        uses: maxim-lobanov/setup-xcode@v1
+        with:
+          xcode-version: '16.4'
+
+      - name: Show tool versions
+        run: |
+          xcodebuild -version
+          swift --version
+
+      - name: Resolve Swift packages
+        working-directory: ios
+        run: |
+          xcodebuild -resolvePackageDependencies \
+            -workspace ../VibeTunnel.xcworkspace \
+            -scheme VibeTunnel-iOS
+
+      - name: Build unsigned device app
+        working-directory: ios
+        env:
+          ACTOOL_IGNORE_VERSION_CHECK: "1"
+          IBTOOL_IGNORE_VERSION_CHECK: "1"
+        run: |
+          xcodebuild build \
+            -workspace ../VibeTunnel.xcworkspace \
+            -scheme VibeTunnel-iOS \
+            -destination "generic/platform=iOS" \
+            -configuration Release \
+            -derivedDataPath build/DerivedData \
+            CODE_SIGNING_ALLOWED=NO \
+            CODE_SIGNING_REQUIRED=NO \
+            CODE_SIGNING_IDENTITY="" \
+            AD_HOC_CODE_SIGNING_ALLOWED=NO \
+            ONLY_ACTIVE_ARCH=NO \
+            COMPILER_INDEX_STORE_ENABLE=NO \
+            ACTOOL_IGNORE_VERSION_CHECK=1 \
+            IBTOOL_IGNORE_VERSION_CHECK=1
+
+      - name: Package IPA
+        working-directory: ios
+        run: |
+          set -euo pipefail
+          PRODUCTS_DIR="build/DerivedData/Build/Products/Release-iphoneos"
+          APP_PATH="$(find "$PRODUCTS_DIR" -maxdepth 1 -type d -name '*.app' -print -quit)"
+          if [ -z "$APP_PATH" ]; then
+            echo "No .app bundle found in $PRODUCTS_DIR" >&2
+            exit 1
+          fi
+          rm -rf package
+          mkdir -p package/Payload
+          cp -R "$APP_PATH" package/Payload/
+          /usr/bin/ditto -c -k --sequesterRsrc --keepParent package/Payload VibeTunnel-ios-tailscale-serve-fix.ipa
+          /usr/bin/zipinfo -1 VibeTunnel-ios-tailscale-serve-fix.ipa | sort
+
+      - name: Upload IPA
+        uses: actions/upload-artifact@v4
+        with:
+          name: VibeTunnel-ios-tailscale-serve-fix-ipa
+          path: ios/VibeTunnel-ios-tailscale-serve-fix.ipa
+          if-no-files-found: error
+          retention-days: 3

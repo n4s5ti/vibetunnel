@@ -297,17 +297,45 @@ final class TailscaleDiscoveryService {
             await resolveHostname(hostname)
         }
 
-        // Construct URL for health check - VibeTunnel uses /api/health endpoint
-        let urlString: String = if let resolvedIP {
-            "http://\(resolvedIP):\(port)/api/health"
-        } else {
-            "http://\(hostname):\(port)/api/health"
-        }
-        guard let url = URL(string: urlString) else {
-            logger.debug("Invalid URL for \(hostname)")
-            return nil
+        let probeTargets = makeProbeTargets(hostname: hostname, ip: resolvedIP, port: port)
+
+        for target in probeTargets {
+            if let server = await probeServerTarget(target, hostname: hostname, ip: resolvedIP, port: port) {
+                return server
+            }
         }
 
+        return nil
+    }
+
+    private func makeProbeTargets(hostname: String, ip: String?, port: Int) -> [URL] {
+        var urls: [URL] = []
+
+        // Tailscale Serve exposes localhost-bound VibeTunnel servers through the
+        // device's MagicDNS HTTPS hostname. Probe this first; direct tailnet IP
+        // probing only works when VibeTunnel itself is bound to the tailnet
+        // interface.
+        if let url = URL(string: "https://\(hostname)/api/health") {
+            urls.append(url)
+        }
+
+        if let ip, let url = URL(string: "http://\(ip):\(port)/api/health") {
+            urls.append(url)
+        }
+
+        if let url = URL(string: "http://\(hostname):\(port)/api/health") {
+            urls.append(url)
+        }
+
+        return urls
+    }
+
+    private func probeServerTarget(
+        _ url: URL,
+        hostname: String,
+        ip: String?,
+        port: Int
+    ) async -> TailscaleServer? {
         // Perform health check
         do {
             let configuration = URLSessionConfiguration.default
@@ -355,12 +383,12 @@ final class TailscaleDiscoveryService {
 
                     return TailscaleServer(
                         hostname: hostname,
-                        ip: resolvedIP,
+                        ip: ip,
                         port: port,
                         deviceName: deviceName,
                         isReachable: true,
                         lastSeen: Date(),
-                        httpsUrl: httpsUrl,
+                        httpsUrl: httpsUrl ?? (url.scheme == "https" ? "https://\(hostname)" : nil),
                         isPublic: isPublic
                     )
                 }
