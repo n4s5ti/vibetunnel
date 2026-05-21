@@ -157,17 +157,35 @@ class ConnectionViewModel {
             return
         }
 
-        guard let portNumber = Int(port), portNumber > 0, portNumber <= 65535 else {
-            self.errorMessage = "Please enter a valid port number"
-            return
-        }
-
         self.isConnecting = true
 
-        let config = ServerConfig(
-            host: host,
-            port: portNumber,
-            name: name.isEmpty ? nil : self.name)
+        let trimmedHost = host.trimmingCharacters(in: .whitespacesAndNewlines)
+        let trimmedPort = port.trimmingCharacters(in: .whitespacesAndNewlines)
+        let config: ServerConfig
+
+        if trimmedHost.hasPrefix("http://") || trimmedHost.hasPrefix("https://") {
+            let profile = ServerProfile(
+                name: name.isEmpty ? ServerProfile.suggestedName(for: trimmedHost) : self.name,
+                url: trimmedHost)
+
+            guard let serverConfig = profile.toServerConfig() else {
+                self.errorMessage = "Please enter a valid server URL"
+                self.isConnecting = false
+                return
+            }
+            config = serverConfig
+        } else {
+            guard let portNumber = Int(trimmedPort), portNumber > 0, portNumber <= 65535 else {
+                self.errorMessage = "Please enter a valid port number"
+                self.isConnecting = false
+                return
+            }
+
+            config = ServerConfig(
+                host: trimmedHost,
+                port: portNumber,
+                name: name.isEmpty ? nil : self.name)
+        }
 
         do {
             // Test basic connectivity by checking health endpoint

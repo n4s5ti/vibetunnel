@@ -110,25 +110,25 @@ struct AddServerView: View {
             return
         }
 
-        // Create profile from form data
-        let hostWithPort = self.viewModel.port.isEmpty ? self.viewModel.host : "\(self.viewModel.host):\(self.viewModel.port)"
+        let trimmedHost = self.viewModel.host.trimmingCharacters(in: .whitespacesAndNewlines)
+        let trimmedPort = self.viewModel.port.trimmingCharacters(in: .whitespacesAndNewlines)
 
-        // Add http:// scheme if not present
-        let urlString: String = if hostWithPort.hasPrefix("http://") || hostWithPort.hasPrefix("https://") {
-            hostWithPort
-        } else {
-            "http://\(hostWithPort)"
-        }
+        // If the user entered a full URL, preserve its scheme/host/port exactly.
+        // Tailscale Serve URLs use HTTPS on the default port and must not have
+        // the separate port field appended.
+        let hostIncludesScheme = trimmedHost.hasPrefix("http://") || trimmedHost.hasPrefix("https://")
+        let hostWithPort = trimmedPort.isEmpty ? trimmedHost : "\(trimmedHost):\(trimmedPort)"
+        let urlString = hostIncludesScheme ? trimmedHost : "http://\(hostWithPort)"
 
         // Basic URL validation
-        guard !self.viewModel.host.isEmpty else {
+        guard !trimmedHost.isEmpty else {
             self.viewModel.errorMessage = "Please enter a server address"
             return
         }
 
-        // Validate port if provided
-        if !self.viewModel.port.isEmpty {
-            guard let portNumber = Int(viewModel.port), portNumber > 0, portNumber <= 65535 else {
+        // Validate port if provided separately
+        if !trimmedPort.isEmpty, !hostIncludesScheme {
+            guard let portNumber = Int(trimmedPort), portNumber > 0, portNumber <= 65535 else {
                 self.viewModel.errorMessage = "Invalid port number. Must be between 1 and 65535."
                 return
             }

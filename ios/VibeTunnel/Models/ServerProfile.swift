@@ -50,13 +50,16 @@ struct ServerProfile: Identifiable, Codable, Equatable {
         self.name = name
 
         // If url is provided, use it; otherwise construct from host and port
+        var urlUsesHTTPS = false
+
         if let url {
             self.url = url
             // Extract host and port from URL if not provided
             if host == nil || port == nil {
                 if let urlComponents = URLComponents(string: url) {
+                    urlUsesHTTPS = urlComponents.scheme?.lowercased() == "https"
                     self.host = host ?? urlComponents.host
-                    self.port = port ?? (urlComponents.port ?? 4_020)
+                    self.port = port ?? (urlComponents.port ?? (urlUsesHTTPS ? 443 : 4_020))
                 } else {
                     self.host = host
                     self.port = port ?? 4_020
@@ -87,9 +90,9 @@ struct ServerProfile: Identifiable, Codable, Equatable {
         self.tailscaleIP = tailscaleIP
         self.isTailscaleEnabled = isTailscaleEnabled
         self.preferTailscale = preferTailscale
-        self.httpsAvailable = httpsAvailable
+        self.httpsAvailable = httpsAvailable || urlUsesHTTPS
         self.isPublic = isPublic
-        self.preferSSL = preferSSL
+        self.preferSSL = urlUsesHTTPS || (preferSSL && httpsAvailable)
     }
 
     /// Create a ServerConfig from this profile
@@ -108,13 +111,13 @@ struct ServerProfile: Identifiable, Codable, Equatable {
         }
 
         // Determine default port based on scheme
-        let defaultPort: Int = if let scheme = urlComponents.scheme?.lowercased() {
-            scheme == "https" ? 443 : 80
-        } else {
-            80
-        }
+        let scheme = urlComponents.scheme?.lowercased()
+        let urlUsesHTTPS = scheme == "https"
+        let defaultPort = urlUsesHTTPS ? 443 : 80
 
         let port = urlComponents.port ?? defaultPort
+        let resolvedHTTPSAvailable = httpsAvailable || urlUsesHTTPS
+        let resolvedPreferSSL = urlUsesHTTPS || (preferSSL && resolvedHTTPSAvailable)
 
         return ServerConfig(
             host: cleanHost,
@@ -124,9 +127,9 @@ struct ServerProfile: Identifiable, Codable, Equatable {
             tailscaleIP: tailscaleIP,
             isTailscaleEnabled: isTailscaleEnabled,
             preferTailscale: preferTailscale,
-            httpsAvailable: httpsAvailable,
+            httpsAvailable: resolvedHTTPSAvailable,
             isPublic: isPublic,
-            preferSSL: preferSSL
+            preferSSL: resolvedPreferSSL
         )
     }
 }
