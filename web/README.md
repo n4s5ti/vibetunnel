@@ -40,7 +40,7 @@ pnpm run build
 
 ## Requirements
 
-- Node.js >= 20.0.0
+- Node.js >= 22.12.0
 - macOS or Linux (Windows not yet supported)
 - Build tools for native modules (Xcode on macOS, build-essential on Linux)
 
@@ -270,7 +270,7 @@ If you encounter issues during installation:
    sudo npm install -g vibetunnel
    ```
 
-3. **Node Version**: Ensure Node.js 20+ is installed
+3. **Node Version**: Ensure Node.js 22.12+ is installed
    ```bash
    node --version
    ```

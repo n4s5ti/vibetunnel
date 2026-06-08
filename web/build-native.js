@@ -23,7 +23,7 @@
  * ```
  */
 
-const { execSync } = require('child_process');
+const { execFileSync, execSync } = require('child_process');
 const fs = require('fs');
 const path = require('path');
 
@@ -53,11 +53,20 @@ if (includeSourcemaps) {
   console.log('Including sourcemaps in build');
 }
 
-// Check Node.js version
-const nodeVersion = parseInt(process.version.split('.')[0].substring(1));
-if (nodeVersion < 20) {
-  console.error('Error: Node.js 20 or higher is required for SEA feature');
-  process.exit(1);
+function assertSupportedNodeVersion(versionText, label) {
+  const normalizedVersion = versionText.trim().replace(/^v/, '');
+  const [nodeMajor, nodeMinor] = normalizedVersion.split('.').map(Number);
+  if (nodeMajor < 22 || (nodeMajor === 22 && nodeMinor < 12)) {
+    console.error(`Error: ${label} Node.js 22.12 or higher is required for SEA feature (found ${versionText.trim()})`);
+    process.exit(1);
+  }
+}
+
+// Check the host Node.js version before running SEA build steps.
+assertSupportedNodeVersion(process.version, 'Host');
+
+function readNodeVersion(nodeExe) {
+  return execFileSync(nodeExe, ['--version'], { encoding: 'utf8' }).trim();
 }
 
 // Cleanup function
@@ -176,6 +185,9 @@ async function main() {
       nodeExe = customNodePath;
     }
 
+    const selectedNodeVersion = customNodePath ? readNodeVersion(nodeExe) : process.version;
+    assertSupportedNodeVersion(selectedNodeVersion, customNodePath ? 'Custom' : 'Selected');
+
     console.log(`Using Node.js binary: ${nodeExe}`);
     const nodeStats = fs.statSync(nodeExe);
     console.log(`Node.js binary size: ${(nodeStats.size / 1024 / 1024).toFixed(2)} MB`);
@@ -183,7 +195,7 @@ async function main() {
     // 1. Rebuild native modules if using custom Node.js
     if (customNodePath) {
       console.log('\nCustom Node.js detected - rebuilding native modules...');
-      const customVersion = execSync(`"${nodeExe}" --version`, { encoding: 'utf8' }).trim();
+      const customVersion = selectedNodeVersion;
       console.log(`Custom Node.js version: ${customVersion}`);
       
       // Save original PATH and use clean environment
@@ -243,7 +255,7 @@ async function main() {
     let esbuildCmd = `NODE_NO_WARNINGS=1 npx esbuild src/cli.ts \\
       --bundle \\
       --platform=node \\
-      --target=node20 \\
+      --target=node22 \\
       --outfile=build/bundle.js \\
       --format=cjs \\
       --keep-names \\

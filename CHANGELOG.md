@@ -3,6 +3,7 @@
 ## [Unreleased]
 
 ### ✨ Improvements
+- Require Node.js 22.12+ for npm/native builds and generate maintained Node 22/24 prebuilds only.
 - Improve mobile session UI with action bar, clipboard manager, and quick keys (via [@Jerome2332](https://github.com/Jerome2332)) (#518)
 - Document Zig 0.15.2 as the `vt-fwd` build prerequisite (via [@sourman](https://github.com/sourman)) (#611)
 - Tighten macOS app icon padding to remove white edge

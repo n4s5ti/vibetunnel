@@ -26,7 +26,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version: '22'
           
       - name: Install pnpm
         uses: pnpm/action-setup@v4
@@ -75,8 +75,8 @@ jobs:
             echo "Native executable found"
             file native/vibetunnel
             ldd native/vibetunnel || echo "ldd failed"
-            # Known issue: Node.js SEA executables segfault on ARM64 Linux
-            # This affects both Node.js 20 and 24. The executable will be built
+            # Known issue: Node.js SEA executables segfault on ARM64 Linux.
+            # The executable will be built
             # but we skip the version test and use TypeScript compilation for tests
             echo "⚠️  Skipping --version test on ARM64 Linux due to known Node.js SEA segfault"
             echo "The executable has been built but will not be used for tests"

@@ -56,25 +56,25 @@ VibeTunnel requires two native modules:
 We use `prebuild` and `prebuild-install` to provide precompiled native modules, eliminating the need for users to have build tools installed.
 
 ### Coverage
-- **Node.js versions**: 20, 22, 23, 24
+- **Node.js versions**: 22, 24
 - **Platforms**: macOS (x64, arm64), Linux (x64, arm64)
-- **Total prebuilds**: 24 binaries
-  - node-pty: 16 binaries (macOS and Linux, all architectures)
-  - authenticate-pam: 8 binaries (Linux only - macOS builds may fail due to PAM differences)
+- **Total prebuilds**: 12 binaries
+  - node-pty: 8 binaries (macOS and Linux, all architectures)
+  - authenticate-pam: 4 binaries (Linux only - macOS builds may fail due to PAM differences)
 
 ### Prebuild Files
 ```
 prebuilds/
-├── node-pty-v1.0.0-node-v115-darwin-arm64.tar.gz
-├── node-pty-v1.0.0-node-v115-darwin-x64.tar.gz
-├── node-pty-v1.0.0-node-v115-linux-arm64.tar.gz
-├── node-pty-v1.0.0-node-v115-linux-x64.tar.gz
-├── authenticate-pam-v1.0.5-node-v115-linux-arm64.tar.gz
-├── authenticate-pam-v1.0.5-node-v115-linux-x64.tar.gz
-└── ... (similar for node versions 22, 23, 24, Linux only)
+├── node-pty-v1.0.0-node-v127-darwin-arm64.tar.gz
+├── node-pty-v1.0.0-node-v127-darwin-x64.tar.gz
+├── node-pty-v1.0.0-node-v127-linux-arm64.tar.gz
+├── node-pty-v1.0.0-node-v127-linux-x64.tar.gz
+├── authenticate-pam-v1.0.5-node-v127-linux-arm64.tar.gz
+├── authenticate-pam-v1.0.5-node-v127-linux-x64.tar.gz
+└── ... (similar for Node.js 24)
 ```
 
-Note: Node version numbers map to internal versions (v115=Node 20, v127=Node 22, v131=Node 23, v134=Node 24)
+Note: Node version numbers map to internal versions (v127=Node 22, v137=Node 24)
 
 ## Build Process
 
@@ -551,7 +551,7 @@ The build now includes clear output confirming authenticate-pam inclusion:
 **Package Details**:
 - Package size: 15.5 MB (37.1 MB unpacked)
 - Contains 235 files including all prebuilds and web assets
-- Includes prebuilds for Node.js 20, 22, 23, and 24
+- Includes prebuilds for Node.js 22 and 24
 
 **Installation**:
 ```bash

@@ -111,7 +111,7 @@ docker run -v $(pwd):/workspace -p 4020:4020 vibetunnel --ngrok
 ## 🔧 Container Features
 
 ### Pre-installed Tools
-- **Languages**: Node.js 20, Python 3
+- **Languages**: Node.js 22, Python 3
 - **Editors**: vim, nano
 - **Utils**: git, curl, wget, htop, tree, jq
 - **Tunnels**: ngrok, cloudflared

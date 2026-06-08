@@ -16,7 +16,7 @@ const { execSync } = require('child_process');
 const fs = require('fs');
 const path = require('path');
 
-const NODE_VERSIONS = ['20', '22', '23', '24'];
+const NODE_VERSIONS = ['22', '24'];
 const ALL_PLATFORMS = {
   darwin: ['x64', 'arm64'],
   linux: ['x64', 'arm64']
@@ -30,12 +30,17 @@ const ROOT_DIR = path.join(__dirname, '..');
 // These map to the internal V8 ABI versions used by prebuild
 function getNodeAbi(nodeVersion) {
   const abiMap = {
-    '20': '115', // Node.js 20.x uses ABI 115
     '22': '127', // Node.js 22.x uses ABI 127
-    '23': '131', // Node.js 23.x uses ABI 131
-    '24': '134'  // Node.js 24.x uses ABI 134
+    '24': '137'  // Node.js 24.x uses ABI 137
   };
   return abiMap[nodeVersion];
+}
+
+const SUPPORTED_NODE_ABIS = new Set(NODE_VERSIONS.map(getNodeAbi));
+
+function isSupportedPrebuild(file) {
+  const match = file.match(/-node-v(\d+)-/);
+  return file.endsWith('.tar.gz') && match && SUPPORTED_NODE_ABIS.has(match[1]);
 }
 
 // Parse command line arguments
@@ -333,10 +338,11 @@ function mergePrebuilds() {
   const rootPrebuildsDir = path.join(__dirname, '..', 'prebuilds');
   const nodePtyPrebuildsDir = path.join(__dirname, '..', 'node-pty', 'prebuilds');
   
-  // Ensure root prebuilds directory exists
-  if (!fs.existsSync(rootPrebuildsDir)) {
-    fs.mkdirSync(rootPrebuildsDir, { recursive: true });
+  // Recreate the merge target so old Node ABI tarballs cannot leak into releases.
+  if (fs.existsSync(rootPrebuildsDir)) {
+    fs.rmSync(rootPrebuildsDir, { recursive: true, force: true });
   }
+  fs.mkdirSync(rootPrebuildsDir, { recursive: true });
   
   // Copy node-pty prebuilds
   if (fs.existsSync(nodePtyPrebuildsDir)) {
@@ -345,9 +351,11 @@ function mergePrebuilds() {
     for (const file of nodePtyFiles) {
       const srcPath = path.join(nodePtyPrebuildsDir, file);
       const destPath = path.join(rootPrebuildsDir, file);
-      if (fs.statSync(srcPath).isFile()) {
+      if (fs.statSync(srcPath).isFile() && isSupportedPrebuild(file)) {
         fs.copyFileSync(srcPath, destPath);
         console.log(`    → ${file}`);
+      } else if (file.endsWith('.tar.gz')) {
+        console.log(`    Skipping unsupported prebuild ${file}`);
       }
     }
   }
@@ -360,9 +368,11 @@ function mergePrebuilds() {
     for (const file of pamFiles) {
       const srcPath = path.join(authenticatePamPrebuildsDir, file);
       const destPath = path.join(rootPrebuildsDir, file);
-      if (fs.statSync(srcPath).isFile()) {
+      if (fs.statSync(srcPath).isFile() && isSupportedPrebuild(file)) {
         fs.copyFileSync(srcPath, destPath);
         console.log(`    → ${file}`);
+      } else if (file.endsWith('.tar.gz')) {
+        console.log(`    Skipping unsupported prebuild ${file}`);
       }
     }
   }
@@ -520,6 +530,10 @@ function validatePackageHybrid() {
         warnings.push('No prebuilds found in dist-npm prebuilds directory');
       } else {
         console.log(`  Found ${prebuilds.length} prebuilds in dist-npm`);
+        const unsupportedPrebuilds = prebuilds.filter(file => !isSupportedPrebuild(file));
+        if (unsupportedPrebuilds.length > 0) {
+          errors.push(`Unsupported prebuilds found: ${unsupportedPrebuilds.join(', ')}`);
+        }
       }
     }
   } else {

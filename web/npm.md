@@ -51,7 +51,7 @@ vibetunnel
 For containerized environments:
 
 ```dockerfile
-FROM node:20-slim
+FROM node:22-slim
 
 # Optional: Install PAM headers for authentication support
 # RUN apt-get update && apt-get install -y libpam0g-dev
@@ -191,7 +191,7 @@ rm -rf package/
 ### 4. Test Installation Locally
 ```bash
 # Test on a system without PAM headers
-docker run --rm -it node:20 bash
+docker run --rm -it node:22 bash
 npm install /path/to/vibetunnel-*.tgz
 # Should succeed even without libpam0g-dev
 ```

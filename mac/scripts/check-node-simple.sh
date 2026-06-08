@@ -9,38 +9,71 @@ set -e
 
 echo "Checking for Node.js..."
 
-# Common Node.js locations to check
-NODE_PATHS=(
-    "/opt/homebrew/bin/node"          # Homebrew ARM
-    "/usr/local/bin/node"              # Homebrew Intel
-    "$HOME/.nvm/versions/node/*/bin/node"  # NVM (glob)
-    "$HOME/.volta/bin/node"            # Volta
-    "$HOME/.fnm/node-versions/*/bin/node"  # fnm (glob)
-    "/usr/bin/node"                    # System
-)
+node_version_supported() {
+    local version="$1"
+    local major minor
+    major=$(echo "$version" | cut -d'.' -f1)
+    minor=$(echo "$version" | cut -d'.' -f2)
 
-# Find Node.js
-NODE_BIN=""
-for path in "${NODE_PATHS[@]}"; do
-    # Handle glob patterns
-    for expanded in $path; do
-        if [[ -x "$expanded" ]]; then
-            NODE_BIN="$expanded"
-            break 2
-        fi
+    [[ "$major" -gt 22 || ( "$major" -eq 22 && "$minor" -ge 12 ) ]]
+}
+
+find_supported_node() {
+    local candidates=()
+    local path_dir candidate expanded version
+
+    if command -v node &>/dev/null; then
+        candidates+=("$(command -v node)")
+    fi
+
+    candidates+=(
+        "$HOME/.volta/bin/node"            # Volta
+        "$HOME/.nvm/versions/node/*/bin/node"  # NVM (glob)
+        "$HOME/.fnm/node-versions/*/bin/node"  # fnm (glob)
+        "/opt/homebrew/bin/node"           # Homebrew ARM
+        "/usr/local/bin/node"              # Homebrew Intel
+        "/usr/bin/node"                    # System
+    )
+
+    IFS=':' read -ra path_dirs <<< "$PATH"
+    for path_dir in "${path_dirs[@]}"; do
+        candidates+=("$path_dir/node")
     done
-done
 
-# Also check PATH
-if [[ -z "$NODE_BIN" ]] && command -v node &>/dev/null; then
-    NODE_BIN=$(command -v node)
-fi
+    for candidate in "${candidates[@]}"; do
+        for expanded in $candidate; do
+            [[ -x "$expanded" ]] || continue
+            version=$("$expanded" --version 2>/dev/null | cut -d'v' -f2) || continue
+            if node_version_supported "$version"; then
+                NODE_BIN="$expanded"
+                NODE_VERSION="$version"
+                return 0
+            fi
+            if [[ -z "$FIRST_NODE_BIN" ]]; then
+                FIRST_NODE_BIN="$expanded"
+                FIRST_NODE_VERSION="$version"
+            fi
+        done
+    done
+
+    return 1
+}
+
+NODE_BIN=""
+NODE_VERSION=""
+FIRST_NODE_BIN=""
+FIRST_NODE_VERSION=""
+find_supported_node || true
 
 # Verify Node.js
 if [[ -z "$NODE_BIN" ]] || [[ ! -x "$NODE_BIN" ]]; then
-    echo "❌ Node.js not found!"
+    if [[ -n "$FIRST_NODE_BIN" ]]; then
+        echo "❌ Node.js v22.12+ is required (found v$FIRST_NODE_VERSION at $FIRST_NODE_BIN)"
+    else
+        echo "❌ Node.js not found!"
+    fi
     echo ""
-    echo "Please install Node.js v20 or later:"
+    echo "Please install Node.js v22.12 or later:"
     echo "  • Homebrew: brew install node"
     echo "  • Download: https://nodejs.org/"
     echo "  • NVM: curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.0/install.sh | bash"
@@ -49,16 +82,8 @@ if [[ -z "$NODE_BIN" ]] || [[ ! -x "$NODE_BIN" ]]; then
     exit 1
 fi
 
-# Check version
-NODE_VERSION=$("$NODE_BIN" --version 2>/dev/null | cut -d'v' -f2)
-NODE_MAJOR=$(echo "$NODE_VERSION" | cut -d'.' -f1)
-
 echo "✅ Node.js found: $NODE_BIN"
 echo "   Version: v$NODE_VERSION"
-
-if [[ "$NODE_MAJOR" -lt 20 ]]; then
-    echo "⚠️  Warning: Node.js v20+ is recommended (found v$NODE_VERSION)"
-fi
 
 # Check pnpm
 echo ""
