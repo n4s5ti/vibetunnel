@@ -985,9 +985,9 @@ body[data-keyboard-visible="true"] {
   pointer-events: none;
   touch-action: pan-y;
 }
-/* Terminal container scroll prevention */
+/* Terminal owns one-finger vertical pans; preserve two-finger pinch zoom. */
 #terminal-container {
-  touch-action: pan-y;
+  touch-action: pinch-zoom;
   overscroll-behavior: none;
 }
 

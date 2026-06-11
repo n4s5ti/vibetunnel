@@ -65,9 +65,14 @@ export class Terminal extends LitElement {
   private pasteInput: HTMLTextAreaElement | null = null;
   private pendingOutput = '';
   private pendingFollowCursor = true;
+  private preservedScrollPosition: number | null = null;
+  private touchStartX = 0;
+  private touchStartY = 0;
+  private lastTouchY = 0;
+  private touchScrollRemainder = 0;
+  private touchScrolling = false;
 
   private isMobile = false;
-  private mobileWidthResizeComplete = false;
   private lastCols = 0;
   private lastRows = 0;
 
@@ -140,7 +145,6 @@ export class Terminal extends LitElement {
 
   setUserOverrideWidth(override: boolean) {
     this.userOverrideWidth = override;
-    if (this.isMobile && override) this.mobileWidthResizeComplete = false;
 
     if (this.sessionId) {
       try {
@@ -167,15 +171,32 @@ export class Terminal extends LitElement {
       return;
     }
 
-    this.terminal.write(data, () => {
-      if (followCursor && this.followCursorEnabled) {
-        this.terminal?.scrollToBottom();
+    const shouldPreserveScroll = !this.followCursorEnabled && this.preservedScrollPosition === null;
+    const shouldFollowCursor = followCursor && !shouldPreserveScroll;
+    if (shouldPreserveScroll) {
+      this.preservedScrollPosition = this.getScrollPosition();
+    }
+
+    if (this.preservedScrollPosition !== null) {
+      const preservedScrollPosition = this.preservedScrollPosition;
+      try {
+        this.terminal.write(data);
+        // ghostty-web scrolls to bottom synchronously during write(), so restore before paint.
+        this.scrollToPosition(preservedScrollPosition);
+        this.followCursorEnabled = false;
+      } finally {
+        this.preservedScrollPosition = null;
       }
-    });
+      return;
+    }
+
+    this.terminal.write(data);
+    if (shouldFollowCursor) this.terminal.scrollToBottom();
   }
 
   public clear() {
     this.terminal?.clear();
+    this.preservedScrollPosition = null;
     this.followCursorEnabled = true;
   }
 
@@ -192,11 +213,20 @@ export class Terminal extends LitElement {
     this.terminal?.scrollToBottom();
   }
 
+  /**
+   * Whether the viewport is at (or near) the bottom, i.e. auto-following new output.
+   * Becomes false when the user scrolls up to read history (incl. touch scroll), so
+   * callers can avoid yanking the view back to the bottom while the user is reading.
+   */
+  public isFollowingCursor(): boolean {
+    return this.followCursorEnabled;
+  }
+
   public scrollToPosition(position: number) {
     if (!this.terminal) return;
     const max = this.getMaxScrollPosition();
     const clamped = Math.max(0, Math.min(max, Math.floor(position)));
-    this.terminal.scrollToLine(clamped);
+    this.terminal.scrollToLine(max - clamped);
   }
 
   public queueCallback(callback: () => void) {
@@ -254,15 +284,82 @@ export class Terminal extends LitElement {
     }
   }
 
+  private handleTerminalTouchStart = (event: TouchEvent) => {
+    if (event.touches.length !== 1) {
+      this.resetTouchScroll();
+      return;
+    }
+
+    const touch = event.touches[0];
+    this.touchStartX = touch.clientX;
+    this.touchStartY = touch.clientY;
+    this.lastTouchY = touch.clientY;
+    this.touchScrollRemainder = 0;
+    this.touchScrolling = false;
+  };
+
+  private handleTerminalTouchMove = (event: TouchEvent) => {
+    if (event.touches.length !== 1) return;
+
+    const touch = event.touches[0];
+    const totalX = touch.clientX - this.touchStartX;
+    const totalY = touch.clientY - this.touchStartY;
+
+    if (!this.touchScrolling) {
+      if (Math.abs(totalY) <= 6 || Math.abs(totalY) <= Math.abs(totalX)) return;
+      this.touchScrolling = true;
+    }
+
+    if (event.cancelable) event.preventDefault();
+
+    const lineHeight = Math.max(
+      1,
+      this.terminal?.renderer?.getMetrics().height ?? this.fontSize * 1.2
+    );
+    this.touchScrollRemainder += this.lastTouchY - touch.clientY;
+    const lines = Math.trunc(this.touchScrollRemainder / lineHeight);
+    this.lastTouchY = touch.clientY;
+
+    if (lines !== 0) {
+      this.terminal?.scrollLines(lines);
+      this.touchScrollRemainder -= lines * lineHeight;
+    }
+  };
+
+  private resetTouchScroll = () => {
+    this.touchScrolling = false;
+    this.touchScrollRemainder = 0;
+  };
+
+  private attachTouchScrollHandlers() {
+    this.container?.addEventListener('touchstart', this.handleTerminalTouchStart, {
+      passive: true,
+    });
+    this.container?.addEventListener('touchmove', this.handleTerminalTouchMove, {
+      passive: false,
+    });
+    this.container?.addEventListener('touchend', this.resetTouchScroll, { passive: true });
+    this.container?.addEventListener('touchcancel', this.resetTouchScroll, { passive: true });
+  }
+
+  private detachTouchScrollHandlers() {
+    this.container?.removeEventListener('touchstart', this.handleTerminalTouchStart);
+    this.container?.removeEventListener('touchmove', this.handleTerminalTouchMove);
+    this.container?.removeEventListener('touchend', this.resetTouchScroll);
+    this.container?.removeEventListener('touchcancel', this.resetTouchScroll);
+  }
+
   private cleanup() {
     this.resizeObserver?.disconnect();
     this.resizeObserver = null;
+    this.detachTouchScrollHandlers();
 
     this.terminal?.dispose();
     this.terminal = null;
     this.fitAddon = null;
     this.container = null;
     this.pasteInput = null;
+    this.preservedScrollPosition = null;
   }
 
   private requestResize(source: string) {
@@ -341,17 +438,8 @@ export class Terminal extends LitElement {
     const proposed = this.fitAddon.proposeDimensions();
     if (!proposed) return;
 
-    let cols = this.computeConstrainedCols(proposed.cols);
+    const cols = this.computeConstrainedCols(proposed.cols);
     const rows = Math.max(6, Math.floor(proposed.rows));
-
-    if (
-      this.isMobile &&
-      this.mobileWidthResizeComplete &&
-      !this.userOverrideWidth &&
-      this.lastCols
-    ) {
-      cols = this.lastCols;
-    }
 
     const prevCols = this.lastCols || this.terminal.cols;
     const prevRows = this.lastRows || this.terminal.rows;
@@ -360,8 +448,6 @@ export class Terminal extends LitElement {
 
     this.requestResizeMeta(source);
     this.terminal.resize(cols, rows);
-
-    if (this.isMobile) this.mobileWidthResizeComplete = true;
   }
 
   private async initializeTerminal() {
@@ -422,6 +508,7 @@ export class Terminal extends LitElement {
       });
 
       term.onScroll(() => {
+        if (this.preservedScrollPosition !== null) return;
         const viewportFromBottom = term.getViewportY();
         this.followCursorEnabled = viewportFromBottom <= 0.5;
       });
@@ -432,6 +519,9 @@ export class Terminal extends LitElement {
 
       this.terminal = term;
       this.fitAddon = fitAddon;
+
+      // ghostty-web does not translate touch pans into scrollback movement.
+      this.attachTouchScrollHandlers();
 
       if (this.pendingOutput) {
         const pending = this.pendingOutput;
@@ -574,7 +664,8 @@ export class Terminal extends LitElement {
           height: 100%;
           overflow: hidden;
           font-family: ${TERMINAL_FONT_FAMILY};
-          touch-action: manipulation;
+          /* Own one-finger pans for scrollback while retaining two-finger page zoom. */
+          touch-action: pinch-zoom;
           -webkit-user-select: text;
           user-select: text;
         }
