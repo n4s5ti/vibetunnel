@@ -18,9 +18,11 @@ export class RemoteRegistry {
   private remotes: Map<string, RemoteServer> = new Map();
   private remotesByName: Map<string, RemoteServer> = new Map();
   private sessionToRemote: Map<string, string> = new Map(); // sessionId -> remoteId
+  private healthCheckFailures: WeakMap<RemoteServer, number> = new WeakMap();
   private healthCheckInterval: NodeJS.Timeout | null = null;
   private readonly HEALTH_CHECK_INTERVAL = 15000; // Check every 15 seconds
   private readonly HEALTH_CHECK_TIMEOUT = 5000; // 5 second timeout per check
+  private readonly MAX_CONSECUTIVE_FAILURES = 3;
 
   constructor() {
     this.startHealthChecker();
@@ -66,6 +68,7 @@ export class RemoteRegistry {
         this.sessionToRemote.delete(sessionId);
       }
 
+      this.healthCheckFailures.delete(remote);
       this.remotesByName.delete(remote.name);
       return this.remotes.delete(remoteId);
     }
@@ -154,9 +157,6 @@ export class RemoteRegistry {
     }
 
     try {
-      const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), this.HEALTH_CHECK_TIMEOUT);
-
       // Use the token provided by the remote for authentication
       const headers: Record<string, string> = {
         Authorization: `Bearer ${remote.token}`,
@@ -165,12 +165,21 @@ export class RemoteRegistry {
       // Only check health endpoint - all remotes MUST have it
       const response = await fetch(`${remote.url}/api/health`, {
         headers,
-        signal: controller.signal,
+        signal: AbortSignal.timeout(this.HEALTH_CHECK_TIMEOUT),
       });
 
-      clearTimeout(timeoutId);
-
       if (response.ok) {
+        if (this.remotes.get(remote.id) !== remote) {
+          return;
+        }
+
+        const failedChecks = this.healthCheckFailures.get(remote) ?? 0;
+        if (failedChecks > 0) {
+          logger.debug(
+            `remote ${remote.name} recovered after ${failedChecks} failed health checks`
+          );
+        }
+        this.healthCheckFailures.delete(remote);
         remote.lastHeartbeat = new Date();
         logger.debug(`health check passed for ${remote.name}`);
       } else {
@@ -178,10 +187,29 @@ export class RemoteRegistry {
       }
     } catch (error) {
       // During shutdown, don't log errors or unregister remotes
-      if (!isShuttingDown()) {
-        logger.warn(`remote failed health check: ${remote.name} (${remote.id})`, error);
-        // Remove the remote if it fails health check
+      if (isShuttingDown()) {
+        return;
+      }
+
+      if (this.remotes.get(remote.id) !== remote) {
+        return;
+      }
+
+      const failureCount = (this.healthCheckFailures.get(remote) ?? 0) + 1;
+      const maxFailures = this.MAX_CONSECUTIVE_FAILURES;
+      this.healthCheckFailures.set(remote, failureCount);
+
+      if (failureCount >= maxFailures) {
+        logger.warn(
+          `remote ${remote.name} (${remote.id}) failed ${failureCount}/${maxFailures} health checks, removing`,
+          error
+        );
         this.unregister(remote.id);
+      } else {
+        logger.warn(
+          `remote ${remote.name} (${remote.id}) failed health check ${failureCount}/${maxFailures}`,
+          error instanceof Error ? error.message : String(error)
+        );
       }
     }
   }
