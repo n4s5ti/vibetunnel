@@ -66,6 +66,45 @@ function existsSync(filePath: string): boolean {
   }
 }
 
+function buildShellCommandArgs(
+  shellPath: string,
+  command: string[],
+  interactive = false,
+  login = false
+): string[] {
+  const shellName = path
+    .basename(shellPath)
+    .toLowerCase()
+    .replace(/\.exe$/, '');
+  const [commandName, ...commandArgs] = command;
+  const shellArgs: string[] = [];
+
+  // Alias expansion requires a literal command word, so reject anything that could add shell syntax.
+  if (!/^[A-Za-z0-9_@%+,./:-]+$/.test(commandName)) {
+    throw new Error(`Unsafe shell fallback command name: ${commandName}`);
+  }
+
+  if (interactive) {
+    shellArgs.push(shellName === 'fish' ? '--interactive' : '-i');
+  }
+  // csh/tcsh only accept -l as the sole option, so it cannot be combined with -c.
+  if (login && shellName !== 'csh' && shellName !== 'tcsh') {
+    shellArgs.push(shellName === 'fish' ? '--login' : '-l');
+  }
+
+  if (shellName === 'csh' || shellName === 'tcsh') {
+    const argReferences = commandArgs.map((_, index) => `"$argv[${index + 1}]:q"`).join(' ');
+    const commandText = argReferences ? `${commandName} ${argReferences}` : commandName;
+    return [...shellArgs, '-c', commandText, '-b', ...commandArgs];
+  }
+
+  if (shellName === 'fish') {
+    return [...shellArgs, '-c', `${commandName} $argv`, ...commandArgs];
+  }
+
+  return [...shellArgs, '-c', `${commandName} "$@"`, '--', ...commandArgs];
+}
+
 /**
  * Check if a process is currently running by PID
  * Uses platform-appropriate methods for reliable detection
@@ -334,7 +373,7 @@ export function resolveCommand(command: string[]): {
         // Non-interactive command execution
         return {
           command: userShell,
-          args: ['-c', command.join(' ')],
+          args: buildShellCommandArgs(userShell, command),
           useShell: true,
           resolvedFrom: 'shell',
         };
@@ -342,7 +381,7 @@ export function resolveCommand(command: string[]): {
         // Interactive shell session
         return {
           command: userShell,
-          args: ['-i', '-c', command.join(' ')],
+          args: buildShellCommandArgs(userShell, command, true),
           useShell: true,
           resolvedFrom: 'shell',
           isInteractive: true,
@@ -380,7 +419,7 @@ export function resolveCommand(command: string[]): {
         // The -l flag makes it a login shell, ensuring profile/rc files are sourced
         return {
           command: userShell,
-          args: ['-i', '-l', '-c', command.join(' ')],
+          args: buildShellCommandArgs(userShell, command, true, true),
           useShell: true,
           resolvedFrom: 'alias',
         };
@@ -388,7 +427,7 @@ export function resolveCommand(command: string[]): {
         // No shell config found, use basic execution
         return {
           command: userShell,
-          args: ['-c', command.join(' ')],
+          args: buildShellCommandArgs(userShell, command),
           useShell: true,
           resolvedFrom: 'shell',
         };
@@ -397,7 +436,7 @@ export function resolveCommand(command: string[]): {
       // Interactive shell session: use -i and -l for proper initialization
       return {
         command: userShell,
-        args: ['-i', '-l', '-c', command.join(' ')],
+        args: buildShellCommandArgs(userShell, command, true, true),
         useShell: true,
         resolvedFrom: 'shell',
         isInteractive: true,
