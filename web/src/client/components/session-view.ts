@@ -99,6 +99,9 @@ export class SessionView extends LitElement {
 
   private instanceId = `session-view-${Math.random().toString(36).substr(2, 9)}`;
   private _updateTerminalTransformTimeout: ReturnType<typeof setTimeout> | null = null;
+  private mobileHardwareFocusTimeout: ReturnType<typeof setTimeout> | null = null;
+  private terminalInitializationTimeout: ReturnType<typeof setTimeout> | null = null;
+  private terminalInitializationFrame: number | null = null;
   // Measured height of the quick-keys bar; fed into --quickkeys-height so the terminal
   // reserves space for it instead of letting it cover the bottom rows.
   private quickKeysHeight = 0;
@@ -436,6 +439,18 @@ export class SessionView extends LitElement {
       clearTimeout(this._updateTerminalTransformTimeout);
       this._updateTerminalTransformTimeout = null;
     }
+    if (this.mobileHardwareFocusTimeout) {
+      clearTimeout(this.mobileHardwareFocusTimeout);
+      this.mobileHardwareFocusTimeout = null;
+    }
+    if (this.terminalInitializationTimeout) {
+      clearTimeout(this.terminalInitializationTimeout);
+      this.terminalInitializationTimeout = null;
+    }
+    if (this.terminalInitializationFrame !== null) {
+      cancelAnimationFrame(this.terminalInitializationFrame);
+      this.terminalInitializationFrame = null;
+    }
 
     // Use lifecycle event manager for teardown
     if (this.lifecycleEventManager) {
@@ -569,9 +584,17 @@ export class SessionView extends LitElement {
     const terminalElement = this.getTerminalElement();
     if (!terminalElement) {
       logger.log('Terminal element not found in DOM, deferring initialization');
+      if (this.terminalInitializationTimeout || this.terminalInitializationFrame !== null) {
+        return;
+      }
       // Retry after next render cycle with a small delay to ensure terminal-renderer has rendered
-      setTimeout(() => {
-        requestAnimationFrame(() => {
+      this.terminalInitializationTimeout = setTimeout(() => {
+        this.terminalInitializationTimeout = null;
+        this.terminalInitializationFrame = requestAnimationFrame(() => {
+          this.terminalInitializationFrame = null;
+          if (!this.isConnected) {
+            return;
+          }
           this.ensureTerminalInitialized();
         });
       }, 100);
@@ -770,12 +793,20 @@ export class SessionView extends LitElement {
   private handleTerminalClick(e: Event) {
     const uiState = this.uiStateManager.getState();
     if (uiState.isMobile) {
-      // Prevent the event from bubbling and default action
-      e.stopPropagation();
-      e.preventDefault();
+      const isLinkInteraction = e
+        .composedPath()
+        .some((target) => target instanceof Element && target.matches('a[href]'));
+      if (isLinkInteraction) {
+        return;
+      }
 
-      // Don't do anything - the hidden input should handle all interactions
-      // The click on the terminal is actually a click on the hidden input overlay
+      // Keep touchend observable by the document-level swipe-back handler.
+      if (e.type !== 'touchend') {
+        e.stopPropagation();
+        e.preventDefault();
+      }
+
+      this.scheduleMobileHardwareFocus();
       return;
     }
   }
@@ -796,6 +827,29 @@ export class SessionView extends LitElement {
     logger.log('Terminal ready event received');
     // Terminal is ready, ensure it's properly initialized
     this.ensureTerminalInitialized();
+
+    this.scheduleMobileHardwareFocus();
+  }
+
+  private scheduleMobileHardwareFocus() {
+    if (!this.uiStateManager.getState().isMobile) {
+      return;
+    }
+
+    if (this.mobileHardwareFocusTimeout) {
+      clearTimeout(this.mobileHardwareFocusTimeout);
+    }
+    this.mobileHardwareFocusTimeout = setTimeout(() => {
+      this.mobileHardwareFocusTimeout = null;
+      const activeElement = document.activeElement;
+      if (
+        this.isConnected &&
+        !this.disableFocusManagement &&
+        (activeElement === document.body || activeElement === document.documentElement)
+      ) {
+        this.focus();
+      }
+    }, 0);
   }
 
   private handleTerminalOutput(data: string) {

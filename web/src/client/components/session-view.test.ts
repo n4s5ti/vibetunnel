@@ -69,6 +69,9 @@ interface SessionViewTestInterface extends SessionView {
   inputManager: {
     cleanup: () => void;
   };
+  getTerminalElement: () => Terminal | null;
+  ensureTerminalInitialized: () => void;
+  handleTerminalClick: (event: Event) => void;
   updateTerminalTransform: () => void;
   _updateTerminalTransformTimeout: ReturnType<typeof setTimeout> | null;
 }
@@ -161,13 +164,13 @@ describe('SessionView', () => {
       const originalMatchMedia = window.matchMedia;
 
       Object.defineProperty(navigator, 'maxTouchPoints', {
-        value: 1,
+        value: 2,
         configurable: true,
       });
 
       // Mock matchMedia to simulate touch device
       window.matchMedia = (query: string) => {
-        if (query === '(any-pointer: coarse)') {
+        if (query === '(any-pointer: coarse)' || query === '(pointer: coarse)') {
           return {
             matches: true,
             media: query,
@@ -206,21 +209,124 @@ describe('SessionView', () => {
         return originalMatchMedia(query);
       };
 
-      const mobileElement = await fixture<SessionView>(html` <session-view></session-view> `);
+      let mobileElement: SessionView | undefined;
+      try {
+        // The default fixture can own focus. Remove it so terminal-ready starts from
+        // the same neutral document focus as a newly opened mobile session.
+        element.remove();
+        localStorage.setItem(
+          'vibetunnel_app_preferences',
+          JSON.stringify({ useDirectKeyboard: false })
+        );
+        mobileElement = await fixture<SessionView>(html` <session-view></session-view> `);
+        await mobileElement.updateComplete;
 
-      await mobileElement.updateComplete;
+        // Component detects mobile based on touch capabilities
+        const mobileTestElement = mobileElement as SessionViewTestInterface;
+        const uiState = mobileTestElement.uiStateManager.getState();
+        expect(uiState.isMobile).toBe(true);
+        expect(document.activeElement).not.toBe(mobileElement);
 
-      // Component detects mobile based on touch capabilities
-      const mobileTestElement = mobileElement as SessionViewTestInterface;
-      const uiState = mobileTestElement.uiStateManager.getState();
-      expect(uiState.isMobile).toBe(true);
+        const mockSession = createMockSession({
+          id: 'mobile-hardware-keyboard-session',
+          status: 'running',
+        });
+        mobileElement.session = mockSession;
+        await mobileElement.updateComplete;
+        const terminal = mobileElement.querySelector('vibe-terminal');
+        await vi.waitFor(() => expect(terminal?.getAttribute('data-ready')).toBe('true'));
+        await vi.waitFor(() => expect(document.activeElement).toBe(mobileElement));
 
-      // Restore original values
-      Object.defineProperty(navigator, 'maxTouchPoints', {
-        value: originalMaxTouchPoints,
-        configurable: true,
-      });
-      window.matchMedia = originalMatchMedia;
+        const terminalContainer = terminal?.querySelector('#terminal-container') as HTMLElement;
+        const pasteInput = terminal?.querySelector('.terminal-paste-input') as HTMLTextAreaElement;
+        pasteInput.focus();
+        terminalContainer.dispatchEvent(
+          new MouseEvent('click', { bubbles: true, cancelable: true })
+        );
+        await vi.waitFor(() => expect(document.activeElement).toBe(pasteInput));
+
+        pasteInput.dispatchEvent(
+          new KeyboardEvent('keydown', { key: 'x', bubbles: true, composed: true })
+        );
+        await vi.waitFor(() =>
+          expect(terminalSocketClientMock.sendInputText).toHaveBeenCalledWith(
+            'mobile-hardware-keyboard-session',
+            'x'
+          )
+        );
+      } finally {
+        mobileElement?.remove();
+        Object.defineProperty(navigator, 'maxTouchPoints', {
+          value: originalMaxTouchPoints,
+          configurable: true,
+        });
+        window.matchMedia = originalMatchMedia;
+      }
+    });
+
+    it('cancels deferred terminal initialization when disconnected', async () => {
+      vi.useFakeTimers();
+      const testElement = element as SessionViewTestInterface;
+      const getTerminalElementSpy = vi
+        .spyOn(testElement, 'getTerminalElement')
+        .mockReturnValue(null);
+      const requestAnimationFrameSpy = vi.spyOn(window, 'requestAnimationFrame');
+
+      try {
+        element.session = createMockSession({ status: 'running' });
+        testElement.ensureTerminalInitialized();
+        const frameCallsBeforeDisconnect = requestAnimationFrameSpy.mock.calls.length;
+
+        element.remove();
+        await vi.advanceTimersByTimeAsync(100);
+
+        expect(requestAnimationFrameSpy).toHaveBeenCalledTimes(frameCallsBeforeDisconnect);
+      } finally {
+        getTerminalElementSpy.mockRestore();
+        requestAnimationFrameSpy.mockRestore();
+        vi.useRealTimers();
+      }
+    });
+
+    it('leaves terminal touchend available to mobile swipe navigation', () => {
+      const testElement = element as SessionViewTestInterface;
+      testElement.uiStateManager.setIsMobile(true);
+      const touchEnd = new Event('touchend', { bubbles: true, cancelable: true });
+      const stopPropagation = vi.spyOn(touchEnd, 'stopPropagation');
+      const preventDefault = vi.spyOn(touchEnd, 'preventDefault');
+
+      testElement.handleTerminalClick(touchEnd);
+
+      expect(stopPropagation).not.toHaveBeenCalled();
+      expect(preventDefault).not.toHaveBeenCalled();
+      expect(touchEnd.defaultPrevented).toBe(false);
+    });
+
+    it('leaves mobile terminal links to native navigation', () => {
+      const testElement = element as SessionViewTestInterface;
+      testElement.uiStateManager.setIsMobile(true);
+      const anchor = document.createElement('a');
+      anchor.href = 'https://example.com';
+      const click = new MouseEvent('click', { bubbles: true, cancelable: true });
+      vi.spyOn(click, 'composedPath').mockReturnValue([anchor]);
+      const stopPropagation = vi.spyOn(click, 'stopPropagation');
+      const preventDefault = vi.spyOn(click, 'preventDefault');
+
+      testElement.handleTerminalClick(click);
+
+      expect(stopPropagation).not.toHaveBeenCalled();
+      expect(preventDefault).not.toHaveBeenCalled();
+      expect(click.defaultPrevented).toBe(false);
+    });
+
+    it('still consumes ordinary mobile terminal clicks', () => {
+      const testElement = element as SessionViewTestInterface;
+      testElement.uiStateManager.setIsMobile(true);
+      const click = new MouseEvent('click', { bubbles: true, cancelable: true });
+
+      testElement.handleTerminalClick(click);
+
+      expect(click.defaultPrevented).toBe(true);
     });
   });
 

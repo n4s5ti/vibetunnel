@@ -27,6 +27,11 @@ export type { LifecycleEventManagerCallbacks } from './interfaces.js';
 // Threshold for determining when keyboard is considered visible (in pixels)
 const KEYBOARD_VISIBLE_THRESHOLD = 50;
 
+function isFileBrowserShortcut(e: KeyboardEvent): boolean {
+  const hasSinglePrimaryModifier = e.metaKey !== e.ctrlKey;
+  return hasSinglePrimaryModifier && !e.shiftKey && !e.altKey && e.key.toLowerCase() === 'o';
+}
+
 export class LifecycleEventManager extends ManagerEventEmitter {
   private callbacks: LifecycleEventManagerCallbacks | null = null;
   private session: Session | null = null;
@@ -37,7 +42,7 @@ export class LifecycleEventManager extends ManagerEventEmitter {
 
   // Event listener tracking
   private keyboardListenerAdded = false;
-  private mobileEscapeListenerAdded = false;
+  private mobileKeyboardListenerAdded = false;
   private touchListenersAdded = false;
   private visualViewportHandler: (() => void) | null = null;
   private viewportTrackingHandler: (() => void) | null = null;
@@ -263,18 +268,17 @@ export class LifecycleEventManager extends ManagerEventEmitter {
       return;
     }
 
-    // Check if this is a browser shortcut we should allow FIRST before any other processing
-    const inputManager = this.callbacks.getInputManager();
-    if (inputManager?.isKeyboardShortcut(e)) {
-      // Let the browser handle this shortcut - don't call any preventDefault or stopPropagation
+    // App shortcuts take precedence over browser/system shortcut filtering.
+    if (isFileBrowserShortcut(e)) {
+      consumeEvent(e);
+      this.callbacks.setShowFileBrowser(true);
       return;
     }
 
-    // Handle Cmd+O / Ctrl+O to open file browser
-    if ((e.metaKey || e.ctrlKey) && e.key === 'o') {
-      // Stop propagation to prevent parent handlers from interfering with our file browser
-      consumeEvent(e);
-      this.callbacks.setShowFileBrowser(true);
+    // Check if this is a browser shortcut we should allow before terminal input processing.
+    const inputManager = this.callbacks.getInputManager();
+    if (inputManager?.isKeyboardShortcut(e)) {
+      // Let the browser handle this shortcut - don't call any preventDefault or stopPropagation
       return;
     }
 
@@ -303,9 +307,35 @@ export class LifecycleEventManager extends ManagerEventEmitter {
   };
 
   mobileHardwareKeyboardHandler = (e: KeyboardEvent): void => {
-    if (e.key === 'Escape') {
+    // The hidden mobile keyboard input still needs to expose app-level hardware shortcuts.
+    if (isFileBrowserShortcut(e)) {
       this.keyboardHandler(e);
+      return;
     }
+
+    // Mobile's hidden software-keyboard input owns its events. Route only hardware
+    // keyboard events that originate outside editable or interactive controls.
+    for (const target of e.composedPath()) {
+      const isTerminalKeyboardTarget =
+        target instanceof HTMLElement &&
+        (target.matches('textarea.terminal-paste-input') ||
+          (target.closest('vibe-terminal') !== null &&
+            target.matches(
+              'textarea, [contenteditable]:not([contenteditable="false"]), .terminal-container, vibe-terminal'
+            )));
+      if (
+        target instanceof HTMLElement &&
+        ((!isTerminalKeyboardTarget &&
+          target.matches(
+            'input, textarea, select, button, a[href], [role="button"], [role="link"], [contenteditable]:not([contenteditable="false"]), inline-edit'
+          )) ||
+          target.closest?.('.monaco-editor, [data-keybinding-context], .editor-container'))
+      ) {
+        return;
+      }
+    }
+
+    this.keyboardHandler(e);
   };
 
   touchStartHandler = (e: TouchEvent): void => {
@@ -535,9 +565,9 @@ export class LifecycleEventManager extends ManagerEventEmitter {
       document.addEventListener('keydown', this.keyboardHandler);
       this.keyboardListenerAdded = true;
     } else if (isMobile) {
-      if (!this.mobileEscapeListenerAdded) {
+      if (!this.mobileKeyboardListenerAdded) {
         document.addEventListener('keydown', this.mobileHardwareKeyboardHandler);
-        this.mobileEscapeListenerAdded = true;
+        this.mobileKeyboardListenerAdded = true;
       }
       if (!this.touchListenersAdded) {
         // Add touch event listeners for mobile swipe gestures
@@ -590,9 +620,9 @@ export class LifecycleEventManager extends ManagerEventEmitter {
       document.removeEventListener('keydown', this.keyboardHandler);
       this.keyboardListenerAdded = false;
     }
-    if (this.mobileEscapeListenerAdded) {
+    if (this.mobileKeyboardListenerAdded) {
       document.removeEventListener('keydown', this.mobileHardwareKeyboardHandler);
-      this.mobileEscapeListenerAdded = false;
+      this.mobileKeyboardListenerAdded = false;
     }
     if (this.touchListenersAdded) {
       // Remove touch event listeners
@@ -649,9 +679,9 @@ export class LifecycleEventManager extends ManagerEventEmitter {
       document.removeEventListener('keydown', this.keyboardHandler);
       this.keyboardListenerAdded = false;
     }
-    if (this.mobileEscapeListenerAdded) {
+    if (this.mobileKeyboardListenerAdded) {
       document.removeEventListener('keydown', this.mobileHardwareKeyboardHandler);
-      this.mobileEscapeListenerAdded = false;
+      this.mobileKeyboardListenerAdded = false;
     }
     if (this.touchListenersAdded) {
       // Remove touch event listeners
