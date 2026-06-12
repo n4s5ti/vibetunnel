@@ -36,27 +36,40 @@ describe('TailscaleServeService Integration Tests', () => {
   });
 
   describe('Exit Code Handling', () => {
-    it('correctly interprets exit code 0 as success', async () => {
-      // This test verifies the fix for the critical bug where exit code 0 was treated as failure
+    it('preserves configured state after a successful background command exit', () => {
+      const internals = service as unknown as {
+        currentPort: number | null;
+        isStarting: boolean;
+        serveProcess: { killed: boolean; kill: ReturnType<typeof vi.fn> } | null;
+        handleServeProcessExit(code: number | null, signal: NodeJS.Signals | null): void;
+      };
+      internals.currentPort = 43213;
+      internals.isStarting = false;
+      internals.serveProcess = { killed: true, kill: vi.fn() };
 
-      // Mock environment to test exit code logic without actually starting Tailscale
-      const originalEnv = process.env.VIBETUNNEL_TAILSCALE_ERROR;
+      internals.handleServeProcessExit(0, null);
 
-      try {
-        // Test successful status (no error environment variable)
-        delete process.env.VIBETUNNEL_TAILSCALE_ERROR;
+      expect(internals.serveProcess).toBeNull();
+      expect(internals.currentPort).toBe(43213);
+      expect(service.isRunning()).toBe(true);
+    });
 
-        const status = await service.getStatus();
+    it('clears configured state after a failed background command exit', () => {
+      const internals = service as unknown as {
+        currentPort: number | null;
+        isStarting: boolean;
+        serveProcess: { killed: boolean; kill: ReturnType<typeof vi.fn> } | null;
+        handleServeProcessExit(code: number | null, signal: NodeJS.Signals | null): void;
+      };
+      internals.currentPort = 43213;
+      internals.isStarting = false;
+      internals.serveProcess = { killed: true, kill: vi.fn() };
 
-        // If there's no explicit error set, the service should report based on actual state
-        expect(typeof status.isRunning).toBe('boolean');
-        expect(status.lastError === undefined || typeof status.lastError === 'string').toBe(true);
-      } finally {
-        // Restore original environment
-        if (originalEnv !== undefined) {
-          process.env.VIBETUNNEL_TAILSCALE_ERROR = originalEnv;
-        }
-      }
+      internals.handleServeProcessExit(1, null);
+
+      expect(internals.serveProcess).toBeNull();
+      expect(internals.currentPort).toBeNull();
+      expect(service.isRunning()).toBe(false);
     });
 
     it('handles error states correctly', async () => {
@@ -76,6 +89,62 @@ describe('TailscaleServeService Integration Tests', () => {
   });
 
   describe('Status Verification', () => {
+    it('reports a clean idle status before Serve has been configured', async () => {
+      const internals = service as unknown as {
+        currentPort: number | null;
+        verifyServeConfiguration(port: number): Promise<boolean>;
+        checkServeAvailability(): Promise<string>;
+      };
+      internals.currentPort = null;
+      internals.verifyServeConfiguration = vi.fn().mockResolvedValue(false);
+      internals.checkServeAvailability = vi.fn().mockResolvedValue('');
+      delete process.env.VIBETUNNEL_SKIP_TAILSCALE;
+
+      try {
+        await expect(service.getStatus()).resolves.toMatchObject({
+          isRunning: false,
+          port: undefined,
+          lastError: undefined,
+        });
+      } finally {
+        process.env.VIBETUNNEL_SKIP_TAILSCALE = '1';
+      }
+    });
+
+    it.each([
+      { desiredFunnel: false, funnelEnabled: false, mode: 'private' },
+      { desiredFunnel: true, funnelEnabled: true, mode: 'public' },
+    ])('reports stopped in $mode mode when the persistent proxy configuration disappears', async ({
+      desiredFunnel,
+      funnelEnabled,
+    }) => {
+      const internals = service as unknown as {
+        currentPort: number | null;
+        desiredFunnel: boolean;
+        funnelEnabled: boolean;
+        isStarting: boolean;
+        verifyServeConfiguration(port: number): Promise<boolean>;
+        checkServeAvailability(): Promise<string>;
+      };
+      internals.currentPort = 43213;
+      internals.desiredFunnel = desiredFunnel;
+      internals.funnelEnabled = funnelEnabled;
+      internals.isStarting = false;
+      internals.verifyServeConfiguration = vi.fn().mockResolvedValue(false);
+      internals.checkServeAvailability = vi.fn().mockResolvedValue('');
+      delete process.env.VIBETUNNEL_SKIP_TAILSCALE;
+
+      try {
+        await expect(service.getStatus()).resolves.toMatchObject({
+          isRunning: false,
+          port: undefined,
+          lastError: 'Tailscale Serve proxy not configured for this port',
+        });
+      } finally {
+        process.env.VIBETUNNEL_SKIP_TAILSCALE = '1';
+      }
+    });
+
     it('provides consistent status information', async () => {
       const status = await service.getStatus();
 
