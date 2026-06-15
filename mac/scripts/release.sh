@@ -487,7 +487,7 @@ if [[ "$DRY_RUN" == "true" ]]; then
     echo "🔨 Would build ARM64 binary with:"
     echo "   Configuration: Release"
     echo "   IS_PRERELEASE_BUILD: $([ "$RELEASE_TYPE" != "stable" ] && echo "YES" || echo "NO")"
-    echo "   Command: $SCRIPT_DIR/build.sh --configuration Release --arch arm64"
+    echo "   Command: $SCRIPT_DIR/build.sh --configuration Release --arch arm64 --no-sign"
     echo ""
     echo "   Would verify:"
     echo "   - App exists at expected path"
@@ -533,7 +533,7 @@ else
     # Build ARM64 binary
     echo ""
     echo "🔨 Building ARM64 binary..."
-    "$SCRIPT_DIR/build.sh" --configuration Release --arch arm64
+    "$SCRIPT_DIR/build.sh" --configuration Release --arch arm64 --no-sign
     
     # Find the built app - could be in build directory or DerivedData
     APP_PATH="$PROJECT_ROOT/build/Build/Products/Release/VibeTunnel.app"
