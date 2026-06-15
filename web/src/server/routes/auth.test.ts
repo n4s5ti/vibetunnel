@@ -50,6 +50,57 @@ describe('Auth Routes', () => {
 
   afterEach(() => {
     vi.clearAllMocks();
+    vi.unstubAllEnvs();
+  });
+
+  describe('GET /api/auth/config', () => {
+    it('should report system password authentication by default', async () => {
+      vi.stubEnv('VIBETUNNEL_USERNAME', '');
+      vi.stubEnv('VIBETUNNEL_PASSWORD', '');
+      app.use('/api/auth', createAuthRoutes({ authService: mockAuthService }));
+
+      const response = await request(app).get('/api/auth/config');
+
+      expect(response.status).toBe(200);
+      expect(response.body.passwordAuthMode).toBe('system');
+      expect(response.body).not.toHaveProperty('passwordUserId');
+    });
+
+    it('should report configured password authentication when both credentials are set', async () => {
+      vi.stubEnv('VIBETUNNEL_USERNAME', 'configured-user');
+      vi.stubEnv('VIBETUNNEL_PASSWORD', 'configured-password');
+      app.use('/api/auth', createAuthRoutes({ authService: mockAuthService }));
+
+      const response = await request(app).get('/api/auth/config');
+
+      expect(response.status).toBe(200);
+      expect(response.body.passwordAuthMode).toBe('configured');
+      expect(response.body).not.toHaveProperty('passwordUserId');
+    });
+  });
+
+  describe('POST /api/auth/password', () => {
+    it('should keep the configured username server-side', async () => {
+      vi.stubEnv('VIBETUNNEL_USERNAME', 'configured-user');
+      vi.stubEnv('VIBETUNNEL_PASSWORD', 'configured-password');
+      mockAuthService.authenticateWithPassword = vi.fn().mockResolvedValue({
+        success: true,
+        userId: 'configured-user',
+        token: 'test-token',
+      });
+      app.use('/api/auth', createAuthRoutes({ authService: mockAuthService }));
+
+      const response = await request(app).post('/api/auth/password').send({
+        userId: 'system-user',
+        password: 'configured-password',
+      });
+
+      expect(response.status).toBe(200);
+      expect(mockAuthService.authenticateWithPassword).toHaveBeenCalledWith(
+        'configured-user',
+        'configured-password'
+      );
+    });
   });
 
   describe('POST /api/auth/tailscale-token', () => {

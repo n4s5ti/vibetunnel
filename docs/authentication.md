@@ -169,7 +169,11 @@ npm run dev -- --no-auth
 
 ### Password Authentication
 - Uses system PAM authentication
-- Validates against actual system user passwords
+- Uses the configured VibeTunnel username and password instead when both `VIBETUNNEL_USERNAME` and `VIBETUNNEL_PASSWORD` are set
+- Sends the password to the VibeTunnel host over the current connection for verification
+- Does not persist the password
+- Use an encrypted connection; SSH key mode avoids sending a password through the browser
+- Otherwise validates against actual system user passwords
 - JWT tokens expire after 24 hours
 - Secure session management
 

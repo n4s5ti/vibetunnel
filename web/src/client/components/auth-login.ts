@@ -22,6 +22,7 @@ export class AuthLogin extends LitElement {
     enableSSHKeys: false,
     disallowUserPassword: false,
     noAuth: false,
+    passwordAuthMode: 'system' as 'system' | 'configured',
   };
   @state() private isMobile = false;
   private unsubscribeResponsive?: () => void;
@@ -149,6 +150,10 @@ export class AuthLogin extends LitElement {
     this.dispatchEvent(new CustomEvent('open-settings'));
   };
 
+  private get usesConfiguredPassword(): boolean {
+    return this.authConfig.passwordAuthMode === 'configured';
+  }
+
   render() {
     console.log(
       '🔍 Rendering auth login',
@@ -267,11 +272,28 @@ export class AuthLogin extends LitElement {
                     </div>
                     <form @submit=${this.handlePasswordLogin} class="space-y-3">
                       <div>
+                        <label
+                          for="system-password"
+                          class="block text-xs font-medium text-text mb-1.5"
+                        >
+                          ${
+                            this.usesConfiguredPassword
+                              ? 'Configured VibeTunnel password'
+                              : 'Computer login password'
+                          }
+                        </label>
                         <input
+                          id="system-password"
                           type="password"
                           class="input-field"
                           data-testid="password-input"
-                          placeholder="System Password"
+                          placeholder=${
+                            this.usesConfiguredPassword
+                              ? 'Enter the configured password'
+                              : 'Enter your login password'
+                          }
+                          autocomplete="current-password"
+                          aria-describedby="password-help"
                           .value=${this.loginPassword}
                           @input=${(e: Event) => {
                             this.loginPassword = (e.target as HTMLInputElement).value;
@@ -279,6 +301,19 @@ export class AuthLogin extends LitElement {
                           ?disabled=${this.loading}
                           required
                         />
+                        <p
+                          id="password-help"
+                          class="mt-2 text-xs leading-relaxed text-text-muted"
+                        >
+                          ${
+                            this.usesConfiguredPassword
+                              ? 'Sent to the VibeTunnel host for verification.'
+                              : 'Sent to the VibeTunnel host for operating system verification.'
+                          }
+                          VibeTunnel does not save it. To avoid entering
+                          ${this.usesConfiguredPassword ? 'a password' : 'your computer password'}
+                          in the browser, enable SSH Keys in VibeTunnel Settings &gt; Remote.
+                        </p>
                       </div>
                       <button
                         type="submit"
@@ -286,7 +321,13 @@ export class AuthLogin extends LitElement {
                         data-testid="password-submit"
                         ?disabled=${this.loading || !this.loginPassword}
                       >
-                        ${this.loading ? 'Authenticating...' : 'Login with Password'}
+                        ${
+                          this.loading
+                            ? 'Authenticating...'
+                            : this.usesConfiguredPassword
+                              ? 'Log in with configured password'
+                              : 'Log in with computer password'
+                        }
                       </button>
                     </form>
                   </div>
