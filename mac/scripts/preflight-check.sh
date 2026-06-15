@@ -326,12 +326,12 @@ else
     check_fail "Sparkle public key file not found at $PUBLIC_KEY_FILE"
 fi
 
-# Check private key in keychain
-export PATH="$HOME/.local/bin:$PATH"
-if command -v generate_keys &> /dev/null && generate_keys -p &>/dev/null; then
-    check_pass "Sparkle private key found in Keychain"
+# Check the file-based private key used by generate-appcast.sh.
+SPARKLE_PRIVATE_KEY_PATH="${SPARKLE_PRIVATE_KEY_PATH:-$PROJECT_ROOT/private/sparkle_ed_private_key}"
+if [[ -s "$SPARKLE_PRIVATE_KEY_PATH" ]]; then
+    check_pass "Sparkle private key file found"
 else
-    check_fail "Sparkle private key not found in Keychain - run: generate_keys"
+    check_fail "Sparkle private key file not found at $SPARKLE_PRIVATE_KEY_PATH"
 fi
 
 echo ""
