@@ -560,6 +560,9 @@ fn defaultLogPath(allocator: std.mem.Allocator, home: []const u8) ![]const u8 {
 }
 
 fn controlPath(allocator: std.mem.Allocator, home: []const u8) ![]const u8 {
+    if (getenv("VIBETUNNEL_CONTROL_DIR")) |val| {
+        return allocator.dupe(u8, val);
+    }
     if (home.len == 0) return allocator.dupe(u8, "./.vibetunnel/control");
     return std.fs.path.join(allocator, &.{ home, ".vibetunnel", "control" });
 }

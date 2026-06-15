@@ -110,6 +110,7 @@ describe('Terminal', () => {
       expect(terminal).toBeDefined();
       // Should mount into the container
       expect(terminal.open).toHaveBeenCalled();
+      expect(terminal.clear).toHaveBeenCalledOnce();
       expect(element.getAttribute('data-ready')).toBe('true');
     });
 

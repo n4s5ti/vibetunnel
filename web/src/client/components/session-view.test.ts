@@ -8,6 +8,7 @@ import {
   setupFetchMock,
   setViewport,
   waitForAsync,
+  waitForCondition,
 } from '@/test/utils/component-helpers';
 import { createMockSession } from '@/test/utils/lit-test-utils';
 import { resetFactoryCounters } from '@/test/utils/test-factories';
@@ -347,6 +348,28 @@ describe('SessionView', () => {
       const terminal = element.querySelector('vibe-terminal') as TerminalTestInterface;
       expect(terminal).toBeTruthy();
       expect(terminal?.sessionId).toBe('test-session-123');
+    });
+
+    it('replaces the terminal when switching sessions', async () => {
+      element.session = createMockSession({ id: 'first-session' });
+      await element.updateComplete;
+      const firstTerminal = element.querySelector('vibe-terminal');
+      const terminalLifecycleManager = (element as SessionViewTestInterface)
+        .terminalLifecycleManager;
+      await waitForCondition(() => terminalLifecycleManager?.getTerminal() === firstTerminal, {
+        message: 'first terminal was not initialized',
+      });
+
+      element.session = createMockSession({ id: 'second-session' });
+      await element.updateComplete;
+      const secondTerminal = element.querySelector('vibe-terminal') as TerminalTestInterface;
+      await waitForCondition(() => terminalLifecycleManager?.getTerminal() === secondTerminal, {
+        message: 'replacement terminal was not initialized',
+      });
+
+      expect(secondTerminal).toBeTruthy();
+      expect(secondTerminal).not.toBe(firstTerminal);
+      expect(secondTerminal.sessionId).toBe('second-session');
     });
 
     it('should show loading state while connecting', async () => {

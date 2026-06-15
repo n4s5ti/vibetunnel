@@ -453,13 +453,15 @@ export class Terminal extends LitElement {
   private async initializeTerminal() {
     if (this.terminal) return;
 
-    this.container = this.querySelector(
+    const container = this.querySelector(
       `#${TERMINAL_IDS.TERMINAL_CONTAINER}`
     ) as HTMLElement | null;
-    if (!this.container) return;
+    if (!container) return;
+    this.container = container;
 
     try {
       const ghostty = await ensureGhostty();
+      if (!this.isConnected || this.container !== container) return;
 
       const term = new GhosttyTerminal({
         cols: this.cols,
@@ -514,12 +516,16 @@ export class Terminal extends LitElement {
       });
 
       // Fresh mount
-      this.container.innerHTML = '';
-      term.open(this.container);
+      container.innerHTML = '';
+      term.open(container);
       term.registerLinkProvider(new KeyboardShortcutLinkProvider(term, this.handleShortcutClick));
 
       this.terminal = term;
       this.fitAddon = fitAddon;
+
+      // Size first, then initialize every cell; ghostty-web can reuse uncleared WASM memory.
+      this.fitTerminal('initial');
+      term.clear();
 
       // ghostty-web does not translate touch pans into scrollback movement.
       this.attachTouchScrollHandlers();
@@ -538,7 +544,7 @@ export class Terminal extends LitElement {
 
       this.setAttribute('data-ready', 'true');
 
-      // Initial fit after open
+      // Follow up after layout settles; this should normally be a no-op.
       this.requestResize('initial');
 
       this.dispatchEvent(new CustomEvent('terminal-ready', { bubbles: true }));

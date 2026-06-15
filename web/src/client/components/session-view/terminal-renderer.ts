@@ -6,6 +6,7 @@
  */
 import { html, LitElement } from 'lit';
 import { customElement, property } from 'lit/decorators.js';
+import { keyed } from 'lit/directives/keyed.js';
 import type { Session } from '../../../shared/types.js';
 import type { TerminalThemeId } from '../../utils/terminal-themes.js';
 import '../terminal.js';
@@ -46,7 +47,7 @@ export class TerminalRenderer extends LitElement {
       return html``;
     }
 
-    return html`
+    const terminal = html`
       <vibe-terminal
         .sessionId=${this.session.id || ''}
         .sessionStatus=${this.session.status || 'running'}
@@ -68,6 +69,7 @@ export class TerminalRenderer extends LitElement {
         @terminal-ready=${(e: Event) => this.handleTerminalReady(e)}
       ></vibe-terminal>
     `;
+    return keyed(this.session.id, terminal);
   }
 
   private handleClick(e: Event) {

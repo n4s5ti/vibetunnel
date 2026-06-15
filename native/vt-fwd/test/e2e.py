@@ -39,19 +39,21 @@ def main():
     binary = Path(sys.argv[1]).resolve()
     with tempfile.TemporaryDirectory(prefix="vt-", dir="/tmp") as root:
         home = Path(root)
+        control_dir = home / "custom-control"
         env = os.environ.copy()
         env["HOME"] = str(home)
+        env["VIBETUNNEL_CONTROL_DIR"] = str(control_dir)
         env["VIBETUNNEL_LOG_LEVEL"] = "debug"
 
-        test_exit_and_artifacts(binary, home, env)
-        test_binary_output(binary, home, env)
-        test_ipc(binary, home, env)
+        test_exit_and_artifacts(binary, control_dir, env)
+        test_binary_output(binary, control_dir, env)
+        test_ipc(binary, control_dir, env)
 
         log_path = home / ".vibetunnel/log.txt"
         assert stat.S_IMODE(log_path.stat().st_mode) == 0o600
 
 
-def test_exit_and_artifacts(binary, home, env):
+def test_exit_and_artifacts(binary, control_dir, env):
     session_id = "basic_exit"
     proc = subprocess.Popen(
         [binary, "--session-id", session_id, "/bin/sh", "-c", 'printf "hello\\n"; exit 7'],
@@ -64,7 +66,7 @@ def test_exit_and_artifacts(binary, home, env):
     assert proc.returncode == 7, (proc.returncode, stderr)
     assert b"hello" in output
 
-    session_dir = home / ".vibetunnel/control" / session_id
+    session_dir = control_dir / session_id
     info = json.loads((session_dir / "session.json").read_text())
     assert info["status"] == "exited" and info["exitCode"] == 7
     assert read_cast(session_dir / "stdout")[-1] == ["exit", 7, session_id]
@@ -76,7 +78,7 @@ def test_exit_and_artifacts(binary, home, env):
     assert not (session_dir / "ipc.sock").exists()
 
 
-def test_binary_output(binary, home, env):
+def test_binary_output(binary, control_dir, env):
     session_id = "binary_output"
     code = 'import os; os.write(1, bytes(range(256)) + b"\\nDONE\\n")'
     proc = subprocess.Popen(
@@ -90,7 +92,7 @@ def test_binary_output(binary, home, env):
     assert proc.returncode == 0, (proc.returncode, stderr)
     assert b"DONE" in output and len(output) >= 256
 
-    rows = read_cast(home / ".vibetunnel/control" / session_id / "stdout")
+    rows = read_cast(control_dir / session_id / "stdout")
     assert rows[-1] == ["exit", 0, session_id]
     output_text = "".join(
         row[2] for row in rows if isinstance(row, list) and len(row) == 3 and row[1] == "o"
@@ -98,9 +100,9 @@ def test_binary_output(binary, home, env):
     assert "DONE" in output_text and "\ufffd" in output_text
 
 
-def test_ipc(binary, home, env):
+def test_ipc(binary, control_dir, env):
     session_id = "ipc_control"
-    session_dir = home / ".vibetunnel/control" / session_id
+    session_dir = control_dir / session_id
     proc = subprocess.Popen(
         [
             binary,

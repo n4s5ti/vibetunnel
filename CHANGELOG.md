@@ -23,6 +23,8 @@
 - Default macOS build script to universal binaries with optional arch override (via [@rothnic](https://github.com/rothnic)) (#557)
 
 ### 🐛 Bug Fixes
+- Honor custom control directories in the Zig forwarder and repair incomplete Linux Node.js toolchains during bootstrap.
+- Prevent terminal output from a previous session appearing after switching sessions in the web app.
 - Detect nix-darwin and other CLI-based Tailscale installations, including daemon status when the macOS app API is unavailable (reported by [@teehemkay](https://github.com/teehemkay)) (#259)
 - Enable native autocorrect for mobile Chat Mode while preserving case-sensitive terminal input and keeping command spellcheck disabled (reported by [@patrickjm](https://github.com/patrickjm)) (#423)
 - Require macOS releases to rebuild the server with the trimmed Node.js runtime instead of silently embedding the full system binary (#271)

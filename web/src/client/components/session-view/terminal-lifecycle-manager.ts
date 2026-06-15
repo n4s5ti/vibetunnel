@@ -285,5 +285,25 @@ export class TerminalLifecycleManager {
       clearTimeout(this.resizeTimeout);
       this.resizeTimeout = null;
     }
+
+    if (this.terminal && this.eventHandlers) {
+      this.terminal.removeEventListener(
+        'session-exit',
+        this.eventHandlers.handleSessionExit as EventListener
+      );
+      this.terminal.removeEventListener(
+        'terminal-resize',
+        this.eventHandlers.handleTerminalResize as EventListener
+      );
+      this.terminal.removeEventListener(
+        'terminal-paste',
+        this.eventHandlers.handleTerminalPaste as EventListener
+      );
+    }
+
+    this.terminal = null;
+    this.connectionManager?.setTerminal(null);
+    this.lastResizeWidth = 0;
+    this.lastResizeHeight = 0;
   }
 }

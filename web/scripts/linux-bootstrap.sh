@@ -27,7 +27,9 @@ ${SUDO} apt-get install -y -qq \
 
 # Checksum-verified Node.js 24.x release if missing or too old.
 need_node=1
-if command -v node >/dev/null 2>&1; then
+if command -v node >/dev/null 2>&1 \
+  && command -v npm >/dev/null 2>&1 \
+  && command -v corepack >/dev/null 2>&1; then
   node_major="$(node -p 'process.versions.node.split(".")[0]')"
   node_minor="$(node -p 'process.versions.node.split(".")[1]')"
   if [ "$node_major" -gt 22 ] || { [ "$node_major" -eq 22 ] && [ "$node_minor" -ge 12 ]; }; then
