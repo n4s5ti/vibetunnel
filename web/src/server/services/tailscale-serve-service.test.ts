@@ -1,5 +1,12 @@
+import { chmod, mkdtemp, rm, writeFile } from 'fs/promises';
+import { tmpdir } from 'os';
+import { join } from 'path';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { TailscaleServeServiceImpl } from './tailscale-serve-service.js';
+import {
+  findTailscaleExecutable,
+  getTailscaleSearchPaths,
+  TailscaleServeServiceImpl,
+} from './tailscale-serve-service.js';
 
 // Mock the logger
 vi.mock('../../server/utils/logger.js', () => ({
@@ -33,6 +40,37 @@ describe('TailscaleServeService Integration Tests', () => {
       process.env.VIBETUNNEL_SKIP_TAILSCALE = originalSkipTailscale;
     }
     vi.clearAllMocks();
+  });
+
+  describe('Executable discovery', () => {
+    it('includes nix-darwin system and user profile paths', () => {
+      expect(
+        getTailscaleSearchPaths('darwin', {
+          USER: 'alice',
+          HOME: '/Users/alice',
+        })
+      ).toEqual(
+        expect.arrayContaining([
+          '/run/current-system/sw/bin/tailscale',
+          '/etc/profiles/per-user/alice/bin/tailscale',
+          '/Users/alice/.nix-profile/bin/tailscale',
+        ])
+      );
+    });
+
+    it('resolves an executable from an explicit path outside PATH', async () => {
+      const directory = await mkdtemp(join(tmpdir(), 'vibetunnel-tailscale-'));
+      const executablePath = join(directory, 'tailscale');
+
+      try {
+        await writeFile(executablePath, '#!/bin/sh\nexit 0\n');
+        await chmod(executablePath, 0o755);
+
+        await expect(findTailscaleExecutable([executablePath])).resolves.toBe(executablePath);
+      } finally {
+        await rm(directory, { recursive: true, force: true });
+      }
+    });
   });
 
   describe('Exit Code Handling', () => {
@@ -92,10 +130,12 @@ describe('TailscaleServeService Integration Tests', () => {
     it('reports a clean idle status before Serve has been configured', async () => {
       const internals = service as unknown as {
         currentPort: number | null;
+        getExecutablePath(): Promise<string>;
         verifyServeConfiguration(port: number): Promise<boolean>;
         checkServeAvailability(): Promise<string>;
       };
       internals.currentPort = null;
+      internals.getExecutablePath = vi.fn().mockRejectedValue(new Error('Tailscale not installed'));
       internals.verifyServeConfiguration = vi.fn().mockResolvedValue(false);
       internals.checkServeAvailability = vi.fn().mockResolvedValue('');
       delete process.env.VIBETUNNEL_SKIP_TAILSCALE;
