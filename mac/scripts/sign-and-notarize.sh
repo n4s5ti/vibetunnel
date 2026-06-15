@@ -78,7 +78,7 @@ read_credentials() {
     local api_key_p8="${APP_STORE_CONNECT_API_KEY_P8:-}"
     local api_key_id="${APP_STORE_CONNECT_KEY_ID:-}"
     local api_key_issuer="${APP_STORE_CONNECT_ISSUER_ID:-}"
-    local sign_identity="${SIGN_IDENTITY:-Developer ID Application}"
+    local sign_identity="${SIGN_IDENTITY:-}"
     
     # Save original arguments for explicit flag detection
     local original_args=("$@")

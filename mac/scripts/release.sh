@@ -620,7 +620,7 @@ if [[ "$DRY_RUN" == "true" ]]; then
     exit 0
 fi
 
-"$SCRIPT_DIR/sign-and-notarize.sh" --sign-and-notarize
+env -u SIGN_IDENTITY "$SCRIPT_DIR/sign-and-notarize.sh" --sign-and-notarize
 
 # Verify Sparkle component signing
 echo ""
