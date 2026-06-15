@@ -79,6 +79,7 @@ export class Terminal extends LitElement {
 
   private pendingResizeSource: string | null = null;
   private pendingResizePrev: { cols: number; rows: number } | null = null;
+  private initializationId = 0;
 
   connectedCallback() {
     const prefs = TerminalPreferencesManager.getInstance();
@@ -104,6 +105,11 @@ export class Terminal extends LitElement {
       attributes: true,
       attributeFilter: ['data-theme'],
     });
+
+    if (this.hasUpdated && !this.terminal) {
+      this.pasteInput = this.querySelector('.terminal-paste-input') as HTMLTextAreaElement | null;
+      this.initializeTerminal();
+    }
   }
 
   disconnectedCallback() {
@@ -350,6 +356,7 @@ export class Terminal extends LitElement {
   }
 
   private cleanup() {
+    this.initializationId++;
     this.resizeObserver?.disconnect();
     this.resizeObserver = null;
     this.detachTouchScrollHandlers();
@@ -452,6 +459,7 @@ export class Terminal extends LitElement {
 
   private async initializeTerminal() {
     if (this.terminal) return;
+    const initializationId = ++this.initializationId;
 
     const container = this.querySelector(
       `#${TERMINAL_IDS.TERMINAL_CONTAINER}`
@@ -461,7 +469,12 @@ export class Terminal extends LitElement {
 
     try {
       const ghostty = await ensureGhostty();
-      if (!this.isConnected || this.container !== container) return;
+      if (
+        initializationId !== this.initializationId ||
+        !this.isConnected ||
+        this.container !== container
+      )
+        return;
 
       const term = new GhosttyTerminal({
         cols: this.cols,

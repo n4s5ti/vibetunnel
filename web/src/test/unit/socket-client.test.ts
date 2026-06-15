@@ -363,6 +363,41 @@ describe('VibeTunnelSocketClient', () => {
 
       client.disconnect();
     });
+
+    it('discards a partial frame before reconnecting', async () => {
+      const client = new VibeTunnelSocketClient(socketPath);
+      const statusHandler = vi.fn();
+      client.on('STATUS_UPDATE', statusHandler);
+      await client.connect();
+
+      const staleMessage = frameMessage(MessageType.STATUS_UPDATE, {
+        app: 'stale',
+        status: 'partial',
+      });
+      serverConnections[0].write(staleMessage.subarray(0, 8));
+
+      const disconnected = new Promise<void>((resolve) => {
+        client.once('disconnect', () => resolve());
+      });
+      serverConnections[0].destroy();
+      await disconnected;
+      await client.connect();
+
+      const freshMessage = frameMessage(MessageType.STATUS_UPDATE, {
+        app: 'fresh',
+        status: 'connected',
+      });
+      serverConnections[1].write(freshMessage);
+      await new Promise((resolve) => setTimeout(resolve, 20));
+
+      expect(statusHandler).toHaveBeenCalledOnce();
+      expect(statusHandler).toHaveBeenCalledWith({
+        app: 'fresh',
+        status: 'connected',
+      });
+
+      client.disconnect();
+    });
   });
 
   describe('Heartbeat', () => {

@@ -23,6 +23,7 @@
 - Default macOS build script to universal binaries with optional arch override (via [@rothnic](https://github.com/rothnic)) (#557)
 
 ### 🐛 Bug Fixes
+- Harden terminal/chat reconnects, Unix socket framing, tunnel startup, Git event fallback, Linux process parsing, and multi-setting config updates against stale or partial state.
 - Honor custom control directories in the Zig forwarder and repair incomplete Linux Node.js toolchains during bootstrap.
 - Prevent terminal output from a previous session appearing after switching sessions in the web app.
 - Detect nix-darwin and other CLI-based Tailscale installations, including daemon status when the macOS app API is unavailable (reported by [@teehemkay](https://github.com/teehemkay)) (#259)

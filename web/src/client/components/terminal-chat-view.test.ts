@@ -14,6 +14,7 @@ describe('TerminalChatView', () => {
 
   afterEach(() => {
     component.remove();
+    vi.useRealTimers();
   });
 
   it('enables native autocorrect for its delta-reconciling input', () => {
@@ -38,5 +39,51 @@ describe('TerminalChatView', () => {
 
     expect(onSend).toHaveBeenNthCalledWith(1, 'git chek');
     expect(onSend).toHaveBeenNthCalledWith(2, '\x7fck');
+  });
+
+  it('preserves identical repeated output lines', () => {
+    const testComponent = component as unknown as {
+      processTerminalOutput(data: string): void;
+      messages: Array<{ content: string }>;
+    };
+
+    testComponent.processTerminalOutput('same line\nsame line');
+
+    expect(testComponent.messages).toHaveLength(1);
+    expect(testComponent.messages[0].content).toBe('same line\nsame line');
+  });
+
+  it('replaces the terminal output subscription when its source changes', async () => {
+    const firstUnsubscribe = vi.fn();
+    const secondUnsubscribe = vi.fn();
+    const firstSubscribe = vi.fn(() => firstUnsubscribe);
+    const secondSubscribe = vi.fn(() => secondUnsubscribe);
+
+    component.subscribeToOutput = firstSubscribe;
+    await component.updateComplete;
+    component.subscribeToOutput = secondSubscribe;
+    await component.updateComplete;
+
+    expect(firstSubscribe).toHaveBeenCalledOnce();
+    expect(firstUnsubscribe).toHaveBeenCalledOnce();
+    expect(secondSubscribe).toHaveBeenCalledOnce();
+
+    component.remove();
+    expect(secondUnsubscribe).toHaveBeenCalledOnce();
+  });
+
+  it('cancels delayed terminal sync when chat mode is deactivated', async () => {
+    vi.useFakeTimers();
+    const getTerminalInputLine = vi.fn(() => '');
+    component.getTerminalInputLine = getTerminalInputLine;
+    component.active = true;
+    await component.updateComplete;
+
+    const callsBeforeDeactivation = getTerminalInputLine.mock.calls.length;
+    component.active = false;
+    await component.updateComplete;
+    await vi.advanceTimersByTimeAsync(500);
+
+    expect(getTerminalInputLine).toHaveBeenCalledTimes(callsBeforeDeactivation);
   });
 });

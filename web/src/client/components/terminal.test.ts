@@ -114,6 +114,27 @@ describe('Terminal', () => {
       expect(element.getAttribute('data-ready')).toBe('true');
     });
 
+    it('reinitializes once when the same element reconnects', async () => {
+      const firstTerminal = mockTerminal;
+      const readyHandler = vi.fn();
+      element.addEventListener('terminal-ready', readyHandler);
+
+      element.remove();
+      element.removeAttribute('data-ready');
+      document.body.appendChild(element);
+
+      await waitForCondition(() => element.getAttribute('data-ready') === 'true', {
+        message: 'terminal not ready after reconnect',
+      });
+
+      const reconnectedTerminal = (element as unknown as { terminal: MockTerminal | null })
+        .terminal;
+      expect(firstTerminal?.dispose).toHaveBeenCalledOnce();
+      expect(reconnectedTerminal).not.toBe(firstTerminal);
+      expect(reconnectedTerminal?.open).toHaveBeenCalledOnce();
+      expect(readyHandler).toHaveBeenCalledOnce();
+    });
+
     it('registers clickable shortcuts that dispatch terminal input', () => {
       if (!mockTerminal) return;
 

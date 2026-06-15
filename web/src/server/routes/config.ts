@@ -1,7 +1,12 @@
 import { Router } from 'express';
 import { z } from 'zod';
 import { DEFAULT_REPOSITORY_BASE_PATH } from '../../shared/constants.js';
-import type { NotificationPreferences, QuickStartCommand } from '../../types/config.js';
+import {
+  DEFAULT_NOTIFICATION_PREFERENCES,
+  type NotificationPreferences,
+  type QuickStartCommand,
+  type VibeTunnelConfig,
+} from '../../types/config.js';
 import type { ConfigService } from '../services/config-service.js';
 import { createLogger } from '../utils/logger.js';
 
@@ -77,6 +82,9 @@ export function createConfigRoutes(options: ConfigRouteOptions): Router {
     try {
       const { quickStartCommands, repositoryBasePath, notificationPreferences } = req.body;
       const updates: { [key: string]: unknown } = {};
+      let validatedCommands: QuickStartCommand[] | undefined;
+      let validatedPath: string | undefined;
+      let validatedPrefs: Partial<NotificationPreferences> | undefined;
 
       if (quickStartCommands !== undefined) {
         // First check if it's an array
@@ -85,7 +93,7 @@ export function createConfigRoutes(options: ConfigRouteOptions): Router {
           // Don't return immediately - let it fall through to "No valid updates"
         } else {
           // Filter and validate commands, keeping only valid ones
-          const validatedCommands: QuickStartCommand[] = [];
+          validatedCommands = [];
 
           for (const cmd of quickStartCommands) {
             try {
@@ -102,22 +110,16 @@ export function createConfigRoutes(options: ConfigRouteOptions): Router {
             }
           }
 
-          // Update config
-          configService.updateQuickStartCommands(validatedCommands);
           updates.quickStartCommands = validatedCommands;
-          logger.debug('[PUT /api/config] Updated quick start commands:', validatedCommands);
         }
       }
 
       if (repositoryBasePath !== undefined) {
         try {
           // Validate repository base path
-          const validatedPath = z.string().min(1).parse(repositoryBasePath);
+          validatedPath = z.string().min(1).parse(repositoryBasePath);
 
-          // Update config
-          configService.updateRepositoryBasePath(validatedPath);
           updates.repositoryBasePath = validatedPath;
-          logger.debug('[PUT /api/config] Updated repository base path:', validatedPath);
         } catch (validationError) {
           logger.error('[PUT /api/config] Invalid repository base path:', validationError);
           // Skip invalid values instead of returning error
@@ -127,12 +129,9 @@ export function createConfigRoutes(options: ConfigRouteOptions): Router {
       if (notificationPreferences !== undefined) {
         try {
           // Validate notification preferences
-          const validatedPrefs = NotificationPreferencesSchema.parse(notificationPreferences);
+          validatedPrefs = NotificationPreferencesSchema.parse(notificationPreferences);
 
-          // Update config
-          configService.updateNotificationPreferences(validatedPrefs);
           updates.notificationPreferences = validatedPrefs;
-          logger.debug('[PUT /api/config] Updated notification preferences:', validatedPrefs);
         } catch (validationError) {
           logger.error('[PUT /api/config] Invalid notification preferences:', validationError);
           // Skip invalid values instead of returning error
@@ -140,6 +139,33 @@ export function createConfigRoutes(options: ConfigRouteOptions): Router {
       }
 
       if (Object.keys(updates).length > 0) {
+        const currentConfig = configService.getConfig();
+        const updatedConfig: VibeTunnelConfig = { ...currentConfig };
+
+        if (validatedCommands) {
+          updatedConfig.quickStartCommands = validatedCommands;
+        }
+        if (validatedPath) {
+          updatedConfig.repositoryBasePath = validatedPath;
+        }
+        if (validatedPrefs) {
+          const currentPreferences = currentConfig.preferences ?? {
+            updateChannel: 'stable',
+            showInDock: false,
+            preventSleepWhenRunning: true,
+          };
+          updatedConfig.preferences = {
+            ...currentPreferences,
+            notifications: {
+              ...DEFAULT_NOTIFICATION_PREFERENCES,
+              ...configService.getNotificationPreferences(),
+              ...validatedPrefs,
+            },
+          };
+        }
+
+        configService.updateConfig(updatedConfig);
+        logger.debug('[PUT /api/config] Updated app config:', updates);
         res.json({ success: true, ...updates });
       } else {
         res.status(400).json({ error: 'No valid updates provided' });

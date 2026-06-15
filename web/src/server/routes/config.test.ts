@@ -111,7 +111,10 @@ describe('Config Routes', () => {
         quickStartCommands: newCommands,
       });
 
-      expect(mockConfigService.updateQuickStartCommands).toHaveBeenCalledWith(newCommands);
+      expect(mockConfigService.updateConfig).toHaveBeenCalledWith({
+        ...defaultConfig,
+        quickStartCommands: newCommands,
+      });
     });
 
     it('should filter out empty commands', async () => {
@@ -137,7 +140,10 @@ describe('Config Routes', () => {
         quickStartCommands: expectedFiltered,
       });
 
-      expect(mockConfigService.updateQuickStartCommands).toHaveBeenCalledWith(expectedFiltered);
+      expect(mockConfigService.updateConfig).toHaveBeenCalledWith({
+        ...defaultConfig,
+        quickStartCommands: expectedFiltered,
+      });
     });
 
     it('should validate command structure', async () => {
@@ -160,7 +166,10 @@ describe('Config Routes', () => {
         quickStartCommands: expectedValid,
       });
 
-      expect(mockConfigService.updateQuickStartCommands).toHaveBeenCalledWith(expectedValid);
+      expect(mockConfigService.updateConfig).toHaveBeenCalledWith({
+        ...defaultConfig,
+        quickStartCommands: expectedValid,
+      });
     });
 
     it('should return 400 for missing quickStartCommands', async () => {
@@ -188,7 +197,7 @@ describe('Config Routes', () => {
     });
 
     it('should handle config service update errors', async () => {
-      mockConfigService.updateQuickStartCommands = vi.fn(() => {
+      mockConfigService.updateConfig = vi.fn(() => {
         throw new Error('Write error');
       });
 
@@ -211,7 +220,10 @@ describe('Config Routes', () => {
         quickStartCommands: [],
       });
 
-      expect(mockConfigService.updateQuickStartCommands).toHaveBeenCalledWith([]);
+      expect(mockConfigService.updateConfig).toHaveBeenCalledWith({
+        ...defaultConfig,
+        quickStartCommands: [],
+      });
     });
 
     it('should preserve optional name field', async () => {
@@ -226,7 +238,10 @@ describe('Config Routes', () => {
         .send({ quickStartCommands: commandsWithNames });
 
       expect(response.status).toBe(200);
-      expect(mockConfigService.updateQuickStartCommands).toHaveBeenCalledWith(commandsWithNames);
+      expect(mockConfigService.updateConfig).toHaveBeenCalledWith({
+        ...defaultConfig,
+        quickStartCommands: commandsWithNames,
+      });
     });
 
     it('should update repository base path', async () => {
@@ -240,7 +255,10 @@ describe('Config Routes', () => {
         repositoryBasePath: newPath,
       });
 
-      expect(mockConfigService.updateRepositoryBasePath).toHaveBeenCalledWith(newPath);
+      expect(mockConfigService.updateConfig).toHaveBeenCalledWith({
+        ...defaultConfig,
+        repositoryBasePath: newPath,
+      });
     });
 
     it('should update both repository base path and quick start commands', async () => {
@@ -259,8 +277,12 @@ describe('Config Routes', () => {
         quickStartCommands: newCommands,
       });
 
-      expect(mockConfigService.updateRepositoryBasePath).toHaveBeenCalledWith(newPath);
-      expect(mockConfigService.updateQuickStartCommands).toHaveBeenCalledWith(newCommands);
+      expect(mockConfigService.updateConfig).toHaveBeenCalledOnce();
+      expect(mockConfigService.updateConfig).toHaveBeenCalledWith({
+        ...defaultConfig,
+        repositoryBasePath: newPath,
+        quickStartCommands: newCommands,
+      });
     });
 
     it('should reject invalid repository base path', async () => {
@@ -331,8 +353,12 @@ describe('Config Routes', () => {
           notificationPreferences: newPreferences,
         });
 
-        expect(mockConfigService.updateNotificationPreferences).toHaveBeenCalledWith(
-          newPreferences
+        expect(mockConfigService.updateConfig).toHaveBeenCalledWith(
+          expect.objectContaining({
+            preferences: expect.objectContaining({
+              notifications: expect.objectContaining(newPreferences),
+            }),
+          })
         );
       });
 
@@ -359,9 +385,14 @@ describe('Config Routes', () => {
           notificationPreferences: newPreferences,
         });
 
-        expect(mockConfigService.updateRepositoryBasePath).toHaveBeenCalledWith(newPath);
-        expect(mockConfigService.updateNotificationPreferences).toHaveBeenCalledWith(
-          newPreferences
+        expect(mockConfigService.updateConfig).toHaveBeenCalledOnce();
+        expect(mockConfigService.updateConfig).toHaveBeenCalledWith(
+          expect.objectContaining({
+            repositoryBasePath: newPath,
+            preferences: expect.objectContaining({
+              notifications: expect.objectContaining(newPreferences),
+            }),
+          })
         );
       });
 

@@ -138,21 +138,34 @@ export class ProcessTreeAnalyzer {
           }
         } else {
           // Linux ps output: PID PPID PGID SID TTY STATE STARTED COMMAND
-          const match = line.match(
-            /^\s*(\d+)\s+(\d+)\s+(\d+)\s+(\d+)\s+(\S+)\s+(\S+)\s+(.+?)\s+(.+)$/
-          );
-          if (match) {
-            const [, pid, ppid, pgid, sid, tty, state, startTime, command] = match;
-            processes.push({
-              pid: Number.parseInt(pid, 10),
-              ppid: Number.parseInt(ppid, 10),
-              pgid: Number.parseInt(pgid, 10),
-              sid: Number.parseInt(sid, 10),
-              tty: tty === '?' ? undefined : tty,
-              state,
-              startTime,
-              command: command.trim(),
-            });
+          const parts = line.split(/\s+/);
+          if (parts.length >= 12) {
+            const [pid, ppid, pgid, sid, tty, state] = parts;
+            const startTime = parts.slice(6, 11).join(' ');
+            const command = parts.slice(11).join(' ');
+            const parsedPid = Number.parseInt(pid, 10);
+            const parsedPpid = Number.parseInt(ppid, 10);
+            const parsedPgid = Number.parseInt(pgid, 10);
+            const parsedSid = Number.parseInt(sid, 10);
+
+            if (
+              !Number.isNaN(parsedPid) &&
+              !Number.isNaN(parsedPpid) &&
+              !Number.isNaN(parsedPgid) &&
+              !Number.isNaN(parsedSid) &&
+              command
+            ) {
+              processes.push({
+                pid: parsedPid,
+                ppid: parsedPpid,
+                pgid: parsedPgid,
+                sid: parsedSid,
+                tty: tty === '?' ? undefined : tty,
+                state,
+                startTime,
+                command: command.trim(),
+              });
+            }
           }
         }
       } catch (_parseError) {

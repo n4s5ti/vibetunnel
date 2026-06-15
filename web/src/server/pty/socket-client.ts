@@ -183,6 +183,7 @@ export class VibeTunnelSocketClient extends EventEmitter {
    */
   private handleDisconnect(error?: Error): void {
     this.connected = false;
+    this.parser.clear();
     this.stopHeartbeat();
     this.emit('disconnect', error);
 
@@ -388,6 +389,7 @@ export class VibeTunnelSocketClient extends EventEmitter {
   disconnect(): void {
     this.options.autoReconnect = false;
     this.connected = false;
+    this.parser.clear();
     this.stopHeartbeat();
 
     if (this.reconnectTimer) {

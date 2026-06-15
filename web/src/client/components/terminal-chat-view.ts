@@ -376,6 +376,7 @@ export class TerminalChatView extends LitElement {
   @property({ type: String }) sessionId = '';
   private outputUnsubscribe?: () => void;
   private syncInterval?: ReturnType<typeof setInterval>;
+  private delayedTasks = new Set<ReturnType<typeof setTimeout>>();
   private lastInputTime = 0;
 
   @state() private messages: ChatMessage[] = [];
@@ -390,23 +391,43 @@ export class TerminalChatView extends LitElement {
 
   connectedCallback() {
     super.connectedCallback();
-    // Subscribe to terminal output when connected
-    if (this.subscribeToOutput) {
-      this.outputUnsubscribe = this.subscribeToOutput((data: string) => {
-        this.processTerminalOutput(data);
-      });
-    }
+    this.subscribeToTerminalOutput();
   }
 
   disconnectedCallback() {
-    // Unsubscribe from terminal output
-    if (this.outputUnsubscribe) {
-      this.outputUnsubscribe();
-      this.outputUnsubscribe = undefined;
-    }
-    // Stop sync interval
+    this.unsubscribeFromTerminalOutput();
     this.stopTerminalSync();
+    this.clearDelayedTasks();
     super.disconnectedCallback();
+  }
+
+  private subscribeToTerminalOutput(): void {
+    this.unsubscribeFromTerminalOutput();
+    if (!this.subscribeToOutput || !this.isConnected) return;
+
+    this.outputUnsubscribe = this.subscribeToOutput((data: string) => {
+      this.processTerminalOutput(data);
+    });
+  }
+
+  private unsubscribeFromTerminalOutput(): void {
+    this.outputUnsubscribe?.();
+    this.outputUnsubscribe = undefined;
+  }
+
+  private scheduleDelayedTask(task: () => void, delay: number): void {
+    const timeout = setTimeout(() => {
+      this.delayedTasks.delete(timeout);
+      task();
+    }, delay);
+    this.delayedTasks.add(timeout);
+  }
+
+  private clearDelayedTasks(): void {
+    for (const timeout of this.delayedTasks) {
+      clearTimeout(timeout);
+    }
+    this.delayedTasks.clear();
   }
 
   /**
@@ -472,7 +493,7 @@ export class TerminalChatView extends LitElement {
    * Sync input from terminal with retry - gives time for buffer to fully load
    */
   private syncFromTerminalWithRetry(attempt = 0): void {
-    if (!this.getTerminalInputLine) return;
+    if (!this.active || !this.isConnected || !this.getTerminalInputLine) return;
 
     let terminalInput = this.getTerminalInputLine();
 
@@ -499,7 +520,7 @@ export class TerminalChatView extends LitElement {
 
     if (attempt < 3) {
       // Retry after a short delay (buffer might still be loading)
-      setTimeout(() => this.syncFromTerminalWithRetry(attempt + 1), 150);
+      this.scheduleDelayedTask(() => this.syncFromTerminalWithRetry(attempt + 1), 150);
     }
   }
 
@@ -508,15 +529,8 @@ export class TerminalChatView extends LitElement {
     if (changedProperties.has('messages')) {
       this.scrollToBottom();
     }
-    // Subscribe to output if subscribeToOutput prop was set after connection
-    if (
-      changedProperties.has('subscribeToOutput') &&
-      this.subscribeToOutput &&
-      !this.outputUnsubscribe
-    ) {
-      this.outputUnsubscribe = this.subscribeToOutput((data: string) => {
-        this.processTerminalOutput(data);
-      });
+    if (changedProperties.has('subscribeToOutput')) {
+      this.subscribeToTerminalOutput();
     }
     // Sync input when becoming active
     if (changedProperties.has('active')) {
@@ -546,13 +560,14 @@ export class TerminalChatView extends LitElement {
         this.startTerminalSync();
 
         // Focus the input field when chat becomes active - with delay to ensure DOM is ready
-        setTimeout(() => {
-          if (this.inputElement) {
+        this.scheduleDelayedTask(() => {
+          if (this.inputElement && this.active && this.isConnected) {
             this.inputElement.focus();
             logger.log('Chat input focused on activation');
           }
         }, 100);
       } else {
+        this.clearDelayedTasks();
         this.lastSentValue = '';
         if (this.inputElement) {
           this.inputElement.value = '';
@@ -712,19 +727,10 @@ export class TerminalChatView extends LitElement {
       const lastLines = lastMsg.content.split('\n');
       const lastLine = lastLines[lastLines.length - 1].trim();
 
-      // Case 1: Exact duplicate - skip
-      if (lastLine === content) {
-        return;
-      }
-
-      // Case 2: Content already exists in message - skip
-      if (lastMsg.content.includes(content)) {
-        return;
-      }
-
-      // Case 3: New content is a continuation of the last line (streaming/progressive reveal)
+      // Replace only a progressive redraw of the trailing line. Exact repeated output
+      // is meaningful terminal content and must remain visible.
       // e.g., lastLine = "Hello", content = "Hello, how are you?"
-      if (content.startsWith(lastLine) && lastLine.length > 0) {
+      if (content.length > lastLine.length && content.startsWith(lastLine) && lastLine.length > 0) {
         // Replace last line with the longer version
         if (lastLines.length > 1) {
           lastLines[lastLines.length - 1] = content;
@@ -735,17 +741,6 @@ export class TerminalChatView extends LitElement {
         this.requestUpdate();
         this.scrollToBottom();
         return;
-      }
-
-      // Case 4: Last line is a prefix of the new content on a different part
-      // Check if any recent line starts the same as the new content
-      const recentLines = lastLines.slice(-5); // Check last 5 lines
-      for (let i = recentLines.length - 1; i >= 0; i--) {
-        const recentLine = recentLines[i].trim();
-        if (recentLine && content.startsWith(recentLine)) {
-          // This is a continuation of a recent line - likely a redraw, skip
-          return;
-        }
       }
 
       // Normal case: append new content
@@ -1073,7 +1068,7 @@ export class TerminalChatView extends LitElement {
     // Don't refocus if clicking on a button (send button, option buttons)
     if (target.tagName !== 'BUTTON' && !target.closest('button')) {
       // Use setTimeout to ensure focus happens after any other handlers
-      setTimeout(() => {
+      this.scheduleDelayedTask(() => {
         if (this.inputElement && this.active) {
           this.inputElement.focus();
           logger.log('Chat input focused via container click');

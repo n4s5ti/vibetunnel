@@ -81,6 +81,8 @@ describe('TunnelServiceBase', () => {
 
     const service = new TestTunnelService();
     const startPromise = service.start();
+    const concurrentStartPromise = service.start();
+    expect(concurrentStartPromise).toBe(startPromise);
 
     setImmediate(() => {
       missingProcess.emit('error', new Error('not found'));
@@ -93,6 +95,7 @@ describe('TunnelServiceBase', () => {
     });
 
     const tunnel = await startPromise;
+    await expect(concurrentStartPromise).resolves.toBe(tunnel);
     expect(tunnel.publicUrl).toBe('https://example.test');
     await expect(service.start()).resolves.toBe(tunnel);
     expect(spawn).toHaveBeenCalledTimes(3);

@@ -1,5 +1,11 @@
+import { EventEmitter } from 'node:events';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import type { ControlUnixHandler } from '../../server/websocket/control-unix-handler.js';
+
+const netMock = vi.hoisted(() => ({
+  connectionHandler: undefined as ((socket: unknown) => void) | undefined,
+  close: vi.fn((callback?: () => void) => callback?.()),
+}));
 
 // Mock dependencies
 vi.mock('fs', () => ({
@@ -14,11 +20,14 @@ vi.mock('fs', () => ({
 }));
 
 vi.mock('net', () => ({
-  createServer: vi.fn(() => ({
-    listen: vi.fn((_path, cb) => cb?.()),
-    close: vi.fn(),
-    on: vi.fn(),
-  })),
+  createServer: vi.fn((connectionHandler: (socket: unknown) => void) => {
+    netMock.connectionHandler = connectionHandler;
+    return {
+      listen: vi.fn((_path, cb) => cb?.()),
+      close: netMock.close,
+      on: vi.fn(),
+    };
+  }),
 }));
 
 // Mock logger
@@ -42,12 +51,14 @@ describe('Control Unix Handler', () => {
 
   beforeEach(async () => {
     vi.clearAllMocks();
+    netMock.connectionHandler = undefined;
     // Import after mocks are set up
     const module = await import('../../server/websocket/control-unix-handler');
-    controlUnixHandler = module.controlUnixHandler;
+    controlUnixHandler = new module.ControlUnixHandler();
   });
 
   afterEach(() => {
+    controlUnixHandler.stop();
     vi.restoreAllMocks();
   });
 
@@ -57,6 +68,17 @@ describe('Control Unix Handler', () => {
 
       const net = await vi.importMock<typeof import('net')>('net');
       expect(net.createServer).toHaveBeenCalled();
+    });
+
+    it('rejects startup when restrictive socket permissions cannot be set', async () => {
+      const fs = await vi.importMock<typeof import('fs')>('fs');
+      vi.mocked(fs.chmod).mockImplementationOnce((_path, _mode, callback) => {
+        callback(new Error('permission denied'));
+      });
+
+      await expect(controlUnixHandler.start()).rejects.toThrow('permission denied');
+      expect(netMock.close).toHaveBeenCalledOnce();
+      expect(fs.unlinkSync).toHaveBeenCalled();
     });
 
     it('should check if Mac app is connected', () => {
@@ -100,5 +122,51 @@ describe('Control Unix Handler', () => {
       const result = await controlUnixHandler.sendControlMessage(message);
       expect(result).toBe(null);
     }, 1000);
+
+    it('does not carry a partial frame into a replacement Mac connection', async () => {
+      class MockSocket extends EventEmitter {
+        destroyed = false;
+        readable = true;
+        writable = true;
+        localAddress = 'local';
+        remoteAddress = 'remote';
+        setNoDelay = vi.fn();
+        write = vi.fn((_data: Buffer, callback?: (error?: Error) => void) => {
+          callback?.();
+          return true;
+        });
+        destroy = vi.fn(() => {
+          this.destroyed = true;
+          this.emit('close', false);
+        });
+      }
+
+      await controlUnixHandler.start();
+      const firstSocket = new MockSocket();
+      netMock.connectionHandler?.(firstSocket);
+      firstSocket.write.mockClear();
+
+      const incompleteHeader = Buffer.alloc(4);
+      incompleteHeader.writeUInt32BE(100, 0);
+      firstSocket.emit('data', Buffer.concat([incompleteHeader, Buffer.from('partial')]));
+
+      const secondSocket = new MockSocket();
+      netMock.connectionHandler?.(secondSocket);
+      secondSocket.write.mockClear();
+
+      const ping = Buffer.from(
+        JSON.stringify({
+          id: 'ping-1',
+          type: 'request',
+          category: 'system',
+          action: 'ping',
+        })
+      );
+      const pingHeader = Buffer.alloc(4);
+      pingHeader.writeUInt32BE(ping.length, 0);
+      secondSocket.emit('data', Buffer.concat([pingHeader, ping]));
+
+      expect(secondSocket.write).toHaveBeenCalledOnce();
+    });
   });
 });

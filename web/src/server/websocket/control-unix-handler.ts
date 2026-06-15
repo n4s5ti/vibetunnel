@@ -144,7 +144,6 @@ export class ControlUnixHandler {
   private unixServer: net.Server | null = null;
   private readonly socketPath: string;
   private handlers = new Map<ControlCategory, MessageHandler>();
-  private messageBuffer = Buffer.alloc(0);
 
   constructor() {
     // Use control directory from environment or default
@@ -183,28 +182,40 @@ export class ControlUnixHandler {
     }
 
     // Create UNIX socket server
-    this.unixServer = net.createServer((socket) => {
+    const unixServer = net.createServer((socket) => {
       this.handleMacConnection(socket);
     });
+    this.unixServer = unixServer;
 
     // Start listening
     await new Promise<void>((resolve, reject) => {
-      this.unixServer?.listen(this.socketPath, () => {
+      unixServer.listen(this.socketPath, () => {
         logger.log(`Control UNIX socket server listening at ${this.socketPath}`);
 
         // Set restrictive permissions - only owner can read/write
         fs.chmod(this.socketPath, 0o600, (err) => {
           if (err) {
             logger.error('Failed to set socket permissions:', err);
-          } else {
-            logger.log('Socket permissions set to 0600 (owner read/write only)');
+            unixServer.close(() => {
+              if (this.unixServer === unixServer) {
+                this.unixServer = null;
+              }
+              try {
+                fs.unlinkSync(this.socketPath);
+              } catch (_error) {
+                // Ignore cleanup errors after failed startup.
+              }
+              reject(err);
+            });
+            return;
           }
-        });
 
-        resolve();
+          logger.log('Socket permissions set to 0600 (owner read/write only)');
+          resolve();
+        });
       });
 
-      this.unixServer?.on('error', (error) => {
+      unixServer.on('error', (error) => {
         logger.error('UNIX socket server error:', error);
         reject(error);
       });
@@ -245,6 +256,7 @@ export class ControlUnixHandler {
     }
 
     this.macSocket = socket;
+    let messageBuffer = Buffer.alloc(0);
     logger.log('✅ Mac socket stored');
 
     // Set socket options for better handling of large messages
@@ -266,13 +278,17 @@ export class ControlUnixHandler {
     }
 
     socket.on('data', (data) => {
+      if (socket !== this.macSocket) {
+        return;
+      }
+
       const chunk = Buffer.isBuffer(data) ? data : Buffer.from(data);
 
       // Append new data to our buffer
-      this.messageBuffer = Buffer.concat([this.messageBuffer, chunk]);
+      messageBuffer = Buffer.concat([messageBuffer, chunk]);
 
       logger.log(
-        `📥 Received from Mac: ${chunk.length} bytes, buffer size: ${this.messageBuffer.length}`
+        `📥 Received from Mac: ${chunk.length} bytes, buffer size: ${messageBuffer.length}`
       );
 
       // Log first few bytes for debugging
@@ -284,18 +300,18 @@ export class ControlUnixHandler {
       // Process as many messages as we can from the buffer
       while (true) {
         // A message needs at least 4 bytes for the length header
-        if (this.messageBuffer.length < 4) {
+        if (messageBuffer.length < 4) {
           break;
         }
 
         // Read the length of the message
-        const messageLength = this.messageBuffer.readUInt32BE(0);
+        const messageLength = messageBuffer.readUInt32BE(0);
 
         // Validate message length
         if (messageLength <= 0) {
           logger.error(`Invalid message length: ${messageLength}`);
           // Clear the buffer to recover from this error
-          this.messageBuffer = Buffer.alloc(0);
+          messageBuffer = Buffer.alloc(0);
           break;
         }
 
@@ -304,24 +320,24 @@ export class ControlUnixHandler {
         if (messageLength > maxMessageSize) {
           logger.error(`Message too large: ${messageLength} bytes (max: ${maxMessageSize})`);
           // Clear the buffer to recover from this error
-          this.messageBuffer = Buffer.alloc(0);
+          messageBuffer = Buffer.alloc(0);
           break;
         }
 
         // Check if we have the full message in the buffer
-        if (this.messageBuffer.length < 4 + messageLength) {
+        if (messageBuffer.length < 4 + messageLength) {
           // Not enough data yet, wait for more
           logger.debug(
-            `Waiting for more data: have ${this.messageBuffer.length}, need ${4 + messageLength}`
+            `Waiting for more data: have ${messageBuffer.length}, need ${4 + messageLength}`
           );
           break;
         }
 
         // Extract the message data
-        const messageData = this.messageBuffer.subarray(4, 4 + messageLength);
+        const messageData = messageBuffer.subarray(4, 4 + messageLength);
 
         // Remove the message (header + body) from the buffer
-        this.messageBuffer = this.messageBuffer.subarray(4 + messageLength);
+        messageBuffer = messageBuffer.subarray(4 + messageLength);
 
         try {
           const messageStr = messageData.toString('utf-8');

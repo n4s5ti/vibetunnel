@@ -90,7 +90,7 @@ function releaseRepoLock(repoPath: string): void {
       next();
     }
   } else {
-    lock.isLocked = false;
+    repoLocks.delete(repoPath);
   }
 }
 
@@ -229,6 +229,7 @@ export function createGitRoutes(): Router {
       let followMode = false;
       let isMainRepo = false;
       let isWorktreeRepo = false;
+      let mainRepoPath = repoPath;
 
       try {
         // Check if this is a worktree
@@ -239,7 +240,6 @@ export function createGitRoutes(): Router {
         isWorktreeRepo = gitDir.includes('/.git/worktrees/');
 
         // If this is a worktree, find the main repo
-        let mainRepoPath = repoPath;
         if (isWorktreeRepo) {
           // Extract main repo from git dir (e.g., /path/to/main/.git/worktrees/branch)
           mainRepoPath = gitDir.replace(/\/\.git\/worktrees\/.*$/, '');
@@ -247,7 +247,11 @@ export function createGitRoutes(): Router {
         } else {
           isMainRepo = true;
         }
+      } catch (error) {
+        logger.debug('Could not determine repository worktree state:', error);
+      }
 
+      try {
         // Get follow worktree setting from main repo
         const { stdout: followWorktreeOutput } = await execGit(
           ['config', 'vibetunnel.followWorktree'],
@@ -257,15 +261,18 @@ export function createGitRoutes(): Router {
         );
         followWorktree = followWorktreeOutput.trim();
         followMode = !!followWorktree;
+      } catch (error) {
+        logger.debug('Follow worktree is not configured:', error);
+      }
 
+      try {
         // Get current branch
         const { stdout: branchOutput } = await execGit(['branch', '--show-current'], {
           cwd: repoPath,
         });
         currentBranch = branchOutput.trim();
       } catch (error) {
-        // Config not set or git command failed - follow mode is disabled
-        logger.debug('Follow worktree check failed or not configured:', error);
+        logger.debug('Could not determine current branch:', error);
       }
 
       // Extract repository name from path
@@ -298,8 +305,9 @@ export function createGitRoutes(): Router {
 
           // Construct new title with format: baseSessionName [event: branch]
           let newTitle = baseSessionName;
-          if (event && branch) {
-            newTitle = `${baseSessionName} [${event}: ${branch}]`;
+          const sessionBranch = branch || _sessionBranch;
+          if (event && sessionBranch) {
+            newTitle = `${baseSessionName} [${event}: ${sessionBranch}]`;
           }
 
           // Update the session name

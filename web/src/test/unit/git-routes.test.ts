@@ -316,6 +316,21 @@ describe('Git Routes', () => {
       expect(response.body.followMode).toBe(false);
     });
 
+    it('should still discover the branch when follow mode is not configured', async () => {
+      mockExecFile
+        .mockResolvedValueOnce({ stdout: '/home/user/project/.git\n', stderr: '' })
+        .mockRejectedValueOnce(new Error('Key not found'))
+        .mockResolvedValueOnce({ stdout: 'develop\n', stderr: '' });
+
+      const response = await request(app).post('/api/git/event').send({
+        repoPath: '/home/user/project',
+        event: 'checkout',
+      });
+
+      expect(response.status).toBe(200);
+      expect(response.body.notification.branch).toBe('develop');
+    });
+
     it('should send notification to Mac app when connected', async () => {
       (controlUnixHandler.isMacAppConnected as ReturnType<typeof vi.fn>).mockReturnValue(true);
 

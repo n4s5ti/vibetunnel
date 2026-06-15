@@ -23,6 +23,7 @@ export abstract class TunnelServiceBase {
   private process: ChildProcess | null = null;
   private currentTunnel: TunnelInfo | null = null;
   private isRunning = false;
+  private startPromise: Promise<TunnelInfo> | null = null;
 
   constructor(
     loggerName: string,
@@ -77,12 +78,28 @@ export abstract class TunnelServiceBase {
     return null;
   }
 
-  async start(): Promise<TunnelInfo> {
+  start(): Promise<TunnelInfo> {
     if (this.isRunning && this.currentTunnel) {
       this.logger.warn(`${this.getServiceName()} tunnel is already running`);
-      return this.currentTunnel;
+      return Promise.resolve(this.currentTunnel);
     }
 
+    if (this.startPromise) {
+      return this.startPromise;
+    }
+
+    const startPromise = this.startTunnel();
+    this.startPromise = startPromise;
+    const clearStartPromise = () => {
+      if (this.startPromise === startPromise) {
+        this.startPromise = null;
+      }
+    };
+    void startPromise.then(clearStartPromise, clearStartPromise);
+    return startPromise;
+  }
+
+  private async startTunnel(): Promise<TunnelInfo> {
     const binaryPath = await this.checkBinary();
     if (!binaryPath) {
       throw new Error(this.getBinaryNotFoundMessage());
