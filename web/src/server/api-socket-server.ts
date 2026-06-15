@@ -133,10 +133,15 @@ export class ApiSocketServer {
     const parser = new MessageParser();
 
     socket.on('data', (data) => {
-      parser.addData(data);
+      try {
+        parser.addData(data);
 
-      for (const { type, payload } of parser.parseMessages()) {
-        this.handleMessage(socket, type, payload);
+        for (const { type, payload } of parser.parseMessages()) {
+          this.handleMessage(socket, type, payload);
+        }
+      } catch (error) {
+        logger.warn('Rejecting invalid API socket frame:', error);
+        socket.destroy();
       }
     });
 

@@ -8,7 +8,11 @@ import * as os from 'os';
 import * as path from 'path';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { VibeTunnelSocketClient } from '../../server/pty/socket-client.js';
-import { frameMessage, MessageType } from '../../server/pty/socket-protocol.js';
+import {
+  frameMessage,
+  MAX_MESSAGE_PAYLOAD_SIZE,
+  MessageType,
+} from '../../server/pty/socket-protocol.js';
 
 describe('VibeTunnelSocketClient', () => {
   let testDir: string;
@@ -494,6 +498,24 @@ describe('VibeTunnelSocketClient', () => {
       expect(client.isConnected()).toBe(true);
 
       client.disconnect();
+    });
+
+    it('should disconnect when the server sends an oversized frame', async () => {
+      await createTestServer();
+
+      const client = new VibeTunnelSocketClient(socketPath);
+      await client.connect();
+
+      const disconnected = new Promise<void>((resolve) => {
+        client.once('disconnect', () => resolve());
+      });
+      const header = Buffer.alloc(5);
+      header[0] = MessageType.STATUS_UPDATE;
+      header.writeUInt32BE(MAX_MESSAGE_PAYLOAD_SIZE + 1, 1);
+      serverConnections[0].write(header);
+
+      await disconnected;
+      expect(client.isConnected()).toBe(false);
     });
   });
 

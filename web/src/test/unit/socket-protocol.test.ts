@@ -5,6 +5,7 @@
 import { describe, expect, it } from 'vitest';
 import {
   frameMessage,
+  MAX_MESSAGE_PAYLOAD_SIZE,
   MessageBuilder,
   MessageParser,
   MessageType,
@@ -55,6 +56,12 @@ describe('Socket Protocol', () => {
       expect(message[0]).toBe(MessageType.STDIN_DATA);
       expect(message.readUInt32BE(1)).toBe(100000);
       expect(message.subarray(5).toString('utf8')).toBe(largeString);
+    });
+
+    it('should reject payloads larger than the protocol limit', () => {
+      expect(() =>
+        frameMessage(MessageType.STDIN_DATA, Buffer.alloc(MAX_MESSAGE_PAYLOAD_SIZE + 1))
+      ).toThrow(/maximum/);
     });
   });
 
@@ -325,17 +332,16 @@ describe('Socket Protocol', () => {
       expect(() => JSON.parse(messages[0].payload.toString('utf8'))).toThrow();
     });
 
-    it('should handle very large message length in header', () => {
+    it('should reject very large message length in header', () => {
       const parser = new MessageParser();
       const header = Buffer.allocUnsafe(5);
       header[0] = MessageType.STDIN_DATA;
       header.writeUInt32BE(0xffffffff, 1); // Max uint32
 
       parser.addData(header);
-      const messages = Array.from(parser.parseMessages());
 
-      expect(messages).toHaveLength(0); // Would need 4GB of data
-      expect(parser.pendingBytes).toBe(5);
+      expect(() => Array.from(parser.parseMessages())).toThrow(/maximum/);
+      expect(parser.pendingBytes).toBe(0);
     });
 
     it('should handle binary data in stdin messages', () => {

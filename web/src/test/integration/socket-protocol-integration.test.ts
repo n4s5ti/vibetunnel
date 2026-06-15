@@ -15,6 +15,7 @@ import * as path from 'path';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { PtyManager } from '../../server/pty/pty-manager.js';
 import { VibeTunnelSocketClient } from '../../server/pty/socket-client.js';
+import { MAX_MESSAGE_PAYLOAD_SIZE, MessageType } from '../../server/pty/socket-protocol.js';
 import { SessionTestHelper } from '../helpers/session-test-helper.js';
 
 describe('Socket Protocol Integration', () => {
@@ -206,7 +207,7 @@ describe('Socket Protocol Integration', () => {
       await expect(client.connect()).rejects.toThrow();
     });
 
-    it('should handle malformed messages gracefully', async () => {
+    it('should isolate malformed clients without disrupting the session socket', async () => {
       const { sessionId } = await sessionHelper.createTrackedSession(['sleep', '60'], {
         name: 'malformed-test',
         workingDir: process.cwd(),
@@ -224,17 +225,20 @@ describe('Socket Protocol Integration', () => {
 
       await client.connect();
 
-      // Send some random bytes that don't form a valid message
+      const disconnected = new Promise<void>((resolve) => {
+        client.once('disconnect', () => resolve());
+      });
       const socket = (client as unknown as { socket: { write: (data: Buffer) => void } }).socket;
-      socket.write(Buffer.from([0xff, 0xff, 0xff, 0xff, 0xff]));
+      const header = Buffer.alloc(5);
+      header[0] = MessageType.STDIN_DATA;
+      header.writeUInt32BE(MAX_MESSAGE_PAYLOAD_SIZE + 1, 1);
+      socket.write(header);
+      await disconnected;
 
-      // Should not crash
-      await new Promise((resolve) => setTimeout(resolve, 100));
-
-      // Should still be able to send valid messages
-      expect(client.sendStdin('test')).toBe(true);
-
-      client.disconnect();
+      const replacementClient = new VibeTunnelSocketClient(socketPath);
+      await replacementClient.connect();
+      expect(replacementClient.sendStdin('test')).toBe(true);
+      replacementClient.disconnect();
     });
   });
 

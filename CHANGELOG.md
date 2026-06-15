@@ -23,6 +23,7 @@
 - Default macOS build script to universal binaries with optional arch override (via [@rothnic](https://github.com/rothnic)) (#557)
 
 ### 🐛 Bug Fixes
+- Reject oversized Unix socket frames instead of retaining attacker-controlled multi-gigabyte payload lengths.
 - Harden terminal/chat reconnects, Unix socket framing, tunnel startup, Git event fallback, Linux process parsing, and multi-setting config updates against stale or partial state.
 - Honor custom control directories in the Zig forwarder and repair incomplete Linux Node.js toolchains during bootstrap.
 - Prevent terminal output from a previous session appearing after switching sessions in the web app.

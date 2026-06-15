@@ -3,6 +3,7 @@ import {
   frameMessage,
   type GitFollowRequest,
   type GitFollowResponse,
+  MAX_MESSAGE_PAYLOAD_SIZE,
   MessageBuilder,
   MessageParser,
   MessageType,
@@ -36,6 +37,12 @@ describe('Socket Protocol', () => {
       expect(message[0]).toBe(MessageType.STDIN_DATA);
       expect(message.readUInt32BE(1)).toBe(buffer.length);
       expect(message.subarray(5).equals(buffer)).toBe(true);
+    });
+
+    it('should reject payloads larger than the protocol limit', () => {
+      expect(() =>
+        frameMessage(MessageType.STDIN_DATA, Buffer.alloc(MAX_MESSAGE_PAYLOAD_SIZE + 1))
+      ).toThrow(/maximum/);
     });
   });
 
@@ -89,6 +96,18 @@ describe('Socket Protocol', () => {
 
       expect(parser.pendingBytes).toBeGreaterThan(0);
       parser.clear();
+      expect(parser.pendingBytes).toBe(0);
+    });
+
+    it('should reject oversized frames and clear buffered state', () => {
+      const parser = new MessageParser();
+      const header = Buffer.alloc(5);
+      header[0] = MessageType.STDIN_DATA;
+      header.writeUInt32BE(MAX_MESSAGE_PAYLOAD_SIZE + 1, 1);
+
+      parser.addData(header);
+
+      expect(() => Array.from(parser.parseMessages())).toThrow(/maximum/);
       expect(parser.pendingBytes).toBe(0);
     });
   });

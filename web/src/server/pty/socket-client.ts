@@ -140,10 +140,15 @@ export class VibeTunnelSocketClient extends EventEmitter {
     if (!this.socket) return;
 
     this.socket.on('data', (chunk) => {
-      this.parser.addData(chunk);
+      try {
+        this.parser.addData(chunk);
 
-      for (const { type, payload } of this.parser.parseMessages()) {
-        this.handleMessage(type, payload);
+        for (const { type, payload } of this.parser.parseMessages()) {
+          this.handleMessage(type, payload);
+        }
+      } catch (error) {
+        logger.error('Invalid socket frame; disconnecting:', error);
+        this.socket?.destroy();
       }
     });
 

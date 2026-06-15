@@ -9,6 +9,8 @@
 
 import { Buffer } from 'buffer';
 
+export const MAX_MESSAGE_PAYLOAD_SIZE = 10 * 1024 * 1024;
+
 /**
  * Message types for the socket protocol
  */
@@ -168,6 +170,12 @@ export function frameMessage(type: MessageType, payload: Buffer | string | objec
     ? payload
     : Buffer.from(typeof payload === 'string' ? payload : JSON.stringify(payload), 'utf8');
 
+  if (payloadBuffer.length > MAX_MESSAGE_PAYLOAD_SIZE) {
+    throw new RangeError(
+      `Socket message payload is ${payloadBuffer.length} bytes; maximum is ${MAX_MESSAGE_PAYLOAD_SIZE}`
+    );
+  }
+
   const message = Buffer.allocUnsafe(5 + payloadBuffer.length);
   message[0] = type;
   message.writeUInt32BE(payloadBuffer.length, 1);
@@ -199,6 +207,13 @@ export class MessageParser {
     while (this.buffer.length >= 5) {
       const messageType = this.buffer[0] as MessageType;
       const payloadLength = this.buffer.readUInt32BE(1);
+
+      if (payloadLength > MAX_MESSAGE_PAYLOAD_SIZE) {
+        this.clear();
+        throw new RangeError(
+          `Socket message payload is ${payloadLength} bytes; maximum is ${MAX_MESSAGE_PAYLOAD_SIZE}`
+        );
+      }
 
       // Check if we have the complete message
       if (this.buffer.length < 5 + payloadLength) {

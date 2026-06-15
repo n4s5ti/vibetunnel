@@ -822,10 +822,15 @@ export class PtyManager extends EventEmitter {
         );
 
         client.on('data', (chunk) => {
-          parser.addData(chunk);
+          try {
+            parser.addData(chunk);
 
-          for (const { type, payload } of parser.parseMessages()) {
-            this.handleSocketMessage(session, type, payload);
+            for (const { type, payload } of parser.parseMessages()) {
+              this.handleSocketMessage(session, type, payload);
+            }
+          } catch (error) {
+            logger.warn(`Rejecting invalid socket frame for session ${session.id}:`, error);
+            client.destroy();
           }
         });
 
