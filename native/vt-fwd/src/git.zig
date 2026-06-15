@@ -15,17 +15,22 @@ pub const GitInfo = struct {
     }
 };
 
-pub fn detectGitInfo(allocator: std.mem.Allocator, working_dir: []const u8) GitInfo {
+pub fn detectGitInfo(
+    io: std.Io,
+    allocator: std.mem.Allocator,
+    parent_env: *const std.process.Environ.Map,
+    working_dir: []const u8,
+) GitInfo {
     var info = GitInfo{ .arena = std.heap.ArenaAllocator.init(allocator) };
     const arena_alloc = info.arena.allocator();
 
-    var env = std.process.getEnvMap(arena_alloc) catch return info;
+    var env = parent_env.clone(arena_alloc) catch return info;
     env.put("GIT_TERMINAL_PROMPT", "0") catch {};
 
-    const repo_path = runGit(arena_alloc, working_dir, &env, &.{ "git", "rev-parse", "--show-toplevel" }) orelse return info;
+    const repo_path = runGit(io, arena_alloc, working_dir, &env, &.{ "git", "rev-parse", "--show-toplevel" }) orelse return info;
     info.gitRepoPath = repo_path;
 
-    if (runGit(arena_alloc, working_dir, &env, &.{ "git", "branch", "--show-current" })) |branch| {
+    if (runGit(io, arena_alloc, working_dir, &env, &.{ "git", "branch", "--show-current" })) |branch| {
         info.gitBranch = branch;
     } else {
         info.gitBranch = "";
@@ -33,17 +38,17 @@ pub fn detectGitInfo(allocator: std.mem.Allocator, working_dir: []const u8) GitI
 
     const git_file_path = std.fs.path.join(arena_alloc, &.{ working_dir, ".git" }) catch null;
     if (git_file_path) |path| {
-        if (std.fs.cwd().statFile(path)) |stat| {
+        if (std.Io.Dir.cwd().statFile(io, path, .{})) |stat| {
             if (stat.kind != .directory) {
                 info.gitIsWorktree = true;
-                if (getMainRepositoryPath(arena_alloc, path)) |main| {
+                if (getMainRepositoryPath(io, arena_alloc, path)) |main| {
                     info.gitMainRepoPath = main;
                 }
             }
         } else |_| {}
     }
 
-    if (runGit(arena_alloc, working_dir, &env, &.{ "git", "rev-list", "--left-right", "--count", "HEAD...@{upstream}" })) |counts| {
+    if (runGit(io, arena_alloc, working_dir, &env, &.{ "git", "rev-list", "--left-right", "--count", "HEAD...@{upstream}" })) |counts| {
         var parts = std.mem.splitScalar(u8, counts, '\t');
         if (parts.next()) |ahead| {
             info.gitAheadCount = std.fmt.parseInt(i32, ahead, 10) catch null;
@@ -53,7 +58,7 @@ pub fn detectGitInfo(allocator: std.mem.Allocator, working_dir: []const u8) GitI
         }
     }
 
-    if (runGitStatus(arena_alloc, working_dir, &env)) |has_changes| {
+    if (runGitStatus(io, arena_alloc, working_dir, &env)) |has_changes| {
         info.gitHasChanges = has_changes;
     }
 
@@ -69,64 +74,59 @@ pub fn detectGitInfo(allocator: std.mem.Allocator, working_dir: []const u8) GitI
 }
 
 fn runGit(
+    io: std.Io,
     allocator: std.mem.Allocator,
     cwd: []const u8,
-    env: *const std.process.EnvMap,
+    env: *const std.process.Environ.Map,
     argv: []const []const u8,
 ) ?[]u8 {
-    var child = std.process.Child.init(argv, allocator);
-    child.cwd = cwd;
-    child.env_map = env;
-    child.stdin_behavior = .Ignore;
-    child.stdout_behavior = .Pipe;
-    child.stderr_behavior = .Ignore;
-
-    if (child.spawn()) |_| {} else |_| return null;
-
-    const stdout = if (child.stdout) |*handle| blk: {
-        const data = handle.readToEndAlloc(allocator, 8192) catch return null;
-        handle.close();
-        child.stdout = null;
-        break :blk data;
-    } else return null;
-    const term = child.wait() catch {
-        allocator.free(stdout);
-        return null;
-    };
-    switch (term) {
-        .Exited => |code| {
+    const result = std.process.run(allocator, io, .{
+        .argv = argv,
+        .cwd = .{ .path = cwd },
+        .environ_map = env,
+        .stdout_limit = .limited(8192),
+        .stderr_limit = .limited(8192),
+    }) catch return null;
+    defer allocator.free(result.stderr);
+    switch (result.term) {
+        .exited => |code| {
             if (code != 0) {
-                allocator.free(stdout);
+                allocator.free(result.stdout);
                 return null;
             }
         },
         else => {
-            allocator.free(stdout);
+            allocator.free(result.stdout);
             return null;
         },
     }
 
-    const trimmed = std.mem.trim(u8, stdout, " \t\r\n");
-    return allocator.dupe(u8, trimmed) catch null;
+    const trimmed = std.mem.trim(u8, result.stdout, " \t\r\n");
+    const output = allocator.dupe(u8, trimmed) catch {
+        allocator.free(result.stdout);
+        return null;
+    };
+    allocator.free(result.stdout);
+    return output;
 }
 
 fn runGitStatus(
+    io: std.Io,
     allocator: std.mem.Allocator,
     cwd: []const u8,
-    env: *const std.process.EnvMap,
+    env: *const std.process.Environ.Map,
 ) ?bool {
-    var child = std.process.Child.init(&.{ "git", "diff-index", "--quiet", "HEAD", "--" }, allocator);
-    child.cwd = cwd;
-    child.env_map = env;
-    child.stdin_behavior = .Ignore;
-    child.stdout_behavior = .Ignore;
-    child.stderr_behavior = .Ignore;
-
-    if (child.spawn()) |_| {} else |_| return null;
-
-    const term = child.wait() catch return null;
-    switch (term) {
-        .Exited => |code| {
+    const result = std.process.run(allocator, io, .{
+        .argv = &.{ "git", "diff-index", "--quiet", "HEAD", "--" },
+        .cwd = .{ .path = cwd },
+        .environ_map = env,
+        .stdout_limit = .limited(1024),
+        .stderr_limit = .limited(1024),
+    }) catch return null;
+    defer allocator.free(result.stdout);
+    defer allocator.free(result.stderr);
+    switch (result.term) {
+        .exited => |code| {
             if (code == 0) return false;
             return true;
         },
@@ -134,8 +134,8 @@ fn runGitStatus(
     }
 }
 
-fn getMainRepositoryPath(allocator: std.mem.Allocator, git_file_path: []const u8) ?[]u8 {
-    const data = std.fs.cwd().readFileAlloc(allocator, git_file_path, 1024) catch return null;
+fn getMainRepositoryPath(io: std.Io, allocator: std.mem.Allocator, git_file_path: []const u8) ?[]u8 {
+    const data = std.Io.Dir.cwd().readFileAlloc(io, git_file_path, allocator, .limited(1024)) catch return null;
     defer allocator.free(data);
 
     const trimmed = std.mem.trim(u8, data, " \t\r\n");
@@ -151,17 +151,18 @@ fn getMainRepositoryPath(allocator: std.mem.Allocator, git_file_path: []const u8
     return null;
 }
 
-fn expectCommandSuccess(allocator: std.mem.Allocator, cwd: []const u8, argv: []const []const u8) !void {
-    const result = try std.process.Child.run(.{
-        .allocator = allocator,
+fn expectCommandSuccess(io: std.Io, allocator: std.mem.Allocator, cwd: []const u8, argv: []const []const u8) !void {
+    const result = try std.process.run(allocator, io, .{
         .argv = argv,
-        .cwd = cwd,
+        .cwd = .{ .path = cwd },
+        .stdout_limit = .limited(8192),
+        .stderr_limit = .limited(8192),
     });
     defer allocator.free(result.stdout);
     defer allocator.free(result.stderr);
 
     switch (result.term) {
-        .Exited => |code| try std.testing.expectEqual(@as(u8, 0), code),
+        .exited => |code| try std.testing.expectEqual(@as(u8, 0), code),
         else => return error.CommandFailed,
     }
 }
@@ -173,11 +174,11 @@ test "detectGitInfo retains metadata without an upstream branch" {
 
     const repo_path = try std.fs.path.join(allocator, &.{ ".zig-cache", "tmp", tmp.sub_path[0..] });
     defer allocator.free(repo_path);
-    const absolute_repo_path = try std.fs.cwd().realpathAlloc(allocator, repo_path);
+    const absolute_repo_path = try std.Io.Dir.cwd().realPathFileAlloc(std.testing.io, repo_path, allocator);
     defer allocator.free(absolute_repo_path);
 
-    try expectCommandSuccess(allocator, absolute_repo_path, &.{ "git", "init", "-q", "-b", "main" });
-    try expectCommandSuccess(allocator, absolute_repo_path, &.{
+    try expectCommandSuccess(std.testing.io, allocator, absolute_repo_path, &.{ "git", "init", "-q", "-b", "main" });
+    try expectCommandSuccess(std.testing.io, allocator, absolute_repo_path, &.{
         "git",
         "-c",
         "user.name=VibeTunnel Test",
@@ -190,7 +191,9 @@ test "detectGitInfo retains metadata without an upstream branch" {
         "initial",
     });
 
-    var info = detectGitInfo(allocator, absolute_repo_path);
+    var env = try std.process.Environ.createMap(std.testing.environ, allocator);
+    defer env.deinit();
+    var info = detectGitInfo(std.testing.io, allocator, &env, absolute_repo_path);
     defer info.deinit();
 
     try std.testing.expectEqualStrings(absolute_repo_path, info.gitRepoPath.?);

@@ -849,8 +849,26 @@ child.on('exit', (code, signal) => {
   // Copy Dockerfile.standalone
   const dockerfilePath = path.join(ROOT_DIR, 'Dockerfile.standalone');
   if (fs.existsSync(dockerfilePath)) {
-    fs.copyFileSync(dockerfilePath, path.join(DIST_DIR, 'Dockerfile.standalone'));
-    console.log('  ✓ Copied Dockerfile.standalone');
+    const repositoryRoot = path.join(ROOT_DIR, '..');
+    const forwarderCommit = (
+      process.env.GITHUB_SHA ||
+      execSync('git rev-parse HEAD', { cwd: repositoryRoot, encoding: 'utf8' }).trim()
+    );
+    if (!/^[0-9a-f]{40}$/.test(forwarderCommit)) {
+      throw new Error(`Invalid VibeTunnel commit for Dockerfile: ${forwarderCommit}`);
+    }
+
+    const dockerfile = fs.readFileSync(dockerfilePath, 'utf8');
+    const commitArg = 'ARG VT_FWD_COMMIT\n';
+    if (!dockerfile.includes(commitArg)) {
+      throw new Error('Dockerfile.standalone is missing the VT_FWD_COMMIT build argument');
+    }
+
+    fs.writeFileSync(
+      path.join(DIST_DIR, 'Dockerfile.standalone'),
+      dockerfile.replace(commitArg, `ARG VT_FWD_COMMIT=${forwarderCommit}\n`)
+    );
+    console.log(`  ✓ Copied Dockerfile.standalone (vt-fwd ${forwarderCommit.slice(0, 12)})`);
   }
   
   // Step 8: Clean up test files in dist-npm

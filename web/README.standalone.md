@@ -36,8 +36,12 @@ vibetunnel --no-auth
 ### Docker
 
 ```bash
-# Build the image
+# Released npm package: Dockerfile.standalone is already commit-pinned
 docker build -f Dockerfile.standalone -t vibetunnel .
+
+# Repository checkout: pin the matching forwarder source
+docker build -f Dockerfile.standalone -t vibetunnel \
+  --build-arg VT_FWD_COMMIT="$(git rev-parse HEAD)" .
 
 # Mount your code and run with ngrok tunnel
 docker run -v $(pwd):/workspace -p 4020:4020 vibetunnel --ngrok

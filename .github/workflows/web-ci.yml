@@ -5,11 +5,13 @@ on:
     branches: [ main, ms-pty ]
     paths:
       - 'web/**'
+      - 'native/vt-fwd/**'
       - '.github/workflows/web-ci.yml'
   pull_request:
     branches: [ main ]
     paths:
       - 'web/**'
+      - 'native/vt-fwd/**'
       - '.github/workflows/web-ci.yml'
 
 permissions:
@@ -50,7 +52,7 @@ jobs:
       - name: Setup Zig
         uses: mlugg/setup-zig@d1434d08867e3ee9daa34448df10607b98908d29 # v2
         with:
-          version: 0.15.2
+          version: 0.16.0
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
@@ -97,7 +99,7 @@ jobs:
       - name: Setup Zig
         uses: mlugg/setup-zig@d1434d08867e3ee9daa34448df10607b98908d29 # v2
         with:
-          version: 0.15.2
+          version: 0.16.0
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
@@ -147,13 +149,16 @@ jobs:
       - name: Setup Zig
         uses: mlugg/setup-zig@d1434d08867e3ee9daa34448df10607b98908d29 # v2
         with:
-          version: 0.15.2
+          version: 0.16.0
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
       - name: Build zig forwarder
         run: node scripts/build-fwd-zig.js
+
+      - name: Test zig forwarder
+        run: cd ../native/vt-fwd && zig build test e2e -Doptimize=ReleaseFast -Dversion=ci
 
       - name: Run client tests
         run: pnpm run test:client:coverage

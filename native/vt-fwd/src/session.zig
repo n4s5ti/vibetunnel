@@ -23,36 +23,30 @@ pub const SessionInfo = struct {
     attachedViaVT: ?bool = null,
 };
 
-pub fn writeSessionInfo(path: []const u8, info: SessionInfo, allocator: std.mem.Allocator) !void {
+pub fn writeSessionInfo(io: std.Io, path: []const u8, info: SessionInfo) !void {
     if (std.fs.path.dirname(path)) |dir| {
-        std.fs.cwd().makePath(dir) catch {};
+        std.Io.Dir.cwd().createDirPath(io, dir) catch {};
     }
-
-    const temp_path = try std.fmt.allocPrint(allocator, "{s}.tmp", .{path});
-    defer allocator.free(temp_path);
-
-    var file = try std.fs.cwd().createFile(temp_path, .{ .truncate = true, .read = false, .mode = 0o644 });
-    defer file.close();
-    var buffer: [4096]u8 = undefined;
-    var writer = file.writer(&buffer);
-    try std.json.Stringify.value(info, .{ .emit_null_optional_fields = false, .whitespace = .indent_2 }, &writer.interface);
-    try writer.interface.writeAll("\n");
-    try writer.end();
-
-    try std.fs.cwd().rename(temp_path, path);
+    try writeJsonAtomic(
+        io,
+        path,
+        info,
+        .{ .emit_null_optional_fields = false, .whitespace = .indent_2 },
+    );
 }
 
 pub fn readSessionInfo(
+    io: std.Io,
     allocator: std.mem.Allocator,
     path: []const u8,
 ) !std.json.Parsed(SessionInfo) {
-    const data = try std.fs.cwd().readFileAlloc(allocator, path, 1024 * 1024);
+    const data = try std.Io.Dir.cwd().readFileAlloc(io, path, allocator, .limited(1024 * 1024));
     errdefer allocator.free(data);
     return std.json.parseFromSlice(SessionInfo, allocator, data, .{});
 }
 
-pub fn readSessionName(allocator: std.mem.Allocator, path: []const u8) !?[]u8 {
-    const data = std.fs.cwd().readFileAlloc(allocator, path, 1024 * 1024) catch return null;
+pub fn readSessionName(io: std.Io, allocator: std.mem.Allocator, path: []const u8) !?[]u8 {
+    const data = std.Io.Dir.cwd().readFileAlloc(io, path, allocator, .limited(1024 * 1024)) catch return null;
     defer allocator.free(data);
 
     var parsed = std.json.parseFromSlice(std.json.Value, allocator, data, .{}) catch return null;
@@ -65,32 +59,43 @@ pub fn readSessionName(allocator: std.mem.Allocator, path: []const u8) !?[]u8 {
     return name_copy;
 }
 
-pub fn updateSessionName(allocator: std.mem.Allocator, path: []const u8, name: []const u8) !void {
+pub fn updateSessionName(io: std.Io, allocator: std.mem.Allocator, path: []const u8, name: []const u8) !void {
     if (std.fs.path.dirname(path)) |dir| {
-        std.fs.cwd().makePath(dir) catch {};
+        std.Io.Dir.cwd().createDirPath(io, dir) catch {};
     }
 
-    const data = try std.fs.cwd().readFileAlloc(allocator, path, 1024 * 1024);
+    const data = try std.Io.Dir.cwd().readFileAlloc(io, path, allocator, .limited(1024 * 1024));
     defer allocator.free(data);
 
     var parsed = try std.json.parseFromSlice(std.json.Value, allocator, data, .{});
     defer parsed.deinit();
 
     if (parsed.value != .object) return error.InvalidSessionJson;
-    try parsed.value.object.put("name", .{ .string = name });
+    try parsed.value.object.put(allocator, "name", .{ .string = name });
 
-    const temp_path = try std.fmt.allocPrint(allocator, "{s}.tmp", .{path});
-    defer allocator.free(temp_path);
+    try writeJsonAtomic(io, path, parsed.value, .{ .whitespace = .indent_2 });
+}
 
-    var file = try std.fs.cwd().createFile(temp_path, .{ .truncate = true, .read = false, .mode = 0o644 });
-    defer file.close();
+fn writeJsonAtomic(
+    io: std.Io,
+    path: []const u8,
+    value: anytype,
+    options: std.json.Stringify.Options,
+) !void {
+    const permissions: std.Io.File.Permissions = @enumFromInt(0o600);
+    var atomic_file = try std.Io.Dir.cwd().createFileAtomic(io, path, .{
+        .permissions = permissions,
+        .make_path = true,
+        .replace = true,
+    });
+    defer atomic_file.deinit(io);
+
     var buffer: [4096]u8 = undefined;
-    var writer = file.writer(&buffer);
-    try std.json.Stringify.value(parsed.value, .{ .whitespace = .indent_2 }, &writer.interface);
+    var writer = atomic_file.file.writer(io, &buffer);
+    try std.json.Stringify.value(value, options, &writer.interface);
     try writer.interface.writeAll("\n");
     try writer.end();
-
-    try std.fs.cwd().rename(temp_path, path);
+    try atomic_file.replace(io);
 }
 
 test "writeSessionInfo and updateSessionName" {
@@ -111,15 +116,15 @@ test "writeSessionInfo and updateSessionName" {
         .startedAt = "2025-01-01T00:00:00Z",
     };
 
-    try writeSessionInfo(path, info, allocator);
+    try writeSessionInfo(std.testing.io, path, info);
 
-    const name1 = try readSessionName(allocator, path);
+    const name1 = try readSessionName(std.testing.io, allocator, path);
     defer if (name1) |value| allocator.free(value);
     try std.testing.expect(name1 != null);
     try std.testing.expectEqualStrings("initial name", name1.?);
 
-    try updateSessionName(allocator, path, "updated name");
-    const name2 = try readSessionName(allocator, path);
+    try updateSessionName(std.testing.io, allocator, path, "updated name");
+    const name2 = try readSessionName(std.testing.io, allocator, path);
     defer if (name2) |value| allocator.free(value);
     try std.testing.expect(name2 != null);
     try std.testing.expectEqualStrings("updated name", name2.?);
@@ -143,16 +148,16 @@ test "updateSessionName preserves fields and tolerates missing keys" {
         \\  "extraField": "keep-me",
         \\  "nestedObject": { "a": 1 }
         \\}
-        ;
+    ;
 
-    try std.fs.cwd().makePath(std.fs.path.dirname(path).?);
-    var file = try std.fs.cwd().createFile(path, .{ .truncate = true, .read = false, .mode = 0o644 });
-    defer file.close();
-    try file.writeAll(json);
+    try std.Io.Dir.cwd().createDirPath(std.testing.io, std.fs.path.dirname(path).?);
+    const file = try std.Io.Dir.cwd().createFile(std.testing.io, path, .{});
+    defer file.close(std.testing.io);
+    try file.writeStreamingAll(std.testing.io, json);
 
-    try updateSessionName(allocator, path, "new name");
+    try updateSessionName(std.testing.io, allocator, path, "new name");
 
-    const updated = try std.fs.cwd().readFileAlloc(allocator, path, 1024 * 1024);
+    const updated = try std.Io.Dir.cwd().readFileAlloc(std.testing.io, path, allocator, .limited(1024 * 1024));
     defer allocator.free(updated);
 
     var parsed = try std.json.parseFromSlice(std.json.Value, allocator, updated, .{});
@@ -180,16 +185,16 @@ test "updateSessionName adds name when missing" {
         \\  "workingDir": "/tmp",
         \\  "status": "running"
         \\}
-        ;
+    ;
 
-    try std.fs.cwd().makePath(std.fs.path.dirname(path).?);
-    var file = try std.fs.cwd().createFile(path, .{ .truncate = true, .read = false, .mode = 0o644 });
-    defer file.close();
-    try file.writeAll(json);
+    try std.Io.Dir.cwd().createDirPath(std.testing.io, std.fs.path.dirname(path).?);
+    const file = try std.Io.Dir.cwd().createFile(std.testing.io, path, .{});
+    defer file.close(std.testing.io);
+    try file.writeStreamingAll(std.testing.io, json);
 
-    try updateSessionName(allocator, path, "inserted name");
+    try updateSessionName(std.testing.io, allocator, path, "inserted name");
 
-    const updated = try std.fs.cwd().readFileAlloc(allocator, path, 1024 * 1024);
+    const updated = try std.Io.Dir.cwd().readFileAlloc(std.testing.io, path, allocator, .limited(1024 * 1024));
     defer allocator.free(updated);
 
     var parsed = try std.json.parseFromSlice(std.json.Value, allocator, updated, .{});
@@ -209,10 +214,10 @@ test "updateSessionName errors on non-object JSON" {
     const path = try std.fs.path.join(allocator, &.{ ".zig-cache", "tmp", tmp.sub_path[0..], "session.json" });
     defer allocator.free(path);
 
-    try std.fs.cwd().makePath(std.fs.path.dirname(path).?);
-    var file = try std.fs.cwd().createFile(path, .{ .truncate = true, .read = false, .mode = 0o644 });
-    defer file.close();
-    try file.writeAll("[]\n");
+    try std.Io.Dir.cwd().createDirPath(std.testing.io, std.fs.path.dirname(path).?);
+    const file = try std.Io.Dir.cwd().createFile(std.testing.io, path, .{});
+    defer file.close(std.testing.io);
+    try file.writeStreamingAll(std.testing.io, "[]\n");
 
-    try std.testing.expectError(error.InvalidSessionJson, updateSessionName(allocator, path, "new name"));
+    try std.testing.expectError(error.InvalidSessionJson, updateSessionName(std.testing.io, allocator, path, "new name"));
 }

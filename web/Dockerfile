@@ -16,9 +16,9 @@ RUN apt-get update && apt-get install -y \
 
 # Install the pinned Zig release for vibetunnel-fwd builds.
 SHELL ["/bin/bash", "-c"]
-ARG ZIG_VERSION=0.15.2
-ARG ZIG_AMD64_SHA256=02aa270f183da276e5b5920b1dac44a63f1a49e55050ebde3aecc9eb82f93239
-ARG ZIG_ARM64_SHA256=958ed7d1e00d0ea76590d27666efbf7a932281b3d7ba0c6b01b0ff26498f667f
+ARG ZIG_VERSION=0.16.0
+ARG ZIG_AMD64_SHA256=70e49664a74374b48b51e6f3fdfbf437f6395d42509050588bd49abe52ba3d00
+ARG ZIG_ARM64_SHA256=ea4b09bfb22ec6f6c6ceac57ab63efb6b46e17ab08d21f69f3a48b38e1534f17
 RUN set -euo pipefail; \
     arch="$(uname -m)"; \
     case "$arch" in \
@@ -37,24 +37,15 @@ RUN set -euo pipefail; \
 WORKDIR /app
 
 # Copy package files
-COPY package.json pnpm-lock.yaml ./
-COPY node-pty/package.json ./node-pty/
+COPY web/package.json web/pnpm-lock.yaml ./
+COPY web/node-pty/package.json ./node-pty/
 
 # Install the package-manager version declared by package.json.
 RUN corepack enable && corepack prepare pnpm@10.15.0 --activate
 
 # Copy all source code first (needed for postinstall scripts)
-COPY . .
-
-# The web-only Docker context excludes the repository-level forwarder sources.
-ARG VT_FWD_COMMIT=586a728d4138a96338b05943f05576a25f0679d7
-RUN git init /tmp/vt-src \
-    && git -C /tmp/vt-src remote add origin https://github.com/amantus-ai/vibetunnel.git \
-    && git -C /tmp/vt-src fetch --depth 1 origin "$VT_FWD_COMMIT" \
-    && git -C /tmp/vt-src checkout --detach FETCH_HEAD \
-    && mkdir -p /app/native \
-    && cp -R /tmp/vt-src/native/vt-fwd /app/native/vt-fwd \
-    && rm -rf /tmp/vt-src
+COPY web/. .
+COPY native/vt-fwd ./native/vt-fwd
 
 # Install dependencies
 RUN pnpm install --frozen-lockfile

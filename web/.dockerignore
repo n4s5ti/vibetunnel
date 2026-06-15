@@ -1,10 +1,15 @@
 node_modules
 node-pty/node_modules
+.node-builds
+.zig-cache
+zig-out*
+__pycache__
 dist
 coverage
 playwright-report
 test-results
 .pnpm-store
+*.tgz
 *.log
 .git
 .gitignore

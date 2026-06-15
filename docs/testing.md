@@ -34,6 +34,15 @@ cd native/vt-fwd && zig build
 Goal: verify `session.json`, `stdout`, `stdin` FIFO, `ipc.sock` exist; stdout has bytes; session exits cleanly.
 
 ```bash
+cd native/vt-fwd
+zig build e2e -Doptimize=ReleaseFast
+```
+
+The automated test covers exit propagation, private artifact permissions, random binary output, valid cast JSON, fragmented and oversized IPC frames, heartbeat, resize, stdin, title updates, malformed signals, and process-group termination.
+
+Manual artifact inspection:
+
+```bash
 cat > /tmp/vt-randout.c <<'EOF'
 #include <fcntl.h>
 #include <unistd.h>

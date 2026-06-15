@@ -1,15 +1,17 @@
 const std = @import("std");
 
 pub const AsciinemaWriter = struct {
-    file: std.fs.File,
-    writer: std.fs.File.Writer,
+    io: std.Io,
+    file: std.Io.File,
+    writer: std.Io.File.Writer,
     writer_buf: [4096]u8 = undefined,
-    timer: std.time.Timer,
-    mutex: std.Thread.Mutex = .{},
+    started_at: std.Io.Timestamp,
+    mutex: std.Io.Mutex = .init,
     allocator: std.mem.Allocator,
     utf8_buffer: std.ArrayList(u8),
 
     pub fn init(
+        io: std.Io,
         allocator: std.mem.Allocator,
         path: []const u8,
         width: u16,
@@ -18,18 +20,23 @@ pub const AsciinemaWriter = struct {
         title: []const u8,
     ) !AsciinemaWriter {
         if (std.fs.path.dirname(path)) |dir| {
-            std.fs.cwd().makePath(dir) catch {};
+            std.Io.Dir.cwd().createDirPath(io, dir) catch {};
         }
 
-        const file = try std.fs.cwd().createFile(path, .{ .truncate = true, .read = false, .mode = 0o644 });
+        const permissions: std.Io.File.Permissions = @enumFromInt(0o600);
+        const file = try std.Io.Dir.cwd().createFile(io, path, .{
+            .truncate = true,
+            .permissions = permissions,
+        });
         var writer = AsciinemaWriter{
+            .io = io,
             .file = file,
             .writer = undefined,
-            .timer = try std.time.Timer.start(),
+            .started_at = std.Io.Clock.awake.now(io),
             .allocator = allocator,
             .utf8_buffer = std.ArrayList(u8).empty,
         };
-        writer.writer = file.writer(&writer.writer_buf);
+        writer.writer = file.writer(io, &writer.writer_buf);
         try writer.writeHeader(width, height, command, title);
         return writer;
     }
@@ -37,7 +44,7 @@ pub const AsciinemaWriter = struct {
     pub fn deinit(self: *AsciinemaWriter) void {
         self.utf8_buffer.deinit(self.allocator);
         _ = self.writer.end() catch {};
-        self.file.close();
+        self.file.close(self.io);
     }
 
     pub fn writeOutput(self: *AsciinemaWriter, data: []const u8) !void {
@@ -46,18 +53,28 @@ pub const AsciinemaWriter = struct {
         try combined.appendSlice(self.allocator, self.utf8_buffer.items);
         try combined.appendSlice(self.allocator, data);
 
-        const valid_len = validUtf8PrefixLen(combined.items);
-        const valid = combined.items[0..valid_len];
-        const remainder = combined.items[valid_len..];
+        var sanitized = std.ArrayList(u8).empty;
+        defer sanitized.deinit(self.allocator);
         self.utf8_buffer.clearRetainingCapacity();
-        try self.utf8_buffer.appendSlice(self.allocator, remainder);
+        try sanitizeUtf8(
+            self.allocator,
+            combined.items,
+            true,
+            &sanitized,
+            &self.utf8_buffer,
+        );
 
-        if (valid.len == 0) return;
-        try self.writeEvent('o', valid);
+        if (sanitized.items.len == 0) return;
+        try self.writeEvent('o', sanitized.items);
     }
 
     pub fn writeInput(self: *AsciinemaWriter, data: []const u8) !void {
-        try self.writeEvent('i', data);
+        var sanitized = std.ArrayList(u8).empty;
+        defer sanitized.deinit(self.allocator);
+        var unused_remainder = std.ArrayList(u8).empty;
+        defer unused_remainder.deinit(self.allocator);
+        try sanitizeUtf8(self.allocator, data, false, &sanitized, &unused_remainder);
+        if (sanitized.items.len > 0) try self.writeEvent('i', sanitized.items);
     }
 
     pub fn writeResize(self: *AsciinemaWriter, cols: u16, rows: u16) !void {
@@ -67,9 +84,25 @@ pub const AsciinemaWriter = struct {
     }
 
     pub fn writeExit(self: *AsciinemaWriter, exit_code: i32, session_id: []const u8) !void {
+        if (self.utf8_buffer.items.len > 0) {
+            var sanitized = std.ArrayList(u8).empty;
+            defer sanitized.deinit(self.allocator);
+            var unused_remainder = std.ArrayList(u8).empty;
+            defer unused_remainder.deinit(self.allocator);
+            try sanitizeUtf8(
+                self.allocator,
+                self.utf8_buffer.items,
+                false,
+                &sanitized,
+                &unused_remainder,
+            );
+            self.utf8_buffer.clearRetainingCapacity();
+            if (sanitized.items.len > 0) try self.writeEvent('o', sanitized.items);
+        }
+
         var file_writer = &self.writer;
-        self.mutex.lock();
-        defer self.mutex.unlock();
+        self.mutex.lockUncancelable(self.io);
+        defer self.mutex.unlock(self.io);
 
         try file_writer.interface.writeAll("[\"exit\",");
         try file_writer.interface.print("{}", .{exit_code});
@@ -84,13 +117,13 @@ pub const AsciinemaWriter = struct {
             .version = 2,
             .width = width,
             .height = height,
-            .timestamp = @intCast(std.time.timestamp()),
+            .timestamp = @intCast(@divTrunc(std.Io.Clock.real.now(self.io).nanoseconds, std.time.ns_per_s)),
             .command = if (command.len > 0) command else null,
             .title = if (title.len > 0) title else null,
         };
         var file_writer = &self.writer;
-        self.mutex.lock();
-        defer self.mutex.unlock();
+        self.mutex.lockUncancelable(self.io);
+        defer self.mutex.unlock(self.io);
         try std.json.Stringify.value(header, .{ .emit_null_optional_fields = false }, &file_writer.interface);
         try file_writer.interface.writeAll("\n");
         try file_writer.interface.flush();
@@ -98,11 +131,11 @@ pub const AsciinemaWriter = struct {
 
     fn writeEvent(self: *AsciinemaWriter, event_type: u8, data: []const u8) !void {
         var file_writer = &self.writer;
-        const elapsed_ns = self.timer.read();
+        const elapsed_ns = self.started_at.durationTo(std.Io.Clock.awake.now(self.io)).nanoseconds;
         const elapsed = @as(f64, @floatFromInt(elapsed_ns)) / 1_000_000_000.0;
 
-        self.mutex.lock();
-        defer self.mutex.unlock();
+        self.mutex.lockUncancelable(self.io);
+        defer self.mutex.unlock(self.io);
 
         try file_writer.interface.writeAll("[");
         try file_writer.interface.print("{d:.6}", .{elapsed});
@@ -124,24 +157,60 @@ const Header = struct {
     title: ?[]const u8 = null,
 };
 
-fn validUtf8PrefixLen(data: []const u8) usize {
-    if (data.len == 0) return 0;
-    if (std.unicode.utf8ValidateSlice(data)) return data.len;
-    var end = data.len;
-    while (end > 0) {
-        end -= 1;
-        if (std.unicode.utf8ValidateSlice(data[0..end])) return end;
+fn sanitizeUtf8(
+    allocator: std.mem.Allocator,
+    data: []const u8,
+    preserve_incomplete_tail: bool,
+    output: *std.ArrayList(u8),
+    remainder: *std.ArrayList(u8),
+) !void {
+    var index: usize = 0;
+    while (index < data.len) {
+        const sequence_len = std.unicode.utf8ByteSequenceLength(data[index]) catch {
+            try output.appendSlice(allocator, &std.unicode.replacement_character_utf8);
+            index += 1;
+            continue;
+        };
+        const end = index + sequence_len;
+        if (end > data.len) {
+            if (preserve_incomplete_tail) {
+                try remainder.appendSlice(allocator, data[index..]);
+                return;
+            }
+            try output.appendSlice(allocator, &std.unicode.replacement_character_utf8);
+            index += 1;
+            continue;
+        }
+        _ = std.unicode.utf8Decode(data[index..end]) catch {
+            try output.appendSlice(allocator, &std.unicode.replacement_character_utf8);
+            index += 1;
+            continue;
+        };
+        try output.appendSlice(allocator, data[index..end]);
+        index = end;
     }
-    return 0;
 }
 
-test "validUtf8PrefixLen handles partial sequences" {
-    const full = [_]u8{ 0xE2, 0x82, 0xAC };
-    try std.testing.expectEqual(@as(usize, 3), validUtf8PrefixLen(full[0..]));
+test "sanitizeUtf8 preserves incomplete tails and replaces malformed bytes" {
+    const allocator = std.testing.allocator;
+    var output = std.ArrayList(u8).empty;
+    defer output.deinit(allocator);
+    var remainder = std.ArrayList(u8).empty;
+    defer remainder.deinit(allocator);
 
-    const partial = [_]u8{ 0xE2, 0x82 };
-    try std.testing.expectEqual(@as(usize, 0), validUtf8PrefixLen(partial[0..]));
+    try sanitizeUtf8(allocator, &.{ 'A', 0xff, 'B', 0xE2, 0x82 }, true, &output, &remainder);
+    try std.testing.expectEqualStrings("A\xEF\xBF\xBDB", output.items);
+    try std.testing.expectEqualSlices(u8, &.{ 0xE2, 0x82 }, remainder.items);
+}
 
-    const mixed = [_]u8{ 'A', 0xE2, 0x82 };
-    try std.testing.expectEqual(@as(usize, 1), validUtf8PrefixLen(mixed[0..]));
+test "sanitizeUtf8 completes split codepoints" {
+    const allocator = std.testing.allocator;
+    var output = std.ArrayList(u8).empty;
+    defer output.deinit(allocator);
+    var remainder = std.ArrayList(u8).empty;
+    defer remainder.deinit(allocator);
+
+    try sanitizeUtf8(allocator, &.{ 0xE2, 0x82, 0xAC }, true, &output, &remainder);
+    try std.testing.expectEqualStrings("\xE2\x82\xAC", output.items);
+    try std.testing.expectEqual(@as(usize, 0), remainder.items.len);
 }

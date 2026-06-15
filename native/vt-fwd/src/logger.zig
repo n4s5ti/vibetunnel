@@ -1,5 +1,9 @@
 const std = @import("std");
 
+const c = @cImport({
+    @cInclude("fcntl.h");
+});
+
 pub const Level = enum(u8) {
     silent = 0,
     @"error" = 1,
@@ -20,23 +24,34 @@ pub fn parseLevel(value: []const u8) ?Level {
 }
 
 pub const Logger = struct {
+    io: std.Io,
     level: Level,
-    file: ?std.fs.File = null,
+    file: ?std.Io.File = null,
+    mutex: std.Io.Mutex = .init,
 
-    pub fn init(level: Level, log_path: ?[]const u8) Logger {
-        var logger = Logger{ .level = level };
+    pub fn init(io: std.Io, level: Level, log_path: ?[]const u8) Logger {
+        var logger = Logger{ .io = io, .level = level };
         if (log_path) |path| {
             if (std.fs.path.dirname(path)) |dir| {
-                std.fs.cwd().makePath(dir) catch {};
+                std.Io.Dir.cwd().createDirPath(io, dir) catch {};
             }
-            logger.file = std.fs.cwd().createFile(path, .{ .truncate = false, .read = false, .mode = 0o644 }) catch null;
+            const permissions: std.Io.File.Permissions = @enumFromInt(0o600);
+            logger.file = std.Io.Dir.cwd().createFile(io, path, .{
+                .truncate = false,
+                .permissions = permissions,
+            }) catch null;
+            if (logger.file) |file| {
+                file.setPermissions(io, permissions) catch {};
+                const flags = c.fcntl(file.handle, c.F_GETFL);
+                if (flags >= 0) _ = c.fcntl(file.handle, c.F_SETFL, flags | c.O_APPEND);
+            }
         }
         return logger;
     }
 
     pub fn deinit(self: *Logger) void {
         if (self.file) |*file| {
-            file.close();
+            file.close(self.io);
             self.file = null;
         }
     }
@@ -63,15 +78,18 @@ pub const Logger = struct {
 
     fn log(self: *Logger, level: Level, comptime label: []const u8, comptime fmt: []const u8, args: anytype) void {
         if (@intFromEnum(self.level) < @intFromEnum(level)) return;
+        self.mutex.lockUncancelable(self.io);
+        defer self.mutex.unlock(self.io);
 
         var buf: [512]u8 = undefined;
         const msg = std.fmt.bufPrint(&buf, fmt, args) catch return;
-        const stderr = std.fs.File.stderr().deprecatedWriter();
-        _ = stderr.print("[{s}] {s}\n", .{ label, msg }) catch {};
+        var stderr_buffer: [640]u8 = undefined;
+        const stderr_msg = std.fmt.bufPrint(&stderr_buffer, "[{s}] {s}\n", .{ label, msg }) catch return;
+        std.Io.File.stderr().writeStreamingAll(self.io, stderr_msg) catch {};
 
         if (self.file) |*file| {
-            _ = file.writeAll(msg) catch {};
-            _ = file.writeAll("\n") catch {};
+            file.writeStreamingAll(self.io, msg) catch {};
+            file.writeStreamingAll(self.io, "\n") catch {};
         }
     }
 };
@@ -81,4 +99,33 @@ test "parseLevel is case-insensitive" {
     try std.testing.expect(parseLevel("warn") == .warn);
     try std.testing.expect(parseLevel("DEBUG") == .debug);
     try std.testing.expect(parseLevel("nope") == null);
+}
+
+test "logger appends and keeps private permissions" {
+    const allocator = std.testing.allocator;
+    var tmp = std.testing.tmpDir(.{});
+    defer tmp.cleanup();
+    const path = try std.fs.path.join(allocator, &.{ ".zig-cache", "tmp", tmp.sub_path[0..], "log.txt" });
+    defer allocator.free(path);
+
+    var first = Logger.init(std.testing.io, .debug, path);
+    first.info("first", .{});
+    first.deinit();
+    var second = Logger.init(std.testing.io, .debug, path);
+    second.info("second", .{});
+    second.deinit();
+
+    const contents = try std.Io.Dir.cwd().readFileAlloc(
+        std.testing.io,
+        path,
+        allocator,
+        .limited(1024),
+    );
+    defer allocator.free(contents);
+    try std.testing.expectEqualStrings("first\nsecond\n", contents);
+    const file_stat = try std.Io.Dir.cwd().statFile(std.testing.io, path, .{});
+    try std.testing.expectEqual(
+        @as(std.posix.mode_t, 0o600),
+        @intFromEnum(file_stat.permissions) & 0o777,
+    );
 }

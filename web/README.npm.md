@@ -39,7 +39,8 @@ vibetunnel --no-auth
 # Build from source
 git clone https://github.com/amantus-ai/vibetunnel.git
 cd vibetunnel/web
-docker build -f Dockerfile.standalone -t vibetunnel .
+docker build -f Dockerfile.standalone -t vibetunnel \
+  --build-arg VT_FWD_COMMIT="$(git rev-parse HEAD)" .
 
 # Mount your code and run with tunnel
 docker run -v $(pwd):/workspace -p 4020:4020 vibetunnel --ngrok

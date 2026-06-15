@@ -17,14 +17,18 @@ pub const winsize = extern struct {
 
 const c = switch (builtin.os.tag) {
     .macos => @cImport({
+        @cInclude("fcntl.h");
         @cInclude("sys/ioctl.h");
         @cInclude("util.h");
         @cInclude("termios.h");
+        @cInclude("unistd.h");
     }),
     .linux => @cImport({
+        @cInclude("fcntl.h");
         @cInclude("sys/ioctl.h");
         @cInclude("pty.h");
         @cInclude("termios.h");
+        @cInclude("unistd.h");
     }),
     else => @compileError("Unsupported OS for PTY support."),
 };
@@ -32,14 +36,12 @@ const c = switch (builtin.os.tag) {
 pub const TIOCSCTTY = if (builtin.os.tag == .macos) 536900705 else c.TIOCSCTTY;
 const TIOCSWINSZ = if (builtin.os.tag == .macos) 2148037735 else c.TIOCSWINSZ;
 const TIOCGWINSZ = if (builtin.os.tag == .macos) 1074295912 else c.TIOCGWINSZ;
-extern "c" fn setsid() std.c.pid_t;
 
 pub const Pty = struct {
     pub const Fd = posix.fd_t;
     pub const OpenError = error{OpenptyFailed};
     pub const SetSizeError = error{IoctlFailed};
     pub const GetSizeError = error{IoctlFailed};
-    pub const ChildPreExecError = error{ ProcessGroupFailed, SetControllingTerminalFailed };
 
     master: Fd,
     slave: Fd,
@@ -52,14 +54,14 @@ pub const Pty = struct {
             return error.OpenptyFailed;
         }
         errdefer {
-            _ = posix.close(master_fd);
-            _ = posix.close(slave_fd);
+            _ = c.close(master_fd);
+            _ = c.close(slave_fd);
         }
 
         // Set CLOEXEC on the master fd, only slave should be inherited.
-        const flags = posix.fcntl(master_fd, posix.F.GETFD, 0) catch null;
-        if (flags) |fd_flags| {
-            _ = posix.fcntl(master_fd, posix.F.SETFD, fd_flags | posix.FD_CLOEXEC) catch {};
+        const fd_flags = c.fcntl(master_fd, c.F_GETFD);
+        if (fd_flags >= 0) {
+            _ = c.fcntl(master_fd, c.F_SETFD, fd_flags | c.FD_CLOEXEC);
         }
 
         // Ensure UTF-8 mode is enabled.
@@ -76,11 +78,11 @@ pub const Pty = struct {
 
     pub fn deinit(self: *Pty) void {
         if (self.master >= 0) {
-            _ = posix.close(self.master);
+            _ = c.close(self.master);
             self.master = -1;
         }
         if (self.slave >= 0) {
-            _ = posix.close(self.slave);
+            _ = c.close(self.slave);
             self.slave = -1;
         }
         self.* = undefined;
@@ -98,36 +100,6 @@ pub const Pty = struct {
             return error.IoctlFailed;
         }
         return ws;
-    }
-
-    pub fn childPreExec(self: Pty) ChildPreExecError!void {
-        var sa: posix.Sigaction = .{
-            .handler = .{ .handler = posix.SIG.DFL },
-            .mask = posix.sigemptyset(),
-            .flags = 0,
-        };
-        posix.sigaction(posix.SIG.ABRT, &sa, null);
-        posix.sigaction(posix.SIG.ALRM, &sa, null);
-        posix.sigaction(posix.SIG.BUS, &sa, null);
-        posix.sigaction(posix.SIG.CHLD, &sa, null);
-        posix.sigaction(posix.SIG.FPE, &sa, null);
-        posix.sigaction(posix.SIG.HUP, &sa, null);
-        posix.sigaction(posix.SIG.ILL, &sa, null);
-        posix.sigaction(posix.SIG.INT, &sa, null);
-        posix.sigaction(posix.SIG.PIPE, &sa, null);
-        posix.sigaction(posix.SIG.SEGV, &sa, null);
-        posix.sigaction(posix.SIG.TERM, &sa, null);
-        posix.sigaction(posix.SIG.QUIT, &sa, null);
-
-        if (setsid() < 0) return error.ProcessGroupFailed;
-
-        switch (posix.errno(c.ioctl(self.slave, TIOCSCTTY, @as(c_ulong, 0)))) {
-            .SUCCESS => {},
-            else => return error.SetControllingTerminalFailed,
-        }
-
-        _ = posix.close(self.slave);
-        _ = posix.close(self.master);
     }
 };
 

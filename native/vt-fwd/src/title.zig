@@ -152,24 +152,24 @@ pub fn sanitizeTitle(allocator: std.mem.Allocator, title: []const u8) ![]u8 {
     var list = std.ArrayList(u8).empty;
     errdefer list.deinit(allocator);
 
-    const view = std.unicode.Utf8View.init(title) catch {
-        for (title) |b| {
-            if (b >= 32 and b != 127 and (b < 128 or b > 159)) {
-                try list.append(allocator, b);
-            }
-            if (list.items.len >= 256) break;
-        }
-        return list.toOwnedSlice(allocator);
-    };
-
-    var it = view.iterator();
+    var index: usize = 0;
     var count: usize = 0;
-    while (it.nextCodepointSlice()) |slice| {
-        const cp = std.unicode.utf8Decode(slice) catch continue;
+    while (index < title.len and count < 256) {
+        const sequence_len = std.unicode.utf8ByteSequenceLength(title[index]) catch {
+            index += 1;
+            continue;
+        };
+        const end = index + sequence_len;
+        if (end > title.len) break;
+        const slice = title[index..end];
+        const cp = std.unicode.utf8Decode(slice) catch {
+            index += 1;
+            continue;
+        };
+        index = end;
         if (cp >= 32 and cp != 127 and (cp < 128 or cp > 159)) {
             try list.appendSlice(allocator, slice);
             count += 1;
-            if (count >= 256) break;
         }
     }
 
@@ -214,4 +214,12 @@ test "sanitizeTitle strips control chars and limits length" {
     const trimmed = try sanitizeTitle(allocator, long);
     defer allocator.free(trimmed);
     try std.testing.expectEqual(@as(usize, 256), trimmed.len);
+}
+
+test "sanitizeTitle drops malformed bytes without losing valid text" {
+    const allocator = std.testing.allocator;
+    const cleaned = try sanitizeTitle(allocator, &.{ 'A', 0xff, 'B', 0xC2, 0xA3 });
+    defer allocator.free(cleaned);
+    try std.testing.expectEqualStrings("AB\xC2\xA3", cleaned);
+    try std.testing.expect(std.unicode.utf8ValidateSlice(cleaned));
 }

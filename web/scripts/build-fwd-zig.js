@@ -29,6 +29,7 @@ if (!zigProject) {
 const pkgPath = path.join(webRoot, 'package.json');
 const pkg = fs.existsSync(pkgPath) ? JSON.parse(fs.readFileSync(pkgPath, 'utf8')) : {};
 const version = pkg.version || 'unknown';
+const requiredZigVersion = '0.16.0';
 
 const zigOut = path.join(zigProject, 'zig-out', 'bin', 'vibetunnel-fwd');
 const nativeOutDir = path.join(webRoot, 'native');
@@ -48,6 +49,14 @@ const zigCandidates = zigFromEnv
 const zigBinary =
   zigCandidates.find((candidate) => fs.existsSync(candidate)) ||
   (process.platform === 'win32' ? 'zig.exe' : 'zig');
+const actualZigVersion = execFileSync(zigBinary, ['version'], {
+  encoding: 'utf8',
+}).trim();
+if (actualZigVersion !== requiredZigVersion) {
+  console.error(`ERROR: vibetunnel-fwd requires Zig ${requiredZigVersion}.`);
+  console.error(`Found Zig ${actualZigVersion} at ${zigBinary}.`);
+  process.exit(1);
+}
 execFileSync(
   zigBinary,
   ['build', '-Doptimize=ReleaseFast', `-Dversion=${version}`],

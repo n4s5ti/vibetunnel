@@ -122,8 +122,10 @@ linux/vibetunnel
 # Zig build artifacts
 native/vt-fwd/.zig-cache/
 native/vt-fwd/zig-out/
+native/vt-fwd/zig-out-*/
 web/bin/vibetunnel-fwd
 web/native/vibetunnel-fwd
+__pycache__/
 
 
 # Rust build artifacts

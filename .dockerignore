@@ -2,10 +2,18 @@
 target/
 dist/
 build/
+**/dist/
+**/build/
+**/coverage/
+**/dist-npm/
+**/playwright-report/
+**/test-results/
 *.log
 web/native/vibetunnel
 web/native/*.node
 web/native/spawn-helper
+web/native/vibetunnel-fwd
+web/native/vibetunnel-build.json
 web/public/bundle/
 
 # Ignore node_modules - CRITICAL for cross-platform builds
@@ -41,3 +49,13 @@ docs/
 .cache/
 .npm/
 .pnpm-store/
+**/.pnpm-store/
+**/.node-builds/
+**/.zig-cache/
+**/zig-out*/
+**/__pycache__/
+*.tgz
+
+# Keep web tests used by web/Dockerfile's default test command.
+!web/src/**/*.test.ts
+!web/src/**/*.spec.ts

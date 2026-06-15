@@ -1,10 +1,8 @@
-version: '3.8'
-
 services:
   vibetunnel-npm-beta:
     build:
-      context: .
-      dockerfile: Dockerfile
+      context: ..
+      dockerfile: web/Dockerfile
     container_name: vibetunnel-npm-beta-test
     environment:
       - NODE_ENV=development
