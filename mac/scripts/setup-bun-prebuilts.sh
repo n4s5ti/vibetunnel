@@ -46,7 +46,7 @@ build_current_arch() {
             node build-native.js
         else
             echo -e "${RED}Error: Node.js not found.${NC}"
-            echo -e "${RED}Please install Node.js 22.12+ to build the executable.${NC}"
+            echo -e "${RED}Please install Node.js 22.12 through 24.x to build the executable.${NC}"
             exit 1
         fi
     fi

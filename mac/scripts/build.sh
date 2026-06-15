@@ -10,12 +10,12 @@
 # build details including the IS_PRERELEASE_BUILD flag status.
 #
 # USAGE:
-#   ./scripts/build.sh [--configuration Debug|Release] [--no-sign] [--arch arm64|x86_64|universal]
+#   ./scripts/build.sh [--configuration Debug|Release] [--no-sign] [--arch arm64]
 #
 # ARGUMENTS:
 #   --configuration <Debug|Release>  Build configuration (default: Release)
 #   --no-sign                        Disable code signing (not recommended)
-#   --arch <arm64|x86_64|universal>  Architecture to build (default: universal)
+#   --arch <arm64>                   Architecture to build (default: arm64)
 #
 # ENVIRONMENT VARIABLES:
 #   IS_PRERELEASE_BUILD=YES|NO      Sets pre-release flag in Info.plist
@@ -34,11 +34,10 @@
 #   - xcbeautify (optional, for prettier output)
 #
 # EXAMPLES:
-#   ./scripts/build.sh                           # Release build (universal)
-#   ./scripts/build.sh --configuration Debug     # Debug build (universal)
+#   ./scripts/build.sh                           # Release build (Apple Silicon)
+#   ./scripts/build.sh --configuration Debug     # Debug build (Apple Silicon)
 #   ./scripts/build.sh --no-sign                 # Release build without signing (not recommended)
-#   ./scripts/build.sh --arch x86_64             # Release build for Intel
-#   IS_PRERELEASE_BUILD=YES ./scripts/build.sh   # Beta build (universal)
+#   IS_PRERELEASE_BUILD=YES ./scripts/build.sh   # Beta build (Apple Silicon)
 #
 # =============================================================================
 
@@ -52,10 +51,10 @@ BUILD_DIR="$MAC_DIR/build"
 # Default values
 CONFIGURATION="Release"
 SIGN_APP=true
-ARCH="universal"
+ARCH="arm64"
 
 usage() {
-    echo "Usage: $0 [--configuration Debug|Release] [--no-sign] [--arch arm64|x86_64|universal]"
+    echo "Usage: $0 [--configuration Debug|Release] [--no-sign] [--arch arm64]"
 }
 
 require_arg() {
@@ -92,20 +91,21 @@ while [[ $# -gt 0 ]]; do
 done
 
 case "$ARCH" in
-    arm64|x86_64)
+    arm64)
         DESTINATION="platform=macOS,arch=$ARCH"
         ARCHS="$ARCH"
         ;;
-    universal)
-        DESTINATION="platform=macOS"
-        ARCHS="arm64 x86_64"
-        ;;
     *)
-        echo "Unknown architecture: $ARCH"
+        echo "Unsupported architecture: $ARCH (the macOS app requires Apple Silicon)"
         usage
         exit 1
         ;;
 esac
+
+if [[ "$(uname -m)" != "arm64" ]]; then
+    echo "Apple Silicon host required to build matching embedded server resources"
+    exit 1
+fi
 
 echo "Building VibeTunnel..."
 echo "Configuration: $CONFIGURATION"

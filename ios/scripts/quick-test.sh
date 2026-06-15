@@ -11,18 +11,49 @@ if [ ! -f "VibeTunnel-iOS.xcodeproj/project.pbxproj" ]; then
     exit 1
 fi
 
-# Find an available simulator
-SIMULATOR_ID=$(
+# Select the last available iPhone from the newest installed iOS 26 runtime.
+SIMULATOR_INFO=$(
     xcrun simctl list devices available |
-        grep -E "iPhone.*\\(" |
-        head -1 |
-        awk -F '[()]' '{print $2}'
+        awk '
+            /^-- iOS 26([.][0-9]+)* --$/ {
+                runtime = $0
+                sub(/^-- iOS /, "", runtime)
+                sub(/ --$/, "", runtime)
+                in_runtime = 1
+                next
+            }
+            /^-- / {
+                in_runtime = 0
+            }
+            in_runtime {
+                line = $0
+                sub(/[[:space:]]+$/, "", line)
+            }
+            in_runtime && line ~ /iPhone/ && line ~ / \((Shutdown|Booted)\)$/ {
+                name = line
+                sub(/^[[:space:]]+/, "", name)
+                sub(/ \([0-9A-F-]+\) \((Shutdown|Booted)\)$/, "", name)
+
+                id = line
+                sub(/ \((Shutdown|Booted)\)$/, "", id)
+                sub(/^.*\(/, "", id)
+                sub(/\)$/, "", id)
+
+                candidate = runtime "\t" name "\t" id
+            }
+            END {
+                print candidate
+            }
+        '
 )
+IFS=$'\t' read -r SIMULATOR_RUNTIME SIMULATOR_NAME SIMULATOR_ID <<< "$SIMULATOR_INFO"
 
 if [ -z "$SIMULATOR_ID" ]; then
-    echo "❌ No iPhone simulator available"
+    echo "❌ No iOS 26 iPhone simulator available"
     exit 1
 fi
+
+echo "📱 Simulator: $SIMULATOR_NAME (iOS $SIMULATOR_RUNTIME, $SIMULATOR_ID)"
 
 RESULT_BUNDLE_PATH="build/TestResults.xcresult"
 mkdir -p build

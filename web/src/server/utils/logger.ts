@@ -314,6 +314,9 @@ function formatMessage(
   // Format arguments
   const message = args
     .map((arg) => {
+      if (arg instanceof Error) {
+        return arg.stack || `${arg.name}: ${arg.message}`;
+      }
       if (typeof arg === 'object') {
         try {
           // Use JSON.stringify with 2-space indent for objects

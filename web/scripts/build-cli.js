@@ -3,6 +3,22 @@ const fs = require('fs');
 const path = require('path');
 const { nodePtyPlugin } = require('./node-pty-plugin.js');
 
+const externalDependencies = [
+  'authenticate-pam',
+  'compression',
+  'helmet',
+  'express',
+  'ghostty-web',
+  'ws',
+  'jsonwebtoken',
+  'web-push',
+  'bonjour-service',
+  'signal-exit',
+  'http-proxy-middleware',
+  'multer',
+  'mime-types',
+];
+
 async function buildCli() {
   console.log('Bundling CLI...');
 
@@ -14,21 +30,7 @@ async function buildCli() {
     format: 'cjs',
     outfile: 'dist/vibetunnel-cli',
     plugins: [nodePtyPlugin],
-    external: [
-      'authenticate-pam',
-      'compression',
-      'helmet',
-      'express',
-      'ghostty-web',
-      'ws',
-      'jsonwebtoken',
-      'web-push',
-      'bonjour-service',
-      'signal-exit',
-      'http-proxy-middleware',
-      'multer',
-      'mime-types',
-    ],
+    external: externalDependencies,
     minify: true,
     sourcemap: false,
     loader: {
@@ -57,4 +59,4 @@ if (require.main === module) {
   });
 }
 
-module.exports = { buildCli };
+module.exports = { buildCli, externalDependencies };

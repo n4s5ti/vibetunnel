@@ -5,8 +5,9 @@ This guide helps the repository owner publish VibeTunnel to npm as a standalone 
 ## Prerequisites
 
 1. **npm account** with publish access to `vibetunnel`
-2. **Node.js 22+** installed
-3. **Docker** installed (for Linux builds)
+2. **Node.js 22.12 through 24.x** installed
+3. **Apple Silicon Mac** for the complete multi-platform package
+4. **Docker** installed (for Linux builds)
 
 ## Publishing Checklist
 
@@ -22,7 +23,7 @@ vim package.json package.npm.json
 ### 2. Build for npm
 
 ```bash
-# Clean and build for all platforms
+# Clean and build for all platforms on macOS
 pnpm run clean
 pnpm run build:npm
 
@@ -134,6 +135,9 @@ rm -rf dist-npm/
 pnpm install
 pnpm run build:npm
 ```
+
+Complete multi-platform builds require macOS. On Linux, use
+`pnpm run build:npm -- --current-only` or `pnpm run build:npm -- --platform linux`.
 
 ### Missing Prebuilds
 

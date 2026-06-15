@@ -103,11 +103,29 @@ struct VoiceInputViewModelTests {
             transcriptionServiceFactory: { _ in service })
 
         await viewModel.toggleRecording()
-        try await Task.sleep(for: .milliseconds(100))
+        try await waitUntil {
+            viewModel.state == .idle
+        }
 
         #expect(viewModel.state == .idle)
         #expect(viewModel.completedTranscript?.text == "pwd")
         #expect(recorder.stopCount == 1)
+    }
+
+    private func waitUntil(
+        timeout: Duration = .seconds(2),
+        condition: @escaping @MainActor () -> Bool) async throws
+    {
+        let clock = ContinuousClock()
+        let deadline = clock.now.advanced(by: timeout)
+
+        while !condition() {
+            guard clock.now < deadline else {
+                Issue.record("Timed out waiting for voice input state")
+                return
+            }
+            try await Task.sleep(for: .milliseconds(10))
+        }
     }
 }
 

@@ -695,7 +695,7 @@ cleanupOnStartup: Bool = true
 **Requirements**:
 - Xcode 16.0+
 - macOS 14.0+ SDK
-- Node.js 22.12+
+- Node.js 22.12 through 24.x
 - Bun runtime
 
 **Build Process**:

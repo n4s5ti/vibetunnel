@@ -271,7 +271,7 @@ If you encounter issues during installation:
    sudo npm install -g vibetunnel
    ```
 
-3. **Node Version**: Ensure Node.js 22.12+ is installed
+3. **Node Version**: Ensure Node.js 22.12 through 24.x is installed
    ```bash
    node --version
    ```

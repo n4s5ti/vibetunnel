@@ -33,6 +33,7 @@ This checklist ensures a smooth and error-free npm release process for VibeTunne
 
 ### 5. Clean Build
 - [ ] Clean previous builds: `rm -rf dist-npm/ vibetunnel-*.tgz`
+- [ ] Run the complete build on an Apple Silicon Mac with Docker available
 - [ ] Run build: `pnpm run build:npm`
 - [ ] Verify build output shows all platforms built successfully
 - [ ] Check for "✅ authenticate-pam listed as optional dependency" in output
@@ -164,7 +165,7 @@ This checklist ensures a smooth and error-free npm release process for VibeTunne
 # Update dependencies
 pnpm update --interactive --latest
 
-# Build
+# Complete multi-platform build (macOS only)
 pnpm run build:npm
 
 # Verify

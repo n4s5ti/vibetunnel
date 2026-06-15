@@ -36,7 +36,8 @@ node_version_supported() {
 
     case "$major" in ''|*[!0-9]*) return 1 ;; esac
     case "$minor" in ''|*[!0-9]*) return 1 ;; esac
-    [ "$major" -gt 22 ] || { [ "$major" -eq 22 ] && [ "$minor" -ge 12 ]; }
+    { [ "$major" -gt 22 ] && [ "$major" -le 24 ]; } ||
+        { [ "$major" -eq 22 ] && [ "$minor" -ge 12 ]; }
 }
 
 try_node_candidate() {
@@ -126,7 +127,7 @@ if find_supported_node; then
         export PATH="$(dirname "$VIBETUNNEL_NODE_BIN"):$PATH"
     fi
 elif [ -n "$FIRST_NODE_BIN" ]; then
-    echo "error: Node.js v22.12+ is required (found v$FIRST_NODE_VERSION at $FIRST_NODE_BIN)" >&2
+    echo "error: Node.js 22.12 through 24.x is required (found v$FIRST_NODE_VERSION at $FIRST_NODE_BIN)" >&2
     return 1 2>/dev/null || exit 1
 else
     echo "error: Node.js not found. Install via: brew install node" >&2

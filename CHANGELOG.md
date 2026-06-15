@@ -1,6 +1,22 @@
 # Changelog
 
-## [Unreleased]
+## [1.0.0-beta.16] - 2026-06-16
+
+### Fixed
+
+- Fixed release preflight to validate the shipped Zig toolchain instead of the removed Rust toolchain.
+- Fixed Linux bootstrap for unprivileged users by enabling the repository-pinned pnpm through Corepack with the required permissions.
+- Fixed clean-install TypeScript checks by keeping terminal renderer declarations on Lit's public types.
+- Fixed the iOS quick-test helper to select an installed iOS 26 simulator instead of an arbitrary older runtime.
+- Prevented npm package builds from silently publishing stale runtime dependency versions.
+- Prevented tag pushes from racing the signed release script with an obsolete unsigned GitHub release workflow.
+- Fixed npm packages to include and select the correct Zig forwarder for Intel and Apple Silicon Macs and x64 and arm64 Linux hosts.
+- Fixed packaged servers to load Ghostty's WASM terminal parser, advertise through `bonjour-service`, preserve Error diagnostics, and stop cleanly on SIGTERM.
+- Fixed source-tree terminal snapshots to resolve Ghostty's exported WASM asset before a frontend build.
+- Fixed Playwright CI to use configured system Chromium installations without requiring Playwright's browser or ffmpeg bundles.
+- Fixed release builds to require exact Zig and pnpm versions, rebuild native resources, and ship a consistently arm64 Apple Silicon app.
+- Replaced obsolete callback-style Vitest cases and made CLI forwarding tests independent of stale local build artifacts.
+- Restricted npm installs to the documented Node.js 22-24 range, avoiding broken PAM native builds on unsupported newer runtimes.
 
 ### ✨ Improvements
 - Add Pangolin Newt integration for managed remote access from the Mac app (#315)
@@ -21,7 +37,7 @@
 - Update the native `vt-fwd` forwarder and all build paths to Zig 0.16.0, with exact toolchain enforcement (via [@sourman](https://github.com/sourman)) (#611)
 - Tighten macOS app icon padding to remove white edge
 - Add JSONValue coverage for Codable JSON handling
-- Default macOS build script to universal binaries with optional arch override (via [@rothnic](https://github.com/rothnic)) (#557)
+- Add explicit architecture selection to the macOS build tooling (via [@rothnic](https://github.com/rothnic)) (#557)
 
 ### 🐛 Bug Fixes
 - Run test-port cleanup once per Vitest invocation instead of once per test file, preventing high-core setup timeouts.

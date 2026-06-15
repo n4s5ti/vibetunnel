@@ -1,16 +1,12 @@
 import { type ChildProcess, spawn } from 'node:child_process';
 import os from 'node:os';
-
-const BonjourLib = require('bonjour-service');
-
-import type { Service } from 'bonjour-service';
+import { Bonjour, type Service } from 'bonjour-service';
 import { createLogger } from '../utils/logger.js';
 
 const log = createLogger('mdns-service');
 
 export class MDNSService {
-  // biome-ignore lint/suspicious/noExplicitAny: bonjour-service doesn't export proper types
-  private bonjour: any = null;
+  private bonjour: Bonjour | null = null;
   private service: Service | null = null;
   private isAdvertising = false;
   private dnsSdProcess: ChildProcess | null = null;
@@ -27,7 +23,7 @@ export class MDNSService {
     const name = instanceName || os.hostname() || 'VibeTunnel Server';
 
     try {
-      this.bonjour = new BonjourLib();
+      this.bonjour = new Bonjour();
 
       // Advertise the service
       if (!this.bonjour) {
@@ -35,7 +31,7 @@ export class MDNSService {
       }
       this.service = this.bonjour.publish({
         name,
-        type: '_vibetunnel._tcp',
+        type: 'vibetunnel',
         port,
         txt: {
           version: '1.0',

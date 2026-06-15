@@ -25,7 +25,7 @@ fi
 # Load Node.js environment managers and select a supported Node.js for later build phases.
 if ! source "${SCRIPT_DIR}/node-path-setup.sh"; then
     echo ""
-    echo "Please install Node.js 22.12+ using one of these methods:"
+    echo "Please install Node.js 22.12 through 24.x using one of these methods:"
     echo "  - Homebrew: brew install node"
     echo "  - Download from: https://nodejs.org/"
     echo "  - Using nvm: nvm install 22"

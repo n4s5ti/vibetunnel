@@ -5,7 +5,7 @@
 ### Prerequisites
 - macOS 14.0+
 - Xcode 16.0+
-- Node.js 22.12+
+- Node.js 22.12 through 24.x
 - Bun 1.0+
 
 ### Clone & Build

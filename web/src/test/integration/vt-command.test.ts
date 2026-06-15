@@ -9,6 +9,30 @@ describe('vt command', () => {
   const vtScriptPath = join(projectRoot, 'bin/vt');
   const packageJsonPath = join(projectRoot, 'package.json');
 
+  function runVt(
+    args: string[],
+    env: NodeJS.ProcessEnv = process.env
+  ): Promise<{ code: number | null; stdout: string; stderr: string }> {
+    return new Promise((resolve, reject) => {
+      const child = spawn('bash', [vtScriptPath, ...args], {
+        cwd: projectRoot,
+        stdio: 'pipe',
+        env,
+      });
+      let stdout = '';
+      let stderr = '';
+
+      child.stdout.on('data', (data) => {
+        stdout += data.toString();
+      });
+      child.stderr.on('data', (data) => {
+        stderr += data.toString();
+      });
+      child.once('error', reject);
+      child.once('close', (code) => resolve({ code, stdout, stderr }));
+    });
+  }
+
   beforeAll(() => {
     // Ensure the vt script exists
     expect(existsSync(vtScriptPath)).toBe(true);
@@ -38,124 +62,35 @@ describe('vt command', () => {
     expect(packageJson.bin.vibetunnel).toBe('./bin/vibetunnel');
   });
 
-  it('should show help when called with --help', (done) => {
-    const child = spawn('bash', [vtScriptPath, '--help'], {
-      cwd: projectRoot,
-      stdio: 'pipe',
-    });
+  it('should show help when called with --help', async () => {
+    const { code, stdout, stderr } = await runVt(['--help']);
 
-    let stdout = '';
-    let stderr = '';
-
-    child.stdout.on('data', (data) => {
-      stdout += data.toString();
-    });
-
-    child.stderr.on('data', (data) => {
-      stderr += data.toString();
-    });
-
-    child.on('close', (code) => {
-      try {
-        // Should exit with code 0 for help
-        expect(code).toBe(0);
-
-        // Should contain help content
-        expect(stdout).toContain('vt - VibeTunnel TTY Forward Wrapper');
-        expect(stdout).toContain('USAGE:');
-        expect(stdout).toContain('EXAMPLES:');
-        expect(stdout).toContain('OPTIONS:');
-
-        // Should show binary path information
-        expect(stdout).toContain('VIBETUNNEL BINARY:');
-        expect(stdout).toContain('Path:');
-
-        // Should not have errors
-        expect(stderr).toBe('');
-
-        done();
-      } catch (error) {
-        done(error);
-      }
-    });
-
-    child.on('error', (error) => {
-      done(error);
-    });
+    expect(code).toBe(0);
+    expect(stdout).toContain('vt - VibeTunnel TTY Forward Wrapper');
+    expect(stdout).toContain('USAGE:');
+    expect(stdout).toContain('EXAMPLES:');
+    expect(stdout).toContain('OPTIONS:');
+    expect(stdout).toContain('VIBETUNNEL BINARY:');
+    expect(stdout).toContain('Path:');
+    expect(stderr).toBe('');
   }, 10000); // 10 second timeout
 
-  it('should show help when called with no arguments', (done) => {
-    const child = spawn('bash', [vtScriptPath], {
-      cwd: projectRoot,
-      stdio: 'pipe',
-    });
+  it('should show help when called with no arguments', async () => {
+    const { code, stdout } = await runVt([]);
 
-    let stdout = '';
-    let _stderr = '';
-
-    child.stdout.on('data', (data) => {
-      stdout += data.toString();
-    });
-
-    child.stderr.on('data', (data) => {
-      _stderr += data.toString();
-    });
-
-    child.on('close', (code) => {
-      try {
-        // Should exit with code 0 for help
-        expect(code).toBe(0);
-
-        // Should contain help content
-        expect(stdout).toContain('vt - VibeTunnel TTY Forward Wrapper');
-        expect(stdout).toContain('USAGE:');
-
-        done();
-      } catch (error) {
-        done(error);
-      }
-    });
-
-    child.on('error', (error) => {
-      done(error);
-    });
+    expect(code).toBe(0);
+    expect(stdout).toContain('vt - VibeTunnel TTY Forward Wrapper');
+    expect(stdout).toContain('USAGE:');
   }, 10000);
 
-  it('should handle title command outside session correctly', (done) => {
-    const child = spawn('bash', [vtScriptPath, 'title', 'test'], {
-      cwd: projectRoot,
-      stdio: 'pipe',
-      env: { ...process.env, VIBETUNNEL_SESSION_ID: '' }, // Ensure no session ID
+  it('should handle title command outside session correctly', async () => {
+    const { code, stderr } = await runVt(['title', 'test'], {
+      ...process.env,
+      VIBETUNNEL_SESSION_ID: '',
     });
 
-    let _stdout = '';
-    let stderr = '';
-
-    child.stdout.on('data', (data) => {
-      _stdout += data.toString();
-    });
-
-    child.stderr.on('data', (data) => {
-      stderr += data.toString();
-    });
-
-    child.on('close', (code) => {
-      try {
-        // Should exit with code 1 for error
-        expect(code).toBe(1);
-
-        // Should show error message
-        expect(stderr).toContain("vt title' can only be used inside a VibeTunnel session");
-
-        done();
-      } catch (error) {
-        done(error);
-      }
-    });
-
-    child.on('error', (error) => {
-      done(error);
-    });
+    expect(code).toBe(1);
+    expect(stderr).toContain("vt title' can only be used inside a VibeTunnel session");
   }, 10000);
 
   it('should detect if script contains required functions', () => {
@@ -181,7 +116,7 @@ describe('vt command', () => {
     expect(packageJson.files).toContain('bin/');
   });
 
-  it('should pass --title-mode as separate argv tokens', () => {
+  it('should pass --title-mode as separate argv tokens to the forwarder', () => {
     const tempDir = mkdtempSync(join(tmpdir(), 'vt-title-mode-'));
     const mockVibetunnelPath = join(tempDir, 'mock-vibetunnel.sh');
     const argvOutputPath = join(tempDir, 'argv.txt');
@@ -205,6 +140,51 @@ printf '%s\n' "$@" > "$VT_ARGV_OUTPUT"
           env: {
             ...process.env,
             VIBETUNNEL_BIN: mockVibetunnelPath,
+            VIBETUNNEL_FWD_BIN: mockVibetunnelPath,
+            VIBETUNNEL_SESSION_ID: '',
+            VT_ARGV_OUTPUT: argvOutputPath,
+          },
+        }
+      );
+
+      expect(result.status).toBe(0);
+      expect(result.stderr).toBe('');
+      expect(readFileSync(argvOutputPath, 'utf8').trimEnd().split('\n')).toEqual([
+        '--title-mode',
+        'static',
+        'echo',
+        'test',
+      ]);
+    } finally {
+      rmSync(tempDir, { recursive: true, force: true });
+    }
+  });
+
+  it('should prefix fwd when falling back to the server CLI', () => {
+    const tempDir = mkdtempSync(join(tmpdir(), 'vt-title-mode-fallback-'));
+    const mockVibetunnelPath = join(tempDir, 'mock-vibetunnel.sh');
+    const argvOutputPath = join(tempDir, 'argv.txt');
+
+    try {
+      writeFileSync(
+        mockVibetunnelPath,
+        `#!/usr/bin/env bash
+printf '%s\n' "$@" > "$VT_ARGV_OUTPUT"
+`,
+        'utf8'
+      );
+      chmodSync(mockVibetunnelPath, 0o755);
+
+      const result = spawnSync(
+        'bash',
+        [vtScriptPath, '-S', '--title-mode', 'static', 'echo', 'test'],
+        {
+          encoding: 'utf8',
+          cwd: projectRoot,
+          env: {
+            ...process.env,
+            VIBETUNNEL_BIN: mockVibetunnelPath,
+            VIBETUNNEL_FWD_BIN: join(tempDir, 'missing-forwarder'),
             VIBETUNNEL_SESSION_ID: '',
             VT_ARGV_OUTPUT: argvOutputPath,
           },

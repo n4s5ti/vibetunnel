@@ -46,7 +46,7 @@ final class TailscaleFallbackRegressionTests {
         // Simulate the fallback state directly instead of starting the full server.
         // The regression was that fallback status mutated the user's persisted toggle.
         self.tailscaleService.isPermanentlyDisabled = true
-        try await Task.yield()
+        await Task.yield()
 
         // Check that the toggle is still enabled
         let afterWaitValue = AppConstants.boolValue(for: AppConstants.UserDefaultsKeys.tailscaleServeEnabled)

@@ -32,7 +32,8 @@ if command -v node >/dev/null 2>&1 \
   && command -v corepack >/dev/null 2>&1; then
   node_major="$(node -p 'process.versions.node.split(".")[0]')"
   node_minor="$(node -p 'process.versions.node.split(".")[1]')"
-  if [ "$node_major" -gt 22 ] || { [ "$node_major" -eq 22 ] && [ "$node_minor" -ge 12 ]; }; then
+  if { [ "$node_major" -gt 22 ] && [ "$node_major" -le 24 ]; } \
+    || { [ "$node_major" -eq 22 ] && [ "$node_minor" -ge 12 ]; }; then
     need_node=0
   fi
 fi
@@ -65,6 +66,11 @@ if [ "$need_node" -eq 1 ]; then
     ${SUDO} ln -sf "${node_dir}/bin/${executable}" "/usr/local/bin/${executable}"
   done
 fi
+
+# Enable the repository-pinned pnpm version. Node is installed under /usr/local,
+# so creating Corepack's command links requires the same elevated access.
+${SUDO} corepack enable
+corepack prepare pnpm@10.15.0 --activate
 
 # Zig if missing. Keep this aligned with CI and Dockerfile.standalone.
 export ZIG_VERSION="${ZIG_VERSION:-0.16.0}"
@@ -101,9 +107,10 @@ fi
 
 node -v
 npm -v
+pnpm -v
 zig version
 
 printf '\nNext steps:\n'
 echo "  cd web"
-echo "  npm install"
-echo "  npm run build"
+echo "  pnpm install --frozen-lockfile"
+echo "  pnpm build"

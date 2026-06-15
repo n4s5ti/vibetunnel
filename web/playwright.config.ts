@@ -1,6 +1,8 @@
 import { defineConfig, devices } from '@playwright/test';
 import { testConfig } from './src/test/playwright/test-config';
 
+const chromiumExecutablePath = process.env.PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH;
+
 /**
  * Playwright Test Configuration
  * Read environment variables from file.
@@ -57,7 +59,8 @@ export default defineConfig({
     screenshot: 'only-on-failure',
 
     /* Capture video on failure */
-    video: process.env.CI ? 'retain-on-failure' : 'off',
+    // System Chromium runs do not install Playwright's separate ffmpeg bundle.
+    video: process.env.CI && !chromiumExecutablePath ? 'retain-on-failure' : 'off',
 
     /* Maximum time each action can take */
     actionTimeout: process.env.CI ? 15_000 : 10_000,
@@ -76,6 +79,7 @@ export default defineConfig({
 
     /* Browser launch options for better performance */
     launchOptions: {
+      ...(chromiumExecutablePath ? { executablePath: chromiumExecutablePath } : {}),
       args: [
         '--disable-web-security',
         '--disable-features=IsolateOrigins,site-per-process',

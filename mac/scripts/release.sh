@@ -481,13 +481,13 @@ fi
 
 # Step 4: Build the app
 echo ""
-echo -e "${BLUE}📋 Step 4/8: Building universal application...${NC}"
+echo -e "${BLUE}📋 Step 4/8: Building Apple Silicon application...${NC}"
 
 if [[ "$DRY_RUN" == "true" ]]; then
     echo "🔨 Would build ARM64 binary with:"
     echo "   Configuration: Release"
     echo "   IS_PRERELEASE_BUILD: $([ "$RELEASE_TYPE" != "stable" ] && echo "YES" || echo "NO")"
-    echo "   Command: $SCRIPT_DIR/build.sh --configuration Release"
+    echo "   Command: $SCRIPT_DIR/build.sh --configuration Release --arch arm64"
     echo ""
     echo "   Would verify:"
     echo "   - App exists at expected path"
@@ -520,6 +520,7 @@ else
     # Release artifacts must never reuse a system-Node or stale web build.
     export VIBETUNNEL_REQUIRE_CUSTOM_NODE=YES
     export VIBETUNNEL_FORCE_WEB_BUILD=YES
+    export VIBETUNNEL_FORCE_NATIVE_BUILD=YES
     
     # For pre-release builds, set the environment variable
     if [[ "$RELEASE_TYPE" != "stable" ]]; then
@@ -532,7 +533,7 @@ else
     # Build ARM64 binary
     echo ""
     echo "🔨 Building ARM64 binary..."
-    "$SCRIPT_DIR/build.sh" --configuration Release
+    "$SCRIPT_DIR/build.sh" --configuration Release --arch arm64
     
     # Find the built app - could be in build directory or DerivedData
     APP_PATH="$PROJECT_ROOT/build/Build/Products/Release/VibeTunnel.app"

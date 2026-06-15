@@ -13,15 +13,15 @@ const SCROLLBACK_LIMIT = 10000;
 
 const localRequire = createRequire(__filename);
 
-function resolveGhosttyWasmPath(): string {
-  const moduleDir = __dirname;
+export function resolveGhosttyWasmPath(moduleDir: string = __dirname): string {
   const candidates: string[] = [
+    path.resolve(moduleDir, '../public/ghostty-vt.wasm'),
     path.resolve(moduleDir, '../../../public/ghostty-vt.wasm'),
     path.resolve(moduleDir, '../../public/ghostty-vt.wasm'),
   ];
 
   try {
-    candidates.push(localRequire.resolve('ghostty-web/dist/ghostty-vt.wasm'));
+    candidates.push(localRequire.resolve('ghostty-web/ghostty-vt.wasm'));
   } catch {
     // ignore
   }

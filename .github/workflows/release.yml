@@ -1,9 +1,6 @@
-name: Release
+name: Release Build Verification
 
 on:
-  push:
-    tags:
-      - 'v*'
   workflow_dispatch:
     inputs:
       version:
@@ -19,6 +16,7 @@ permissions:
 jobs:
   build-mac:
     name: Build macOS App
+    # Standard macos-15 is Apple Silicon; Intel uses macos-15-intel.
     runs-on: macos-15
     timeout-minutes: 60
     env:
@@ -27,11 +25,14 @@ jobs:
     steps:
     - name: Checkout code
       uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5
+
+    - name: Verify Apple Silicon runner
+      run: test "$(uname -m)" = arm64
       
-    - name: Select Xcode 16.3
+    - name: Select Xcode
       uses: maxim-lobanov/setup-xcode@ed7a3b1fda3918c0306d1b724322adc0b8cc0a90 # v1.7.0
       with:
-        xcode-version: '16.4'
+        xcode-version: '26.3'
     
     - name: Setup Node.js
       uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444 # v5
@@ -43,11 +44,35 @@ jobs:
       with:
         version: 10.15.0
         run_install: false
+
+    - name: Install Zig 0.16.0
+      shell: bash
+      run: |
+        arch="$(uname -m)"
+        case "$arch" in
+          arm64)
+            zig_arch="aarch64"
+            zig_sha256="b23d70deaa879b5c2d486ed3316f7eaa53e84acf6fc9cc747de152450d401489"
+            ;;
+          x86_64)
+            zig_arch="x86_64"
+            zig_sha256="0387557ed1877bc6a2e1802c8391953baddba76081876301c522f52977b52ba7"
+            ;;
+          *)
+            echo "Unsupported runner architecture: $arch" >&2
+            exit 1
+            ;;
+        esac
+        archive="zig-${zig_arch}-macos-0.16.0.tar.xz"
+        curl -fsSLO "https://ziglang.org/download/0.16.0/${archive}"
+        echo "${zig_sha256}  ${archive}" | shasum -a 256 -c -
+        tar -xJf "$archive"
+        echo "$PWD/zig-${zig_arch}-macos-0.16.0" >> "$GITHUB_PATH"
     
     - name: Get pnpm store directory
       shell: bash
       run: |
-        echo "STORE_PATH=$(pnpm store path --silent)" >> $GITHUB_ENV
+        echo "STORE_PATH=$(pnpm store path --silent)" >> "$GITHUB_ENV"
     
     - name: Setup pnpm cache
       uses: actions/cache@27d5ce7f107fe9357f9df03efb73ab90386fccae # v5
@@ -72,34 +97,17 @@ jobs:
       run: |
         xcodebuild -resolvePackageDependencies -workspace VibeTunnel.xcworkspace
     
-    - name: Build Release (arm64)
+    - name: Build Release
       working-directory: mac
       run: |
         ./scripts/build.sh --configuration Release --arch arm64
-        mv build/Build/Products/Release/VibeTunnel.app build/Build/Products/Release/VibeTunnel-arm64.app
-    
-    - name: Build Release (x86_64)
-      working-directory: mac
-      run: |
-        # Clean build directory for x86_64 build
-        rm -rf build/Build/Products/Release/VibeTunnel.app
-        ./scripts/build.sh --configuration Release --arch x86_64
-        mv build/Build/Products/Release/VibeTunnel.app build/Build/Products/Release/VibeTunnel-x86_64.app
-    
+
     - name: Create DMGs and ZIPs
       timeout-minutes: 15
       working-directory: mac
       run: |
-        VERSION="${{ github.event.inputs.version || github.ref_name }}"
-        VERSION="${VERSION#v}"  # Remove 'v' prefix if present
-        
-        # Create arm64 DMG and ZIP
-        ./scripts/create-dmg.sh "build/Build/Products/Release/VibeTunnel-arm64.app"
-        ./scripts/create-zip.sh "build/Build/Products/Release/VibeTunnel-arm64.app"
-        
-        # Create Intel DMG and ZIP
-        ./scripts/create-dmg.sh "build/Build/Products/Release/VibeTunnel-x86_64.app"
-        ./scripts/create-zip.sh "build/Build/Products/Release/VibeTunnel-x86_64.app"
+        ./scripts/create-dmg.sh "build/Build/Products/Release/VibeTunnel.app"
+        ./scripts/create-zip.sh "build/Build/Products/Release/VibeTunnel.app"
         
         # List created files
         echo "Created files:"
@@ -114,17 +122,6 @@ jobs:
           mac/build/*.zip
         retention-days: 7
     
-    - name: Create GitHub Release
-      if: startsWith(github.ref, 'refs/tags/')
-      uses: softprops/action-gh-release@3bb12739c298aeb8a4eeaf626c5b8d85266b0e65 # v2
-      with:
-        files: |
-          mac/build/*.dmg
-          mac/build/*.zip
-        draft: true
-        prerelease: ${{ contains(github.ref_name, 'beta') || contains(github.ref_name, 'rc') }}
-        generate_release_notes: true
-
   build-ios:
     name: Build iOS App
     runs-on: macos-15
@@ -135,22 +132,24 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5
       
-    - name: Select Xcode 16.3
+    - name: Select Xcode
       uses: maxim-lobanov/setup-xcode@ed7a3b1fda3918c0306d1b724322adc0b8cc0a90 # v1.7.0
       with:
-        xcode-version: '16.4'
+        xcode-version: '26.3'
     
     - name: Resolve Dependencies
       working-directory: ios
       run: |
-        xcodebuild -resolvePackageDependencies -project VibeTunnel.xcodeproj
+        xcodebuild -resolvePackageDependencies \
+          -workspace ../VibeTunnel.xcworkspace \
+          -scheme VibeTunnel-iOS
     
     - name: Build iOS Release
       working-directory: ios
       run: |
         xcodebuild build \
-          -project VibeTunnel.xcodeproj \
-          -scheme VibeTunnel \
+          -workspace ../VibeTunnel.xcworkspace \
+          -scheme VibeTunnel-iOS \
           -destination "generic/platform=iOS" \
           -configuration Release \
           CODE_SIGNING_ALLOWED=NO \

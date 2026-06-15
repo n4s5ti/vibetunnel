@@ -145,7 +145,7 @@ test.describe('Advanced Session Management', () => {
     // we'll just check the default behavior
 
     // Check that the path is displayed
-    const pathElement = page.locator('[title="Click to copy path"]');
+    const pathElement = page.locator('session-header').getByTitle('Click to copy path');
     await expect(pathElement).toBeVisible({ timeout: 10000 });
 
     // Check that we're in the session view

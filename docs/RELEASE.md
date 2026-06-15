@@ -69,7 +69,7 @@ git push
 ## 🎯 Release Process Overview
 
 VibeTunnel uses an automated release process that handles all the complexity of:
-- Building universal binaries containing both arm64 (Apple Silicon) and x86_64 (Intel)
+- Building the supported Apple Silicon (arm64) application and embedded server resources
 - Code signing and notarization with Apple
 - Creating DMG and ZIP files
 - Publishing to GitHub
@@ -486,7 +486,7 @@ YOUR_PRIVATE_KEY_CONTENT
 
 ### 3. Prerequisites
 - Xcode 16.4+ installed
-- Node.js 22.12+ and Bun (for web frontend build)
+- Node.js 24 and Bun (for web frontend build)
   ```bash
   # Install Bun
   curl -fsSL https://bun.sh/install | bash
@@ -564,15 +564,12 @@ codesign --force --sign "Developer ID Application" --entitlements VibeTunnel.ent
 
 ### Architecture Support
 
-VibeTunnel uses universal binaries that include both architectures:
-- **Apple Silicon (arm64)**: Optimized for M1+ Macs
-- **Intel (x86_64)**: For Intel-based Macs
+The native VibeTunnel app supports Apple Silicon (arm64) Macs. The npm package remains available for Intel Macs.
 
-The build system creates a single universal binary that works on all Mac architectures. This approach:
+The release build creates one arm64 application and matching embedded server resources. This approach:
 - Simplifies distribution with one DMG/ZIP per release
 - Works seamlessly with Sparkle auto-updates
-- Provides optimal performance on each architecture
-- Follows Apple's recommended best practices
+- Prevents host-architecture native resources from being embedded in an incompatible app
 
 ## 📋 Update Channels
 

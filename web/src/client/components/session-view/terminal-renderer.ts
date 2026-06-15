@@ -42,7 +42,7 @@ export class TerminalRenderer extends LitElement {
   @property({ type: Object }) onTerminalResize?: (e: CustomEvent) => void;
   @property({ type: Object }) onTerminalReady?: (e: CustomEvent) => void;
 
-  render() {
+  override render(): unknown {
     if (!this.session) {
       return html``;
     }

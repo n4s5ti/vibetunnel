@@ -218,7 +218,8 @@ describe.sequential('Frontend Logger', () => {
     });
 
     it('should cache auth config to reduce redundant requests', async () => {
-      const logger = createLogger('test-module');
+      const moduleName = 'auth-cache-test';
+      const logger = createLogger(moduleName);
 
       logger.log('message 1');
       // Small delay to ensure first auth check completes before other logs
@@ -233,7 +234,10 @@ describe.sequential('Frontend Logger', () => {
       // Wait for all operations to complete
       await vi.waitFor(
         () => {
-          const logCalls = mockFetch.mock.calls.filter((call) => call[0] === '/api/logs/client');
+          const logCalls = mockFetch.mock.calls.filter(
+            (call) =>
+              call[0] === '/api/logs/client' && JSON.parse(call[1].body).module === moduleName
+          );
           return logCalls.length >= 3;
         },
         { timeout: 5000 }
@@ -244,7 +248,9 @@ describe.sequential('Frontend Logger', () => {
       expect(authConfigCalls).toHaveLength(1);
 
       // Should have sent all 3 log messages
-      const logCalls = mockFetch.mock.calls.filter((call) => call[0] === '/api/logs/client');
+      const logCalls = mockFetch.mock.calls.filter(
+        (call) => call[0] === '/api/logs/client' && JSON.parse(call[1].body).module === moduleName
+      );
       expect(logCalls).toHaveLength(3);
     });
 

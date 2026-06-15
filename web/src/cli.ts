@@ -111,6 +111,15 @@ async function handleForwardCommand(): Promise<void> {
 
     // Next to this module (dev and npm installs)
     const moduleDir = __dirname;
+    candidates.push(
+      path.resolve(
+        moduleDir,
+        '..',
+        'forwarders',
+        `${process.platform}-${process.arch}`,
+        'vibetunnel-fwd'
+      )
+    );
     candidates.push(path.resolve(moduleDir, '..', 'bin', 'vibetunnel-fwd'));
     candidates.push(path.resolve(moduleDir, '..', 'native', 'vibetunnel-fwd'));
 

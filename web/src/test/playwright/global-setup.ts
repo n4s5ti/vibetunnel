@@ -2,6 +2,13 @@ import { chromium, type FullConfig } from '@playwright/test';
 import type { Session } from '../../shared/types.js';
 import { testConfig } from './test-config';
 
+const browserLaunchOptions = {
+  headless: true,
+  ...(process.env.PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH
+    ? { executablePath: process.env.PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH }
+    : {}),
+};
+
 function isLikelyTestSessionName(name?: string): boolean {
   if (!name) return false;
   if (name.startsWith('test-')) return true;
@@ -59,7 +66,7 @@ async function globalSetup(config: FullConfig) {
   if (process.env.CI && process.env.VERIFY_BROWSER !== 'false') {
     console.log('Running in CI - verifying browser installation...');
     try {
-      const browser = await chromium.launch({ headless: true });
+      const browser = await chromium.launch(browserLaunchOptions);
       await browser.close();
       console.log('Browser verification successful');
     } catch (error) {
@@ -74,7 +81,7 @@ async function globalSetup(config: FullConfig) {
   // Clean up sessions in CI (or if explicitly requested)
   if (process.env.CI || process.env.CLEAN_TEST_SESSIONS === 'true') {
     console.log('Cleaning up old test sessions...');
-    const browser = await chromium.launch({ headless: true });
+    const browser = await chromium.launch(browserLaunchOptions);
     const context = await browser.newContext();
     const page = await context.newPage();
 

@@ -119,6 +119,7 @@ lint_output.txt
 
 # Native build output
 native/
+forwarders/
 
 # Custom Node.js builds
 .node-builds/

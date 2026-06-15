@@ -6,8 +6,18 @@ const { prodOptions } = require('./esbuild-config.js');
 const { buildCli } = require('./build-cli.js');
 const { getCustomNodeBuildArgs } = require('./custom-node-args.js');
 
+function validateNodeVersion() {
+  const [major, minor] = process.versions.node.split('.').map(Number);
+  if (major < 22 || major > 24 || (major === 22 && minor < 12)) {
+    throw new Error(
+      `VibeTunnel builds require Node.js 22.12 through 24.x; found ${process.version}.`
+    );
+  }
+}
+
 async function build() {
   console.log('Starting build process...');
+  validateNodeVersion();
   
   // Validate version sync
   console.log('Validating version sync...');
@@ -90,13 +100,28 @@ async function build() {
   const vibetunnelPath = path.join(nativeDir, 'vibetunnel');
   const ptyNodePath = path.join(nativeDir, 'pty.node');
   const spawnHelperPath = path.join(nativeDir, 'spawn-helper');
+  const forceNativeBuild =
+    process.env.VIBETUNNEL_FORCE_NATIVE_BUILD === '1' ||
+    process.env.VIBETUNNEL_FORCE_NATIVE_BUILD === 'true' ||
+    process.env.VIBETUNNEL_FORCE_NATIVE_BUILD === 'YES' ||
+    process.env.VIBETUNNEL_REQUIRE_CUSTOM_NODE === '1' ||
+    process.env.VIBETUNNEL_REQUIRE_CUSTOM_NODE === 'true' ||
+    process.env.VIBETUNNEL_REQUIRE_CUSTOM_NODE === 'YES';
 
-  if (fs.existsSync(vibetunnelPath) && fs.existsSync(ptyNodePath) && fs.existsSync(spawnHelperPath)) {
+  if (
+    !forceNativeBuild &&
+    fs.existsSync(vibetunnelPath) &&
+    fs.existsSync(ptyNodePath) &&
+    fs.existsSync(spawnHelperPath)
+  ) {
     console.log('✅ Native binaries already exist, skipping build...');
     console.log('  - vibetunnel executable: ✓');
     console.log('  - pty.node: ✓');
     console.log('  - spawn-helper: ✓');
   } else {
+    if (forceNativeBuild) {
+      console.log('Forced native rebuild requested.');
+    }
     const customNodeArgs = getCustomNodeBuildArgs(process.argv);
 
     if (customNodeArgs) {

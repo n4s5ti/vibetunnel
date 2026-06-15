@@ -14,7 +14,7 @@
 # VALIDATION CHECKS:
 #   - Git repository status (clean working tree, main branch, synced)
 #   - Version information and build number validation
-#   - Required development tools (Rust, Node.js, GitHub CLI, Sparkle tools)
+#   - Required development tools (Zig, Node.js, pnpm, GitHub CLI, Sparkle tools)
 #   - Code signing certificates and notarization credentials
 #   - Sparkle configuration (keys, appcast files)
 #   - IS_PRERELEASE_BUILD system configuration
@@ -25,7 +25,7 @@
 #
 # DEPENDENCIES:
 #   - git (repository management)
-#   - cargo/rustup (Rust toolchain)
+#   - zig (native forwarder)
 #   - node/pnpm (web frontend build)
 #   - gh (GitHub CLI)
 #   - sign_update (Sparkle EdDSA signing)
@@ -107,6 +107,15 @@ fi
 echo ""
 
 # 2. Check version information
+echo "📌 Release Host:"
+if [[ "$(uname -m)" == "arm64" ]]; then
+    check_pass "Running on Apple Silicon"
+else
+    check_fail "macOS releases require an Apple Silicon host"
+fi
+
+echo ""
+
 echo "📌 Version Information:"
 VERSION_CONFIG="$PROJECT_ROOT/VibeTunnel/version.xcconfig"
 if [[ -f "$VERSION_CONFIG" ]]; then
@@ -213,18 +222,44 @@ echo ""
 # 4. Check required tools
 echo "📌 Required Tools:"
 
-# Rust toolchain
-if command -v cargo &> /dev/null; then
-    check_pass "Rust toolchain installed"
+# Zig toolchain
+REQUIRED_ZIG_VERSION="0.16.0"
+if command -v zig &> /dev/null; then
+    INSTALLED_ZIG_VERSION=$(zig version)
+    if [[ "$INSTALLED_ZIG_VERSION" == "$REQUIRED_ZIG_VERSION" ]]; then
+        check_pass "Zig $REQUIRED_ZIG_VERSION installed"
+    else
+        check_fail "Zig $REQUIRED_ZIG_VERSION required (found $INSTALLED_ZIG_VERSION)"
+    fi
 else
-    check_fail "Rust not installed - visit https://rustup.rs"
+    check_fail "Zig $REQUIRED_ZIG_VERSION not installed"
 fi
 
 # Node.js
 if command -v node &> /dev/null; then
-    check_pass "Node.js installed"
+    NODE_VERSION="$(node --version)"
+    NODE_MAJOR="$(node -p 'process.versions.node.split(".")[0]')"
+    NODE_MINOR="$(node -p 'process.versions.node.split(".")[1]')"
+    if [ "$NODE_MAJOR" -lt 22 ] || [ "$NODE_MAJOR" -gt 24 ] || { [ "$NODE_MAJOR" -eq 22 ] && [ "$NODE_MINOR" -lt 12 ]; }; then
+        check_fail "Node.js 22.12 through 24.x required (found $NODE_VERSION)"
+    else
+        check_pass "Node.js $NODE_VERSION"
+    fi
 else
     check_fail "Node.js not installed - required for web frontend build"
+fi
+
+# pnpm
+REQUIRED_PNPM_VERSION="10.15.0"
+if command -v pnpm &> /dev/null; then
+    INSTALLED_PNPM_VERSION=$(pnpm --version)
+    if [[ "$INSTALLED_PNPM_VERSION" == "$REQUIRED_PNPM_VERSION" ]]; then
+        check_pass "pnpm $REQUIRED_PNPM_VERSION installed"
+    else
+        check_fail "pnpm $REQUIRED_PNPM_VERSION required (found $INSTALLED_PNPM_VERSION)"
+    fi
+else
+    check_fail "pnpm $REQUIRED_PNPM_VERSION not installed"
 fi
 
 # GitHub CLI

@@ -93,7 +93,7 @@ cd mac
 
 **Development Tools**:
 - Xcode 16.0+ with command line tools
-- Node.js 22.12+ and pnpm
+- Node.js 22.12 through 24.x and pnpm
 - Bun runtime (installed via npm)
 - xcbeautify (optional, for cleaner output)
 
@@ -110,7 +110,7 @@ cd mac
 ### Web Frontend Requirements
 
 **Tools**:
-- Node.js 22.12+ with npm
+- Node.js 22.12 through 24.x with npm
 - Bun runtime for standalone builds
 
 **Native Modules**:
@@ -127,7 +127,7 @@ cd mac
 - `libpam0g-dev` (authenticate-pam native module)
 
 **Tooling**:
-- Node.js 22.12+ (NodeSource 24.x OK)
+- Node.js 22.12 through 24.x (NodeSource 24.x recommended)
 - Zig (latest stable)
 
 **Bootstrap**:

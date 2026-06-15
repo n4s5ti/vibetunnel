@@ -366,7 +366,7 @@ describe.skip('TerminalManager - OUTDATED TESTS', () => {
   });
 
   describe('Buffer Change Notifications', () => {
-    it('should emit buffer change events', (done) => {
+    it('should emit buffer change events', async () => {
       const session: SessionEntry = {
         id: 'event-test',
         cmdline: ['test'],
@@ -383,17 +383,15 @@ describe.skip('TerminalManager - OUTDATED TESTS', () => {
 
       terminalManager.createTerminal(session);
 
-      // Listen for buffer change
-      terminalManager.on('bufferChanged', (sessionId: string) => {
-        expect(sessionId).toBe('event-test');
-        done();
+      const changed = new Promise<string>((resolve) => {
+        terminalManager.once('bufferChanged', resolve);
       });
-
-      // Write output to trigger change
       terminalManager.writeOutput('event-test', 'Trigger event\n');
+
+      await expect(changed).resolves.toBe('event-test');
     });
 
-    it('should debounce rapid changes', (done) => {
+    it('should debounce rapid changes', async () => {
       const session: SessionEntry = {
         id: 'debounce-test',
         cmdline: ['test'],
@@ -422,11 +420,8 @@ describe.skip('TerminalManager - OUTDATED TESTS', () => {
         terminalManager.writeOutput('debounce-test', `Line ${i}\n`);
       }
 
-      // Should only get one event due to debouncing
-      setTimeout(() => {
-        expect(eventCount).toBe(1);
-        done();
-      }, 200);
+      await new Promise((resolve) => setTimeout(resolve, 200));
+      expect(eventCount).toBe(1);
     });
   });
 });

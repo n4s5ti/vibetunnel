@@ -3,7 +3,7 @@
 /**
  * Clean npm build script for VibeTunnel
  * Uses a separate dist-npm directory with its own package.json
- * Builds for all platforms by default with complete prebuild support
+ * Builds for all platforms by default on macOS with complete prebuild support
  * 
  * Options:
  *   --current-only    Build for current platform/arch only (legacy mode)
@@ -12,14 +12,25 @@
  *   --arch <arch>    Build for specific architecture (x64, arm64)
  */
 
-const { execSync } = require('child_process');
+const { execFileSync, execSync } = require('child_process');
 const fs = require('fs');
 const path = require('path');
+const { externalDependencies } = require('./build-cli.js');
 
 const NODE_VERSIONS = ['22', '24'];
 const ALL_PLATFORMS = {
   darwin: ['x64', 'arm64'],
   linux: ['x64', 'arm64']
+};
+const FORWARDER_TARGETS = {
+  darwin: {
+    x64: { nativeArch: 'x64' },
+    arm64: { nativeArch: 'arm64' }
+  },
+  linux: {
+    x64: { target: 'x86_64-linux-gnu' },
+    arm64: { target: 'aarch64-linux-gnu' }
+  }
 };
 
 const DIST_DIR = path.join(__dirname, '..', 'dist-npm');
@@ -98,6 +109,12 @@ if (currentOnly) {
   console.log('');
 }
 
+if (PLATFORMS.darwin && process.platform !== 'darwin') {
+  console.error('❌ Complete builds with macOS artifacts must run on macOS.');
+  console.error('Use --current-only or --platform linux on Linux hosts.');
+  process.exit(1);
+}
+
 // Check if Docker is available for Linux builds
 function checkDocker() {
   try {
@@ -114,6 +131,41 @@ function checkDocker() {
     }
     return false;
   }
+}
+
+function buildForwarders() {
+  console.log('↪️  Building platform-specific zig forwarders...\n');
+
+  const forwardersDir = path.join(ROOT_DIR, 'forwarders');
+  if (fs.existsSync(forwardersDir)) {
+    fs.rmSync(forwardersDir, { recursive: true, force: true });
+  }
+
+  for (const [platform, archs] of Object.entries(PLATFORMS)) {
+    for (const arch of archs) {
+      const buildTarget = FORWARDER_TARGETS[platform]?.[arch];
+      if (!buildTarget) {
+        console.error(`❌ No zig target configured for ${platform}/${arch}`);
+        process.exit(1);
+      }
+
+      const output = path.join('forwarders', `${platform}-${arch}`, 'vibetunnel-fwd');
+      console.log(`  → ${platform}/${arch}`);
+      const targetArgs = buildTarget.nativeArch
+        ? ['--native-arch', buildTarget.nativeArch]
+        : ['--target', buildTarget.target];
+      execFileSync(
+        process.execPath,
+        ['scripts/build-fwd-zig.js', ...targetArgs, '--output', output],
+        {
+          cwd: ROOT_DIR,
+          stdio: 'inherit'
+        }
+      );
+    }
+  }
+
+  console.log('✅ Platform-specific zig forwarders completed\n');
 }
 
 // Build for macOS locally
@@ -503,7 +555,6 @@ function validatePackageHybrid() {
     'lib/vibetunnel-cli',
     'lib/cli.js',
     'bin/vibetunnel',
-    'bin/vibetunnel-fwd',
     'bin/vt',
     'scripts/postinstall.js',
     'public/index.html',
@@ -516,6 +567,15 @@ function validatePackageHybrid() {
     const fullPath = path.join(DIST_DIR, file);
     if (!fs.existsSync(fullPath)) {
       errors.push(`Missing critical file: ${file}`);
+    }
+  }
+
+  for (const [platform, archs] of Object.entries(PLATFORMS)) {
+    for (const arch of archs) {
+      const forwarder = `forwarders/${platform}-${arch}/vibetunnel-fwd`;
+      if (!fs.existsSync(path.join(DIST_DIR, forwarder))) {
+        errors.push(`Missing zig forwarder: ${forwarder}`);
+      }
     }
   }
   
@@ -604,6 +664,8 @@ async function main() {
     console.error('❌ Standard build failed:', error.message);
     process.exit(1);
   }
+
+  buildForwarders();
   
   // Step 2: Multi-platform native module builds (unless current-only)
   if (!currentOnly) {
@@ -638,6 +700,7 @@ async function main() {
     
     // Bin scripts
     { src: 'bin', dest: 'bin' },
+    { src: 'forwarders', dest: 'forwarders' },
     
     // Public assets
     { src: 'public', dest: 'public' },
@@ -685,6 +748,12 @@ async function main() {
   filesToCopy.forEach(({ src, dest }) => {
     copyRecursive(src, dest);
   });
+
+  const legacyForwarder = path.join(DIST_DIR, 'bin', 'vibetunnel-fwd');
+  if (fs.existsSync(legacyForwarder)) {
+    fs.rmSync(legacyForwarder);
+    console.log('  ✓ Removed host-only bin/vibetunnel-fwd from package');
+  }
   
   // Step 4: Bundle node-pty with dependencies
   bundleNodePty();
@@ -707,6 +776,43 @@ async function main() {
     if (npmPackageJson.dependencies && npmPackageJson.dependencies['prebuild-install']) {
       delete npmPackageJson.dependencies['prebuild-install'];
       console.log('✅ Removed problematic prebuild-install dependency');
+    }
+
+    const sourcePackageJson = JSON.parse(
+      fs.readFileSync(path.join(ROOT_DIR, 'package.json'), 'utf8')
+    );
+    const sourceDependencies = sourcePackageJson.dependencies || {};
+    const requiredDependencies = [...externalDependencies, 'node-addon-api'];
+
+    for (const dependency of requiredDependencies) {
+      if (dependency === 'authenticate-pam') {
+        continue;
+      }
+      if (!sourceDependencies[dependency]) {
+        throw new Error(`Source package is missing required runtime dependency: ${dependency}`);
+      }
+      if (!npmPackageJson.dependencies?.[dependency]) {
+        throw new Error(`package.npm.json is missing runtime dependency: ${dependency}`);
+      }
+    }
+
+    for (const [dependency, version] of Object.entries(npmPackageJson.dependencies || {})) {
+      if (sourceDependencies[dependency] && version !== sourceDependencies[dependency]) {
+        throw new Error(
+          `package.npm.json dependency drift: ${dependency} is ${version}, expected ${sourceDependencies[dependency]}`
+        );
+      }
+    }
+
+    const sourceOptionalDependencies = sourcePackageJson.optionalDependencies || {};
+    for (const [dependency, version] of Object.entries(
+      npmPackageJson.optionalDependencies || {}
+    )) {
+      if (sourceOptionalDependencies[dependency] !== version) {
+        throw new Error(
+          `package.npm.json optional dependency drift: ${dependency} is ${version}, expected ${sourceOptionalDependencies[dependency]}`
+        );
+      }
     }
   } else {
     // Fallback to creating clean package.json from source
@@ -755,6 +861,7 @@ async function main() {
       files: [
         'lib/',
         'bin/',
+        'forwarders/',
         'public/',
         'node-pty/',
         'prebuilds/',
@@ -792,30 +899,7 @@ require('./vibetunnel-cli');
   const binVibetunnelContent = `#!/usr/bin/env node
 
 // Start the CLI - it handles all command routing including 'fwd'
-const { spawn } = require('child_process');
-const path = require('path');
-
-const cliPath = path.join(__dirname, '..', 'lib', 'vibetunnel-cli');
-const args = process.argv.slice(2);
-
-const child = spawn('node', [cliPath, ...args], {
-  stdio: 'inherit',
-  env: process.env
-});
-
-child.on('exit', (code, signal) => {
-  if (signal) {
-    // Process was killed by signal, exit with 128 + signal number convention
-    // Common signals: SIGTERM=15, SIGINT=2, SIGKILL=9
-    const signalExitCode = signal === 'SIGTERM' ? 143 : 
-                          signal === 'SIGINT' ? 130 : 
-                          signal === 'SIGKILL' ? 137 : 128;
-    process.exit(signalExitCode);
-  } else {
-    // Normal exit, use the exit code (or 0 if null)
-    process.exit(code ?? 0);
-  }
-});
+require('../lib/vibetunnel-cli');
 `;
   fs.writeFileSync(binVibetunnelPath, binVibetunnelContent, { mode: 0o755 });
   console.log('  ✓ Fixed bin/vibetunnel path');

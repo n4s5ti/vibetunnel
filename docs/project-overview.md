@@ -54,7 +54,7 @@ The project provides a native macOS menu bar application that runs a local HTTP 
 - Code signing for proper terminal permissions
 
 **Linux & Headless Support**
-- Any Linux distribution with Node.js 22.12+
+- Any Linux distribution with Node.js 22.12 through 24.x
 - Runs as standalone server via npm package
 - No GUI required - perfect for VPS/cloud deployments
 - Install: `npm install -g vibetunnel`
@@ -72,7 +72,7 @@ The project provides a native macOS menu bar application that runs a local HTTP 
 
 **Server Platforms**
 - Primary: Bun runtime (Node.js compatible)
-- Build requirements: Node.js 22.12+, npm/bun
+- Build requirements: Node.js 22.12 through 24.x, npm/bun
 - Supports macOS, Linux, and headless environments
 
 **Key Platform Files**

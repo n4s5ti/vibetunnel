@@ -15,7 +15,7 @@ node_version_supported() {
     major=$(echo "$version" | cut -d'.' -f1)
     minor=$(echo "$version" | cut -d'.' -f2)
 
-    [[ "$major" -gt 22 || ( "$major" -eq 22 && "$minor" -ge 12 ) ]]
+    [[ ( "$major" -gt 22 && "$major" -le 24 ) || ( "$major" -eq 22 && "$minor" -ge 12 ) ]]
 }
 
 find_supported_node() {
@@ -68,12 +68,12 @@ find_supported_node || true
 # Verify Node.js
 if [[ -z "$NODE_BIN" ]] || [[ ! -x "$NODE_BIN" ]]; then
     if [[ -n "$FIRST_NODE_BIN" ]]; then
-        echo "❌ Node.js v22.12+ is required (found v$FIRST_NODE_VERSION at $FIRST_NODE_BIN)"
+        echo "❌ Node.js 22.12 through 24.x is required (found v$FIRST_NODE_VERSION at $FIRST_NODE_BIN)"
     else
         echo "❌ Node.js not found!"
     fi
     echo ""
-    echo "Please install Node.js v22.12 or later:"
+    echo "Please install Node.js 22.12 through 24.x:"
     echo "  • Homebrew: brew install node"
     echo "  • Download: https://nodejs.org/"
     echo "  • NVM: curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.0/install.sh | bash"

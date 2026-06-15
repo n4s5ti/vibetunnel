@@ -232,8 +232,14 @@ for (const module of modules) {
   }
 }
 
-// Ensure zig forwarder is executable if present
-const forwarderPath = path.join(__dirname, '..', 'bin', 'vibetunnel-fwd');
+// Ensure the platform-specific zig forwarder is executable if present
+const forwarderPath = path.join(
+  __dirname,
+  '..',
+  'forwarders',
+  `${platform}-${normalizedArch}`,
+  'vibetunnel-fwd'
+);
 if (fs.existsSync(forwarderPath)) {
   try {
     fs.chmodSync(forwarderPath, 0o755);

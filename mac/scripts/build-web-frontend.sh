@@ -159,8 +159,22 @@ if ! command -v pnpm &> /dev/null; then
     exit 1
 fi
 
-echo "Using pnpm version: $(pnpm --version)"
-echo "Using Node.js version: $(node --version)"
+REQUIRED_PNPM_VERSION="10.15.0"
+INSTALLED_PNPM_VERSION="$(pnpm --version)"
+if [ "$INSTALLED_PNPM_VERSION" != "$REQUIRED_PNPM_VERSION" ]; then
+    echo "error: pnpm $REQUIRED_PNPM_VERSION required (found $INSTALLED_PNPM_VERSION)"
+    exit 1
+fi
+
+echo "Using pnpm version: $INSTALLED_PNPM_VERSION"
+NODE_VERSION="$(node --version)"
+NODE_MAJOR="$(node -p 'process.versions.node.split(".")[0]')"
+NODE_MINOR="$(node -p 'process.versions.node.split(".")[1]')"
+if [ "$NODE_MAJOR" -lt 22 ] || [ "$NODE_MAJOR" -gt 24 ] || { [ "$NODE_MAJOR" -eq 22 ] && [ "$NODE_MINOR" -lt 12 ]; }; then
+    echo "error: Node.js 22.12 through 24.x required (found $NODE_VERSION)"
+    exit 1
+fi
+echo "Using Node.js version: $NODE_VERSION"
 
 # Check if web directory exists
 if [ ! -d "${WEB_DIR}" ]; then

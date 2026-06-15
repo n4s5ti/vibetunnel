@@ -27,28 +27,23 @@ final class SystemControlHandler {
 
     /// Handle incoming system control messages
     func handleMessage(_ data: Data) async -> Data? {
-        do {
-            // First decode to get the action
-            if let json = JSONValue.decodeObject(from: data),
-               let action = json["action"]?.string
-            {
-                switch action {
-                case "ready":
-                    return await self.handleReadyEvent(data)
-                case "ping":
-                    return await self.handlePingRequest(data)
-                default:
-                    self.logger.error("Unknown system action: \(action)")
-                    return self.createErrorResponse(for: data, error: "Unknown system action: \(action)")
-                }
-            } else {
-                self.logger.error("Invalid system message format")
-                return self.createErrorResponse(for: data, error: "Invalid message format")
+        // First decode to get the action
+        if let json = JSONValue.decodeObject(from: data),
+           let action = json["action"]?.string
+        {
+            switch action {
+            case "ready":
+                return await self.handleReadyEvent(data)
+            case "ping":
+                return await self.handlePingRequest(data)
+            default:
+                self.logger.error("Unknown system action: \(action)")
+                return self.createErrorResponse(for: data, error: "Unknown system action: \(action)")
             }
-        } catch {
-            self.logger.error("Failed to parse system message: \(error)")
-            return self.createErrorResponse(for: data, error: "Failed to parse message: \(error.localizedDescription)")
         }
+
+        self.logger.error("Invalid system message format")
+        return self.createErrorResponse(for: data, error: "Invalid message format")
     }
 
     // MARK: - Action Handlers

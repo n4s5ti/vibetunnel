@@ -86,12 +86,13 @@ The npm build process uses a clean distribution directory approach that follows 
 3. **Bundles dependencies** - node-pty is bundled directly, no symlinks needed
 4. **Preserves source integrity** - Never modifies source package.json
 
-### Unified Build (Multi-Platform by Default)
+### Unified Build (Multi-Platform by Default on macOS)
 ```bash
 npm run build:npm
 ```
 - Compiles TypeScript and bundles client code
 - Builds native modules for all supported platforms (macOS x64/arm64, Linux x64/arm64)
+- Requires macOS because Darwin forwarders must be built and verified natively
 - Creates comprehensive prebuilds for zero-dependency installation
 - Generates npm README optimized for package distribution
 - Creates clean dist-npm/ directory for packaging
@@ -100,10 +101,10 @@ npm run build:npm
 The unified build script supports flexible targeting:
 
 ```bash
-# Default: All platforms
+# Default on macOS: All platforms
 npm run build:npm
 
-# Current platform only (faster for development)
+# Current platform only (use this on Linux for local validation)
 node scripts/build-npm.js --current-only
 
 # Specific platform/architecture
@@ -254,7 +255,7 @@ Development artifacts are excluded from the final package:
 
 ### Local Development
 ```bash
-# Multi-platform build with prebuilds (default)
+# Multi-platform build with prebuilds (macOS)
 npm run build:npm
 
 # Single-platform build for local testing
