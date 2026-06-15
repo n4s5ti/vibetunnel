@@ -95,7 +95,9 @@ jobs:
     - name: Resolve Dependencies
       working-directory: mac
       run: |
-        xcodebuild -resolvePackageDependencies -workspace VibeTunnel.xcworkspace
+        xcodebuild -resolvePackageDependencies \
+          -project VibeTunnel.xcodeproj \
+          -scheme VibeTunnel
     
     - name: Build Release
       working-directory: mac
