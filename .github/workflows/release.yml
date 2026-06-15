@@ -102,7 +102,7 @@ jobs:
     - name: Build Release
       working-directory: mac
       run: |
-        ./scripts/build.sh --configuration Release --arch arm64
+        ./scripts/build.sh --configuration Release --arch arm64 --no-sign
 
     - name: Create DMGs and ZIPs
       timeout-minutes: 15
