@@ -58,6 +58,7 @@ export default defineConfig(({ mode }) => {
     test: {
       globals: true,
       include: testInclude,
+      globalSetup: ['./src/test/global-setup.ts'],
       setupFiles: ['./src/test/setup.ts'],
       environment: isClient ? 'happy-dom' : 'node',
       testTimeout: 10000, // 10s for tests
