@@ -720,7 +720,7 @@ if hdiutil attach "$DMG_PATH" -mountpoint "$DMG_MOUNT" -nobrowse -quiet; then
         "Contents/MacOS/VibeTunnel"
         "Contents/Resources/vibetunnel"
         "Contents/Resources/vibetunnel-fwd"
-        "Contents/Resources/ghostty-vt.wasm"
+        "Contents/Resources/web/public/ghostty-vt.wasm"
         "Contents/Resources/pty.node"
         "Contents/Frameworks/Sparkle.framework/Versions/B/Sparkle"
     )
