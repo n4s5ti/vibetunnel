@@ -715,6 +715,23 @@ if hdiutil attach "$DMG_PATH" -mountpoint "$DMG_MOUNT" -nobrowse -quiet; then
         hdiutil detach "$DMG_MOUNT" -quiet
         exit 1
     fi
+
+    REQUIRED_BUNDLE_FILES=(
+        "Contents/MacOS/VibeTunnel"
+        "Contents/Resources/vibetunnel"
+        "Contents/Resources/vibetunnel-fwd"
+        "Contents/Resources/ghostty-vt.wasm"
+        "Contents/Resources/pty.node"
+        "Contents/Frameworks/Sparkle.framework/Versions/B/Sparkle"
+    )
+    for REQUIRED_FILE in "${REQUIRED_BUNDLE_FILES[@]}"; do
+        if [[ ! -f "$DMG_APP/$REQUIRED_FILE" ]]; then
+            echo -e "${RED}❌ Required release component missing: $REQUIRED_FILE${NC}"
+            hdiutil detach "$DMG_MOUNT" -quiet
+            exit 1
+        fi
+    done
+    echo "✅ Required app components are present"
     
     hdiutil detach "$DMG_MOUNT" -quiet
 else
@@ -732,9 +749,9 @@ DMG_SIZE=$(stat -f %z "$DMG_PATH" 2>/dev/null || stat -c %s "$DMG_PATH" 2>/dev/n
 DMG_SIZE_MB=$((DMG_SIZE / 1024 / 1024))
 echo "DMG size: ${DMG_SIZE_MB} MB"
 
-# Expected size range (42-50 MB based on recent releases)
-MIN_SIZE_MB=40
-MAX_SIZE_MB=50
+# Expected size range for the Apple Silicon release.
+MIN_SIZE_MB=20
+MAX_SIZE_MB=60
 
 if [[ $DMG_SIZE_MB -lt $MIN_SIZE_MB ]]; then
     echo -e "${RED}❌ DMG size is unexpectedly small (${DMG_SIZE_MB} MB < ${MIN_SIZE_MB} MB)${NC}"
