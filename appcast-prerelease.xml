@@ -6,73 +6,328 @@
         <description>VibeTunnel pre-release and beta updates feed</description>
         <language>en</language>
         <item>
+            <title>VibeTunnel 1.0.0 Beta 16</title>
+            <link>https://github.com/amantus-ai/vibetunnel/releases/download/v1.0.0-beta.16/VibeTunnel-1.0.0-beta.16.dmg</link>
+            <sparkle:version>206</sparkle:version>
+            <sparkle:shortVersionString>1.0.0-beta.16</sparkle:shortVersionString>
+            <description><![CDATA[
+                <h2>VibeTunnel 1.0.0 Beta 16</h2><p><strong>Pre-release version</strong></p><div><h3>Fixed</h3>
+<ul>
+<li>Fixed release preflight to validate the shipped Zig toolchain instead of the removed Rust toolchain.</li>
+<li>Fixed Linux bootstrap for unprivileged users by enabling the repository-pinned pnpm through Corepack with the required permissions.</li>
+<li>Fixed clean-install TypeScript checks by keeping terminal renderer declarations on Lit's public types.</li>
+<li>Fixed the iOS quick-test helper to select an installed iOS 26 simulator instead of an arbitrary older runtime.</li>
+<li>Prevented npm package builds from silently publishing stale runtime dependency versions.</li>
+<li>Prevented tag pushes from racing the signed release script with an obsolete unsigned GitHub release workflow.</li>
+<li>Fixed npm packages to include and select the correct Zig forwarder for Intel and Apple Silicon Macs and x64 and arm64 Linux hosts.</li>
+<li>Fixed packaged servers to load Ghostty's WASM terminal parser, advertise through <code>bonjour-service</code>, preserve Error diagnostics, and stop cleanly on SIGTERM.</li>
+<li>Fixed source-tree terminal snapshots to resolve Ghostty's exported WASM asset before a frontend build.</li>
+<li>Fixed Playwright CI to use configured system Chromium installations without requiring Playwright's browser or ffmpeg bundles.</li>
+<li>Fixed release builds to require exact Zig and pnpm versions, rebuild native resources, and ship a consistently arm64 Apple Silicon app.</li>
+<li>Replaced obsolete callback-style Vitest cases and made CLI forwarding tests independent of stale local build artifacts.</li>
+<li>Restricted npm installs to the documented Node.js 22-24 range, avoiding broken PAM native builds on unsupported newer runtimes.</li>
+</ul>
+<h3>✨ Improvements</h3>
+<ul>
+<li>Add Pangolin Newt integration for managed remote access from the Mac app (#315)</li>
+<li>Add Pinggy CLI integration for public remote access, including optional Keychain token storage for persistent URLs (requested by <a href="https://github.com/empz">@empz</a>) (#505)</li>
+<li>Recognize Augment Code's Auggie CLI as an AI assistant, add it to default Quick Start commands, and document setup (requested by <a href="https://github.com/rishitank">@rishitank</a>) (#526)</li>
+<li>Expose a stable, labeled terminal input node for browser automation and accessibility tools (reported by <a href="https://github.com/bharath2020">@bharath2020</a>) (#339)</li>
+<li>Show line insertion and deletion counts alongside file changes in web session Git status badges (thanks <a href="https://github.com/abhinavgautam01">@abhinavgautam01</a>) (#48)</li>
+<li>Add OpenAI BYOK voice transcription to the iOS terminal keyboard toolbar, with secure Keychain storage and review-before-execution input (via <a href="https://github.com/jblwilliams">@jblwilliams</a>) (#523)</li>
+<li>Let mobile users reorder, hide, and choose layouts for terminal quick keys, with browser-local persistence and an unchanged default layout (via <a href="https://github.com/ndraiman">@ndraiman</a>) (#564)</li>
+<li>Restore clickable Ctrl+letter shortcuts in the Ghostty terminal renderer (reported by <a href="https://github.com/manmal">@manmal</a>, based on the original implementation by <a href="https://github.com/hjanuschka">@hjanuschka</a>) (#51)</li>
+<li>Show returning users only the CLI maintenance page after updates, while keeping the full onboarding flow available manually (reported by <a href="https://github.com/MrMage">@MrMage</a>, with earlier investigation by <a href="https://github.com/gioneill">@gioneill</a>) (#411)</li>
+<li>Pin CI actions, runner images, and downloaded build tools to immutable, checksum-verified versions (via <a href="https://github.com/davisbuilds">@davisbuilds</a>) (#616)</li>
+<li>Make the web app installable with correctly sized 192px and 512px manifest icons (via <a href="https://github.com/Tyoneva">@Tyoneva</a>) (#615)</li>
+<li>Enlarge mobile session navigation and terminal quick-key tap targets (via <a href="https://github.com/Nachx639">@Nachx639</a>) (#647)</li>
+<li>Rotate server logs at 50 MB while retaining one backup file (via <a href="https://github.com/Nachx639">@Nachx639</a>) (#641)</li>
+<li>Require Node.js 22.12+ for npm/native builds and generate maintained Node 22/24 prebuilds only.</li>
+<li>Improve mobile session UI with action bar, clipboard manager, and quick keys (via <a href="https://github.com/Jerome2332">@Jerome2332</a>) (#518)</li>
+<li>Update the native <code>vt-fwd</code> forwarder and all build paths to Zig 0.16.0, with exact toolchain enforcement (via <a href="https://github.com/sourman">@sourman</a>) (#611)</li>
+<li>Tighten macOS app icon padding to remove white edge</li>
+<li>Add JSONValue coverage for Codable JSON handling</li>
+<li>Add explicit architecture selection to the macOS build tooling (via <a href="https://github.com/rothnic">@rothnic</a>) (#557)</li>
+</ul>
+<h3>🐛 Bug Fixes</h3>
+<ul>
+<li>Run test-port cleanup once per Vitest invocation instead of once per test file, preventing high-core setup timeouts.</li>
+<li>Reject oversized Unix socket frames instead of retaining attacker-controlled multi-gigabyte payload lengths.</li>
+<li>Harden terminal/chat reconnects, Unix socket framing, tunnel startup, Git event fallback, Linux process parsing, and multi-setting config updates against stale or partial state.</li>
+<li>Honor custom control directories in the Zig forwarder and repair incomplete Linux Node.js toolchains during bootstrap.</li>
+<li>Prevent terminal output from a previous session appearing after switching sessions in the web app.</li>
+<li>Detect nix-darwin and other CLI-based Tailscale installations, including daemon status when the macOS app API is unavailable (reported by <a href="https://github.com/teehemkay">@teehemkay</a>) (#259)</li>
+<li>Enable native autocorrect for mobile Chat Mode while preserving case-sensitive terminal input and keeping command spellcheck disabled (reported by <a href="https://github.com/patrickjm">@patrickjm</a>) (#423)</li>
+<li>Require macOS releases to rebuild the server with the trimmed Node.js runtime instead of silently embedding the full system binary (#271)</li>
+<li>Clarify whether browser login expects a system or configured VibeTunnel password, that verification happens on the host without saving it, and that SSH keys avoid browser password entry (reported by <a href="https://github.com/tleyden">@tleyden</a>) (#555)</li>
+<li>Guide first-time users from local access through Tailscale setup and directly into Remote settings (reported by <a href="https://github.com/carlosjunod">@carlosjunod</a>) (#539)</li>
+<li>Focus the matching Ghostty tab when opening a macOS session instead of stopping after focusing its window (reported by <a href="https://github.com/singiamtel">@singiamtel</a>) (#273)</li>
+<li>Let force-terminated <code>vt</code> sessions exit instead of rerunning commands outside VibeTunnel, including suspended jobs (reported by <a href="https://github.com/cameroncooke">@cameroncooke</a>) (#278)</li>
+<li>Show long session titles with ellipsis in the compact iPhone header instead of hiding them entirely. (#516)</li>
+<li>Report Tailscale Serve as running after its background setup command exits successfully, instead of leaving the macOS app stuck on “Starting…” (#556)</li>
+<li>Preserve the configured Tailscale Serve port when reset fails instead of hiding a persistent non-default proxy.</li>
+<li>Guide macOS terminal-test permission failures to the correct Automation or Accessibility settings pane (#554)</li>
+<li>Add Warp Preview as a selectable macOS terminal, including app detection and command launching. (#535)</li>
+<li>Show friendly authentication labels in the web user menu instead of raw internal method names (#369)</li>
+<li>Keep macOS DMG labels readable and fully visible across Finder toolbar settings (reported by <a href="https://github.com/MrMage">@MrMage</a>) (#409)</li>
+<li>Accept iOS hardware keyboard input without first opening the software keyboard (#491)</li>
+<li>Keep iOS hardware Escape keys inside active terminal sessions (#492)</li>
+<li>Keep the mobile terminal prompt visible when opening the software keyboard and quick keys (#544)</li>
+<li>Stop reporting macOS Accessibility permission as granted when VibeTunnel can inspect only its own windows (#337)</li>
+<li>Open the current macOS app build's notification settings, including debug/ad-hoc bundle variants, and fall back to the general Notifications pane when needed.</li>
+<li>Show the Accessibility recovery flow when Ghostty or another terminal rejects System Events keystrokes (#625)</li>
+<li>Decode macOS session-creation timestamps in the server's ISO 8601 wire format, preventing a false error after the terminal opens (via <a href="https://github.com/apex-skyner">@apex-skyner</a> and <a href="https://github.com/yashiels">@yashiels</a>) (#635)</li>
+<li>Allow the macOS app to bind the server to validated custom IPv4 or IPv6 addresses, including dual-stack <code>::</code>, with correct IPv6 dashboard URLs (via <a href="https://github.com/waxzce">@waxzce</a>) (#576)</li>
+<li>Restore iOS terminal rendering, preserve output received during Ghostty startup, and stream stdout for immediate input echo (via <a href="https://github.com/waxzce">@waxzce</a>) (#577)</li>
+<li>Keep Korean and other CJK IME composition events intact and position desktop candidate windows at the terminal cursor (via <a href="https://github.com/jiangwenhan">@jiangwenhan</a>) (#617)</li>
+<li>Prevent rapid iOS slash-command redraws from queuing redundant smooth terminal scrolling (via <a href="https://github.com/Ilakiancs">@Ilakiancs</a>) (#590)</li>
+<li>Keep mobile session header controls visible and comfortably tappable at narrow phone widths (via <a href="https://github.com/nikolasdehor">@nikolasdehor</a>) (#605)</li>
+<li>Jitter iOS reconnection backoff within its configured cap to spread retries after outages (via <a href="https://github.com/bianbiandashen">@bianbiandashen</a>) (#593)</li>
+<li>Keep <code>vt</code> git metadata alive for sessions in repositories without an upstream branch, preventing forwarder crashes (via <a href="https://github.com/ndraiman">@ndraiman</a>) (#566)</li>
+<li>Keep HQ remotes registered through transient health-check failures and remove them only after three consecutive failures (via <a href="https://github.com/bianbiandashen">@bianbiandashen</a> and <a href="https://github.com/nikolasdehor">@nikolasdehor</a>) (#594)</li>
+<li>Fix session creation "data couldn't be read" error on Mac app (#500)</li>
+<li>Correct empty-session CLI setup instructions to point to Settings → General → Command Line Tool (via <a href="https://github.com/saqibameen">@saqibameen</a>) (#582)</li>
+<li>Import standard OpenSSH and PKCS#8 Ed25519 private keys with correct public-key derivation and strict integrity validation (via <a href="https://github.com/ye4241">@ye4241</a>) (#638)</li>
+<li>Persist JWT signing secrets across server restarts without weakening file permissions or concurrent startup safety (via <a href="https://github.com/matthias-scale">@matthias-scale</a>) (#637)</li>
+<li>Restore mobile terminal touch scrolling, responsive width fitting, pinch zoom, and scrollback retention during output and layout changes (via <a href="https://github.com/Nachx639">@Nachx639</a>) (#645)</li>
+<li>Stabilize mobile keyboard reopening and reserve terminal space for quick keys without overlapping the action bar (via <a href="https://github.com/Nachx639">@Nachx639</a>) (#646)</li>
+<li>Detach only the VibeTunnel tmux client without assuming the default prefix (via <a href="https://github.com/Nachx639">@Nachx639</a>) (#644)</li>
+<li>Update <code>ws</code> and <code>qs</code> to patched versions for GHSA-58qx-3vcg-4xpx and GHSA-q8mj-m7cp-5q26 (via <a href="https://github.com/Nachx639">@Nachx639</a>) (#642)</li>
+<li>Restore the configured terminal width when reopening Terminal Settings (via <a href="https://github.com/Nachx639">@Nachx639</a>) (#640)</li>
+<li>Keep Terminal Settings and other interactive overlays above the exited-session badge (via <a href="https://github.com/Nachx639">@Nachx639</a>) (#643)</li>
+<li>Fix npm and Bun global installs exiting early by recognizing the <code>vibetunnel</code> bin entry point (via <a href="https://github.com/yv-was-taken">@yv-was-taken</a>) (#583)</li>
+<li>Fix desktop terminal content being clipped at the bottom (via <a href="https://github.com/ChimeraFlutter">@ChimeraFlutter</a>) (#608)</li>
+<li>Forward <code>vt --title-mode</code> as separate option and value arguments (via <a href="https://github.com/nikolasdehor">@nikolasdehor</a>) (#602)</li>
+<li>Preserve exact argument boundaries when commands fall back to shell alias execution (via <a href="https://github.com/Ilakiancs">@Ilakiancs</a> and <a href="https://github.com/nikolasdehor">@nikolasdehor</a>) (#603)</li>
+<li>Preserve native terminal link taps by avoiding paste-input focus steal on anchors (via <a href="https://github.com/nikolasdehor">@nikolasdehor</a>) (#606)</li>
+<li>Add Nix per-user profile path for cloudflared discovery (via <a href="https://github.com/bkase">@bkase</a>) (#533)</li>
+<li>Fall back to dns-sd for macOS mDNS advertisement when Bonjour fails</li>
+<li>Replace JSONSerialization usage with JSONEncoder/Decoder to avoid Obj-C JSON crashes</li>
+<li>Prefer client-resolved binary paths in <code>vt</code> to avoid PATH mismatches</li>
+<li>Reset CLI outdated status after successful install and add regression coverage</li>
+</ul>
+<h3>👥 Contributors</h3>
+<ul>
+<li>Thanks <a href="https://github.com/abhinavgautam01">@abhinavgautam01</a> for adding web session Git line-change counts.</li>
+<li>Thanks <a href="https://github.com/jblwilliams">@jblwilliams</a> for the original iOS voice-transcription implementation.</li>
+<li>Thanks <a href="https://github.com/cameroncooke">@cameroncooke</a> for reporting stuck <code>vt</code> processes after suspending terminal jobs.</li>
+<li>Thanks <a href="https://github.com/ndraiman">@ndraiman</a> for proposing customizable mobile terminal quick-key layouts.</li>
+<li>Thanks <a href="https://github.com/manmal">@manmal</a> and <a href="https://github.com/hjanuschka">@hjanuschka</a> for proposing and originally implementing clickable terminal shortcuts.</li>
+<li>Thanks <a href="https://github.com/MrMage">@MrMage</a> and <a href="https://github.com/gioneill">@gioneill</a> for reporting and investigating repetitive update onboarding.</li>
+<li>Thanks <a href="https://github.com/davisbuilds">@davisbuilds</a> for hardening CI workflows and build-tool bootstrap paths.</li>
+<li>Thanks <a href="https://github.com/apex-skyner">@apex-skyner</a> and <a href="https://github.com/yashiels">@yashiels</a> for identifying the macOS session-creation timestamp decoding failure.</li>
+<li>Thanks <a href="https://github.com/waxzce">@waxzce</a> for adding configurable IPv4/IPv6 server binding and restoring reliable iOS terminal rendering and input echo.</li>
+<li>Thanks <a href="https://github.com/jiangwenhan">@jiangwenhan</a> for improving Korean and CJK terminal input.</li>
+<li>Thanks <a href="https://github.com/Tyoneva">@Tyoneva</a> for improving web app installation and icon support.</li>
+<li>Thanks <a href="https://github.com/ndraiman">@ndraiman</a> for fixing native forwarder crashes while collecting git metadata.</li>
+<li>Thanks <a href="https://github.com/bianbiandashen">@bianbiandashen</a> for preventing transient remote health-check failures from prematurely unregistering servers and spreading iOS reconnect attempts after outages.</li>
+<li>Thanks <a href="https://github.com/saqibameen">@saqibameen</a> for correcting the CLI setup path shown to new users.</li>
+<li>Thanks <a href="https://github.com/ye4241">@ye4241</a> for fixing browser SSH private-key import and public-key derivation.</li>
+<li>Thanks <a href="https://github.com/matthias-scale">@matthias-scale</a> for preserving authenticated browser sessions across server restarts.</li>
+<li>Thanks <a href="https://github.com/Nachx639">@Nachx639</a> for adding log rotation, improving mobile keyboard behavior, terminal scrolling, and tap targets, and fixing tmux detach behavior, dependency security, Terminal Settings width sync, and exited-session overlay layering.</li>
+<li>Thanks <a href="https://github.com/sourman">@sourman</a> for documenting the Zig build prerequisite.</li>
+<li>Thanks <a href="https://github.com/yv-was-taken">@yv-was-taken</a> for fixing global npm and Bun installs.</li>
+<li>Thanks <a href="https://github.com/ChimeraFlutter">@ChimeraFlutter</a> for fixing desktop terminal clipping.</li>
+<li>Thanks <a href="https://github.com/Ilakiancs">@Ilakiancs</a> for identifying lost shell fallback argument boundaries and redundant iOS terminal scrolling during slash-command redraws.</li>
+<li>Thanks <a href="https://github.com/nikolasdehor">@nikolasdehor</a> for fixing narrow mobile session headers, <code>vt --title-mode</code>, and shell fallback argument forwarding, preserving terminal link taps, and adding remote health-check regression coverage.</li>
+<li>Thanks <a href="https://github.com/rothnic">@rothnic</a> for defaulting to universal macOS binaries.</li>
+</ul>
+<p><a href="https://github.com/amantus-ai/vibetunnel/blob/main/CHANGELOG.md#100-beta16-20260616">View full changelog</a></p></div>
+            ]]></description>
+            <pubDate>Tue, 16 Jun 2026 00:16:01 +0100</pubDate>
+            <enclosure
+                url="https://github.com/amantus-ai/vibetunnel/releases/download/v1.0.0-beta.16/VibeTunnel-1.0.0-beta.16.dmg"
+                length="27924523"
+                type="application/octet-stream"
+                sparkle:edSignature="MtOF4jr41KcwvIyZJ1YkCoY3E7yzBUyn8jfyiHiNK9CyNdj+H0lpACPcIvmpKNe0oNmZTwykrp1ekVUTbDlnAw=="
+            />
+            <sparkle:minimumSystemVersion>15.0</sparkle:minimumSystemVersion>
+        </item>
+        <item>
             <title>VibeTunnel 1.0.0-beta.15</title>
             <link>https://github.com/amantus-ai/vibetunnel/releases/download/v1.0.0-beta.15/VibeTunnel-1.0.0-beta.15.dmg</link>
             <sparkle:version>205</sparkle:version>
             <sparkle:shortVersionString>1.0.0-beta.15</sparkle:shortVersionString>
             <description><![CDATA[
-                <h2>VibeTunnel 1.0.0-beta.15</h2>
-                <p><strong>Pre-release version</strong></p>
-                
-                <h3>✨ Major Features</h3>
-                <h4><strong>Push Notifications</strong> (#475)</h4>
-                <ul>
-                <li>Native push notifications for terminal events - get notified when commands complete, sessions start/end, or errors occur</li>
-                <li>Customizable notification types: Session exits, command completion (>3s), command errors, terminal bell, Claude AI turn notifications</li>
-                <li>Smart Claude detection: Automatically identifies Claude CLI sessions and tracks when Claude finishes responding</li>
-                <li>Complete overhaul of the notification system with reliable push notifications for session events</li>
-                <li>Test notification feature now works seamlessly between web frontend and Mac app</li>
-                </ul>
-                
-                <h4><strong>Git Worktree Management & Follow Mode</strong> (#452)</h4>
-                <ul>
-                <li>Full worktree support: Create, manage, and delete Git worktrees directly from VibeTunnel</li>
-                <li>VibeTunnel intelligently follows Git worktrees instead of just branches, perfect for developers using worktrees for parallel development</li>
-                <li>When you switch branches in your editor/IDE, VibeTunnel automatically switches to the corresponding worktree terminal session</li>
-                <li>The <code>vt follow</code> command works contextually - run it from either your main repository or a worktree to set up appropriate tracking</li>
-                </ul>
-                
-                <h4><strong>Comprehensive CJK Input Support</strong> (#480)</h4>
-                <ul>
-                <li>Full support for CJK input methods with proper IME (Input Method Editor) integration</li>
-                <li>Fixed input duplication issues that affected Asian language users</li>
-                <li>Improved Z-index management to ensure IME candidates display correctly above terminal content</li>
-                </ul>
-                
-                <h4><strong>Terminal Multiplexer Integration</strong> (#460)</h4>
-                <ul>
-                <li>Full integration with tmux, Zellij, and GNU Screen terminal multiplexers for persistent sessions</li>
-                <li>Create, list, and attach to tmux/Zellij/Screen sessions directly from VibeTunnel interface</li>
-                <li>Sessions persist across VibeTunnel restarts - never lose your work</li>
-                </ul>
-                
-                <h4><strong>Quick Session Switching</strong></h4>
-                <ul>
-                <li>Use Cmd+1...9 (Mac) or Ctrl+1...9 (Linux) to instantly switch between sessions when keyboard capture is active</li>
-                <li>Cmd/Ctrl+0 switches to the 10th session</li>
-                </ul>
-                
-                <h3>🐛 Bug Fixes</h3>
-                <ul>
-                <li>Enhanced VT command reliability with self-healing capabilities</li>
-                <li>Fixed menu bar icon not appearing on app launch</li>
-                <li>Enhanced Tailscale integration with automatic authentication</li>
-                <li>Improved notification system reliability</li>
-                <li>Fixed blinking cursor issue in binary terminal mode</li>
-                <li>Completely redesigned keyboard handling for iOS devices</li>
-                </ul>
-                
-                <h3>👥 Contributors</h3>
-                <p>First-time contributors: @jblwilliams, @lox, @diegopetrucci</p>
-                <p>Additional contributors: @hjanuschka, @fal3, @hewigovens</p>
+                <h2>VibeTunnel 1.0.0-beta.15</h2><p><strong>Pre-release version</strong></p><div><h3>✨ Major Features</h3>
+#### <strong>Push Notifications</strong> (#475)
+<ul>
+<li>Native push notifications for terminal events - get notified when commands complete, sessions start/end, or errors occur</li>
+<li>Customizable notification types: Session exits, command completion (>3s), command errors, terminal bell, Claude AI turn notifications</li>
+<li>Smart Claude detection: Automatically identifies Claude CLI sessions and tracks when Claude finishes responding</li>
+<li>Complete overhaul of the notification system with reliable push notifications for session events</li>
+<li>Test notification feature now works seamlessly between web frontend and Mac app</li>
+<li>Improved notification preferences with granular control over notification types</li>
+<li>Better error handling and recovery for notification delivery failures</li>
+<li>Enhanced integration between web services and native Mac notification service</li>
+</ul>
+#### <strong>Git Worktree Management & Follow Mode</strong> (#452)
+<ul>
+<li>Full worktree support: Create, manage, and delete Git worktrees directly from VibeTunnel</li>
+<li>VibeTunnel intelligently follows Git worktrees instead of just branches, perfect for developers using worktrees for parallel development</li>
+<li>When you switch branches in your editor/IDE, VibeTunnel automatically switches to the corresponding worktree terminal session</li>
+<li>The <code>vt follow</code> command works contextually - run it from either your main repository or a worktree to set up appropriate tracking</li>
+<li>Visual indicators: Fork icon (⑂) shows worktree sessions, branch names displayed throughout UI</li>
+<li>Follow mode displays worktree paths with <code>~</code> for your home directory, making them easier to read</li>
+<li>HTTP Git API: New endpoints for Git operations (<code>/api/git/status</code>, <code>/api/git/branches</code>, <code>/api/worktrees</code>)</li>
+<li>Branch selection: Choose branches before creating sessions with real-time repository status</li>
+</ul>
+#### <strong>Comprehensive CJK (Chinese, Japanese, Korean) Input Support</strong> (#480)
+<ul>
+<li>Full support for CJK input methods with proper IME (Input Method Editor) integration</li>
+<li>Fixed input duplication issues that affected Asian language users</li>
+<li>Improved Z-index management to ensure IME candidates display correctly above terminal content</li>
+<li>Enhanced keyboard event handling for complex character composition</li>
+<li>Better compatibility with native macOS and iOS input methods</li>
+</ul>
+#### <strong>Terminal Multiplexer Integration (tmux, Zellij & Screen)</strong> (#460)
+<ul>
+<li>Full integration with tmux, Zellij, and GNU Screen terminal multiplexers for persistent sessions</li>
+<li>Create, list, and attach to tmux/Zellij/Screen sessions directly from VibeTunnel interface</li>
+<li>Sessions persist across VibeTunnel restarts - never lose your work</li>
+<li>Perfect for remote development: attach to the same session from multiple devices</li>
+<li>Supports tmux panes and windows for advanced terminal workflows</li>
+<li>Seamless switching between standard VibeTunnel sessions and multiplexer sessions</li>
+</ul>
+#### <strong>Quick Session Switching with Number Keys</strong>
+<ul>
+<li>When keyboard capture is active, use Cmd+1...9 (Mac) or Ctrl+1...9 (Linux) to instantly switch between sessions</li>
+<li>Cmd/Ctrl+0 switches to the 10th session</li>
+<li>Works only when keyboard capture is enabled in session view, allowing quick navigation without mouse</li>
+<li>Session numbers match the numbers shown in the session list</li>
+</ul>
+#### <strong>Enhanced Git Integration</strong>
+<ul>
+<li>See branch names, commit status, and sync state in autocomplete suggestions</li>
+<li>Real-time display of uncommitted changes (added/modified/deleted files)</li>
+<li>Branch selector dropdown for switching branches before creating sessions</li>
+<li>Repository grouping in session list with branch/worktree selectors</li>
+<li>Consistent branch name formatting with square brackets: <code>[main]</code></li>
+</ul>
+#### <strong>Interface Polish</strong>
+<ul>
+<li>Responsive design: Better mobile/iPad layouts with adaptive button switching</li>
+<li>Collapsible options: Session options now in expandable sections for cleaner UI</li>
+<li>Increased menu bar button heights for better clickability</li>
+<li>Improved spacing and padding throughout the interface</li>
+<li>Smoother animations and transitions</li>
+</ul>
+<h3>🐛 Bug Fixes</h3>
+#### <strong>Project Organization & Stability</strong>
+<ul>
+<li>Enhanced VT command reliability with self-healing capabilities - VT sessions now automatically recover from connection issues</li>
+<li>Fixed menu bar icon not appearing on app launch</li>
+</ul>
+#### <strong>Advanced Features</strong>
+<ul>
+<li>Enhanced Tailscale integration with automatic authentication for seamless secure access (#472)</li>
+<li>Cleaned up VT command output by removing verbose binary path prefixes and socket disconnect noise</li>
+</ul>
+#### <strong>Developer Experience</strong>
+<ul>
+<li>Improved notification system reliability - fixed test notification button integration between Mac app and server (#483)</li>
+<li>Enhanced notification auto-reconnection behavior when pages are reloaded</li>
+<li>Added comprehensive logging documentation to README for better troubleshooting</li>
+<li>Removed obsolete bundle identifier references and updated logging configuration</li>
+</ul>
+<h3>🔧 Technical Improvements</h3>
+#### <strong>Improved Terminal Output Handling</strong>
+<ul>
+<li>Enhanced asciinema stream pruning: Removes noisy ANSI sequences for cleaner recordings</li>
+<li>Better mobile terminal detection to optimize output rendering</li>
+<li>Fixed terminal resize event handling to prevent output corruption</li>
+<li>Improved logging for debugging terminal lifecycle issues</li>
+</ul>
+#### <strong>Performance & Architecture</strong>
+<ul>
+<li>Completed Tailwind CSS v4 migration with performance optimizations</li>
+<li>Enhanced Playwright test performance for faster CI runs</li>
+<li>Updated all dependencies to latest stable versions</li>
+<li>Improved type safety throughout the codebase, especially for Tailscale authentication</li>
+<li>Modular refactoring: Split <code>session-view.ts</code> into 7 specialized managers</li>
+<li>Component breakdown: Refactored <code>session-create-form</code> into smaller components</li>
+<li>Unified components: Created reusable <code>GitBranchWorktreeSelector</code></li>
+<li>Better separation: Clear boundaries between UI and business logic</li>
+<li><strong>Session rename functionality centralized</strong>: Eliminated duplicate code across components</li>
+<li><strong>Socket-based vt command communication</strong>: Replaced HTTP with Unix domain sockets for reliability</li>
+</ul>
+#### <strong>Communication & Reliability</strong>
+<ul>
+<li>Unified notification system now uses Server-Sent Events (SSE) for all clients instead of mixed approaches</li>
+<li>Fixed git status monitoring to prevent EMFILE errors through shallow directory watching</li>
+<li>Standardized git status terminology - consistently uses 'New' for untracked files across all interfaces</li>
+<li>Enhanced session cleanup on startup with proper JSON field handling</li>
+</ul>
+#### <strong>Developer Experience</strong>
+<ul>
+<li>Improved TypeScript type safety throughout</li>
+<li>Better error handling and logging</li>
+<li>Consistent code formatting across macOS and web codebases</li>
+<li>Removed outdated crash investigation documentation</li>
+<li>Comprehensive JSDoc documentation added to service classes</li>
+<li>Removed backwards compatibility for older vt command versions</li>
+</ul>
+#### <strong>UI/UX Enhancements</strong>
+<ul>
+<li>Modernized macOS autocomplete dropdown with native SwiftUI materials and transparency</li>
+<li>Fixed Quick Start Commands UI with proper native macOS table styling</li>
+<li>Added help tooltips throughout settings UI explaining each notification type</li>
+<li>Fixed mouse hover selection issues in autocomplete dropdown</li>
+<li>Improved button click targets for better usability</li>
+</ul>
+#### <strong>Socket API Improvements</strong>
+<ul>
+<li>Refactored socket client with type-safe message handling</li>
+<li>Removed HTTP fallback in favor of pure socket communication for better reliability</li>
+<li>Added proper TypeScript types for all socket protocol messages</li>
+<li>Cleaner public API without brittle type casting</li>
+</ul>
+#### <strong>Developer Tools</strong>
+<ul>
+<li>Added <code>VIBETUNNEL_PREFER_DERIVED_DATA</code> environment variable for faster Xcode builds</li>
+<li>Version tracking in socket protocol for better debugging</li>
+<li>Consolidated duplicate Git status implementations for maintainability</li>
+<li>Enhanced error logging for session termination debugging</li>
+</ul>
+#### <strong>Self-Healing VT Command</strong>
+<ul>
+<li>The <code>vt</code> command now automatically recovers from connection issues and socket failures</li>
+<li>Improved reliability with automatic reconnection when the server restarts</li>
+<li>Better error handling for Unix socket communication</li>
+</ul>
+#### <strong>iOS Mobile Experience</strong>
+<ul>
+<li>Completely redesigned keyboard handling for iOS devices (#484)</li>
+<li>Fixed keyboard dismissal issues that left the interface in an inconsistent state (#484)</li>
+<li>Improved modal interactions with better keyboard management</li>
+<li>Enhanced direct keyboard input manager for smoother text entry</li>
+<li>Better handling of iOS-specific keyboard behaviors and quirks</li>
+<li>Fixed blinking cursor issue in binary terminal mode (#489)</li>
+</ul>
+<h3>👥 Contributors</h3>
+Thank you to all the contributors who helped make this release possible!
+First-time contributors to VibeTunnel:
+<ul>
+<li><a href="https://github.com/jblwilliams">@jblwilliams</a> - Removed unused ScreenCaptureKit import from ServerManager (#486)</li>
+<li><a href="https://github.com/lox">@lox</a> - Added Tailscale Serve integration with automatic authentication (#472)</li>
+<li><a href="https://github.com/diegopetrucci">@diegopetrucci</a> - Contributed push notifications onboarding screen (via #474)</li>
+</ul>
+Additional contributors:
+<ul>
+<li><a href="https://github.com/hjanuschka">@hjanuschka</a> - Added tmux integration (#460), fixed iOS keyboard dismissal issue (#484), and fixed blinking cursor in binary terminal mode (#489)</li>
+<li><a href="https://github.com/fal3">@fal3</a> - Fixed Test Notification Button to VibeTunnel Mac App (#483)</li>
+<li><a href="https://github.com/hewigovens">@hewigovens</a> - Fixed mobile keyboard layout and text sizing issues (#441) and contributed CJK (Chinese, Japanese, Korean) IME input support (#447, refined in #480)</li>
+</ul>
+<p><a href="https://github.com/amantus-ai/vibetunnel/blob/main/CHANGELOG.md#100-beta15-20260616">View full changelog</a></p></div>
             ]]></description>
-            <pubDate>Fri, 02 Aug 2025 00:19:31 +0000</pubDate>
-            <enclosure url="https://github.com/amantus-ai/vibetunnel/releases/download/v1.0.0-beta.15/VibeTunnel-1.0.0-beta.15.dmg" 
-                       sparkle:version="205" 
-                       sparkle:shortVersionString="1.0.0-beta.15" 
-                       length="35951408" 
-                       type="application/x-apple-diskimage" 
-                       sparkle:edSignature="s56J7oqLfnvIeOHNex1AvSy5vxDMk4KD2xj0PI9HFflUdba9frhYMHpPy9XDzU/+SnNft9i6zKZ7w/XNDaV9Dw=="/>
+            <pubDate>Sat, 02 Aug 2025 00:21:24 +0100</pubDate>
+            <enclosure
+                url="https://github.com/amantus-ai/vibetunnel/releases/download/v1.0.0-beta.15/VibeTunnel-1.0.0-beta.15.dmg"
+                length="35951408"
+                type="application/octet-stream"
+                sparkle:edSignature="s56J7oqLfnvIeOHNex1AvSy5vxDMk4KD2xj0PI9HFflUdba9frhYMHpPy9XDzU/+SnNft9i6zKZ7w/XNDaV9Dw=="
+            />
+            <sparkle:minimumSystemVersion>15.0</sparkle:minimumSystemVersion>
         </item>
         <item>
             <title>VibeTunnel 1.0.0-beta.14</title>
@@ -80,111 +335,143 @@
             <sparkle:version>203</sparkle:version>
             <sparkle:shortVersionString>1.0.0-beta.14</sparkle:shortVersionString>
             <description><![CDATA[
-                <h2>VibeTunnel 1.0.0-beta.14</h2>
-                <p><strong>Pre-release version</strong></p>
-                
-                <h3>✨ Major Features</h3>
-                <h4><strong>Customizable Quick Start Commands</strong> (#436)</h4>
-                <ul>
-                <li>Quick Start commands are now fully customizable - previously hardcoded buttons can be edited</li>
-                <li>Add your own commands with custom names and emoji (e.g., "✨ claude" or "▶️ dev server")</li>
-                <li>Drag & drop reordering with smooth animations in macOS settings</li>
-                <li>Inline editing without popup dialogs</li>
-                <li>Reset to defaults button when you want the original set back</li>
-                <li>File-based persistence in <code>~/.vibetunnel/config.json</code> shared between web and Mac apps</li>
-                </ul>
-                
-                <h4><strong>New Session Path Autocomplete</strong> (#435)</h4>
-                <ul>
-                <li>Intelligent path autocomplete when creating sessions with unified UI</li>
-                <li>Home directory expansion (<code>~/</code> shortcuts work properly)</li>
-                <li>Visual file browser with folder icons for easy navigation</li>
-                <li>Git repository discovery shows current branch in file browser</li>
-                <li>Repository status displayed in welcome screen</li>
-                <li>Escape key support and auto-select first suggestion</li>
-                </ul>
-                
-                <h4><strong>Session Status Management</strong></h4>
-                <ul>
-                <li>New dropdown menu in session headers for running/exited sessions</li>
-                <li>Terminate running sessions without closing the tab</li>
-                <li>Clear exited sessions individually with one click</li>
-                <li>Visual status indicators - pulsing dot for running, static for exited</li>
-                <li>Keyboard navigation support (Arrow keys, Enter, Escape)</li>
-                </ul>
-                
-                <h4><strong>Image Upload Menu</strong> (#432)</h4>
-                <ul>
-                <li>New image upload feature in session headers with multiple input methods:
-                  <ul>
-                  <li>Paste images from clipboard</li>
-                  <li>Select from photo library (mobile)</li>
-                  <li>Take photo with camera (mobile)</li>
-                  <li>Browse for files</li>
-                  </ul>
-                </li>
-                <li>Automatically converts images to base64 and inserts at cursor position</li>
-                <li>Mobile-optimized UI with full-screen menu</li>
-                </ul>
-                
-                <h4><strong>Linux Systemd Support</strong> (#426)</h4>
-                <ul>
-                <li>Run VibeTunnel as a persistent service with <code>vibetunnel systemd install</code></li>
-                <li>User-level service - no root required</li>
-                <li>Automatic startup on boot</li>
-                <li>Smart Node.js detection works with nvm, fnm, or global npm</li>
-                <li>Comprehensive systemd commands for status, logs, start/stop</li>
-                </ul>
-                
-                <h3>🎨 UI Improvements</h3>
-                <ul>
-                <li><strong>Mobile Terminal Experience</strong> (#441)
-                  <ul>
-                  <li>Fixed keyboard layout issues on mobile devices</li>
-                  <li>Improved quick keys bar with better sizing and spacing</li>
-                  <li>Responsive text sizes that scale properly on smaller screens</li>
-                  <li>Tab key now works correctly on mobile keyboards</li>
-                  </ul>
-                </li>
-                <li><strong>Dark Mode & Theme Improvements</strong>
-                  <ul>
-                  <li>Improved theme toggle with clearer icon and tooltips (#438, fixes #368)</li>
-                  <li>Fixed new session dialog styling for dark mode (#433)</li>
-                  <li>Better contrast and visibility across all themes</li>
-                  </ul>
-                </li>
-                <li><strong>General UI Polish</strong>
-                  <ul>
-                  <li>Clickable ngrok URLs in Settings with copy button (#422)</li>
-                  <li>Cleaner session headers with better-positioned controls</li>
-                  <li>Fixed magic wand icon alignment for AI sessions</li>
-                  <li>Edit icons now positioned directly after text instead of far right</li>
-                  <li>Improved OPTIONS label alignment in session create form</li>
-                  </ul>
-                </li>
-                </ul>
-                
-                <h3>🐛 Bug Fixes</h3>
-                <ul>
-                <li>Fixed session timers continuing to run after sessions exited (#428)</li>
-                <li>Fixed sessions with undefined activity status showing as idle instead of active</li>
-                <li>Fixed new session dialog styling for dark mode (#433)</li>
-                <li>Fixed Mintlify documentation generation (#434)</li>
-                <li>Fixed ConfigManager threading crash when moving quick start items in macOS</li>
-                <li>Fixed mobile keyboard layout and text sizing issues (#441)</li>
-                <li>Improved Chinese input method support (#431, duplicate of #421)</li>
-                <li>Fixed OpenCode support for better integration with external apps</li>
-                </ul>
-                
-                <p><a href="https://github.com/amantus-ai/vibetunnel/blob/main/CHANGELOG.md#100-beta14-20250721">View full changelog</a></p>
+                <h2>VibeTunnel 1.0.0-beta.14</h2><p><strong>Pre-release version</strong></p><div><h3>✨ Major Features</h3>
+#### <strong>Customizable Quick Start Commands</strong> (#436)
+<ul>
+<li>Quick Start commands are now fully customizable - previously hardcoded buttons can be edited</li>
+<li>Add your own commands with custom names and emoji (e.g., "✨ claude" or "▶️ dev server")</li>
+<li>Drag & drop reordering with smooth animations in macOS settings</li>
+<li>Inline editing without popup dialogs</li>
+<li>Reset to defaults button when you want the original set back</li>
+<li>File-based persistence in <code>~/.vibetunnel/config.json</code> shared between web and Mac apps</li>
+</ul>
+#### <strong>New Session Path Autocomplete</strong> (#435)
+<ul>
+<li>Intelligent path autocomplete when creating sessions with unified UI</li>
+<li>Home directory expansion (<code>~/</code> shortcuts work properly)</li>
+<li>Visual file browser with folder icons for easy navigation</li>
+<li>Git repository discovery shows current branch in file browser</li>
+<li>Repository status displayed in welcome screen</li>
+<li>Escape key support and auto-select first suggestion</li>
+</ul>
+#### <strong>Session Status Management</strong>
+<ul>
+<li>New dropdown menu in session headers for running/exited sessions</li>
+<li>Terminate running sessions without closing the tab</li>
+<li>Clear exited sessions individually with one click</li>
+<li>Visual status indicators - pulsing dot for running, static for exited</li>
+<li>Keyboard navigation support (Arrow keys, Enter, Escape)</li>
+</ul>
+#### <strong>Image Upload Menu</strong> (#432)
+<ul>
+<li>New image upload feature in session headers with multiple input methods:</li>
+</ul>
+  - Paste images from clipboard
+  - Select from photo library (mobile)
+  - Take photo with camera (mobile)
+  - Browse for files
+<ul>
+<li>Automatically converts images to base64 and inserts at cursor position</li>
+<li>Mobile-optimized UI with full-screen menu</li>
+</ul>
+#### <strong>Linux Systemd Support</strong> (#426)
+<ul>
+<li>Run VibeTunnel as a persistent service with <code>vibetunnel systemd install</code></li>
+<li>User-level service - no root required</li>
+<li>Automatic startup on boot</li>
+<li>Smart Node.js detection works with nvm, fnm, or global npm</li>
+<li>Comprehensive systemd commands for status, logs, start/stop</li>
+</ul>
+<h3>🎨 UI Improvements</h3>
+<ul>
+<li><strong>Mobile Terminal Experience</strong> (#441)</li>
+</ul>
+  - Fixed keyboard layout issues on mobile devices
+  - Improved quick keys bar with better sizing and spacing
+  - Responsive text sizes that scale properly on smaller screens
+  - Tab key now works correctly on mobile keyboards
+<ul>
+<li><strong>Dark Mode & Theme Improvements</strong></li>
+</ul>
+  - Improved theme toggle with clearer icon and tooltips (#438, fixes #368)
+  - Fixed new session dialog styling for dark mode (#433)
+  - Better contrast and visibility across all themes
+<ul>
+<li><strong>General UI Polish</strong></li>
+</ul>
+  - Clickable ngrok URLs in Settings with copy button (#422)
+  - Cleaner session headers with better-positioned controls
+  - Fixed magic wand icon alignment for AI sessions
+  - Edit icons now positioned directly after text instead of far right
+  - Improved OPTIONS label alignment in session create form
+<h3>🐛 Bug Fixes</h3>
+<ul>
+<li>Fixed session timers continuing to run after sessions exited (#428)</li>
+<li>Fixed sessions with undefined activity status showing as idle instead of active</li>
+<li>Fixed new session dialog styling for dark mode (#433)</li>
+<li>Fixed Mintlify documentation generation (#434)</li>
+<li>Fixed ConfigManager threading crash when moving quick start items in macOS</li>
+<li>Fixed mobile keyboard layout and text sizing issues (#441)</li>
+<li>Improved Chinese input method support (#431, duplicate of #421)</li>
+<li>Fixed OpenCode support for better integration with external apps</li>
+</ul>
+<h3>🏗️ Under the Hood</h3>
+#### <strong>Code Quality & Architecture</strong> (#444)
+<ul>
+<li>Extracted all magic strings to centralized constants files</li>
+<li>Created dedicated constant files for:</li>
+</ul>
+  - API endpoints, bundle identifiers, environment keys
+  - Error messages, file paths, keychain constants
+  - Network constants, notification names, UI strings
+  - URL constants and user defaults keys
+<ul>
+<li>Removed RepositoryPathSyncService and related WebSocket sync code</li>
+<li>Improved type safety and maintainability across the codebase</li>
+</ul>
+#### <strong>Configuration System Overhaul</strong> (#436)
+<ul>
+<li>New file-based configuration system with <code>~/.vibetunnel/config.json</code></li>
+<li>ConfigManager for synchronized settings between Mac and web</li>
+<li>REST API at <code>/api/config</code> replacing WebSocket sync</li>
+<li>Zod schema validation for all configuration data</li>
+<li>Automatic file watching for real-time config updates</li>
+<li>Repository base path now stored in config instead of CLI args</li>
+</ul>
+#### <strong>Testing & Development</strong>
+<ul>
+<li>Added comprehensive test coverage for new components</li>
+<li>Improved test maintainability by adding element IDs to web components</li>
+<li>Added AutocompleteService tests and drag & drop tests</li>
+<li>Enhanced CI workflows with better error diagnostics</li>
+</ul>
+#### <strong>Documentation & Cleanup</strong>
+<ul>
+<li>Major codebase cleanup - removed Tauri project and 17k lines of unused code (#419)</li>
+<li>Enhanced release process with better troubleshooting documentation</li>
+<li>Updated README with proper badges and table of contents</li>
+<li>Removed redundant header text and improved visual hierarchy</li>
+</ul>
+<h3>👥 Contributors</h3>
+First-time contributors to VibeTunnel:
+<ul>
+<li><a href="https://github.com/gopikori">@gopikori</a> - Made ngrok URLs clickable with copy button in Settings (#422)</li>
+<li><a href="https://github.com/claudemini">@claudemini</a> - Improved theme toggle UI with better icon and tooltips (#438)</li>
+</ul>
+Additional contributors:
+<ul>
+<li><a href="https://github.com/hewigovens">@hewigovens</a> - Fixed mobile keyboard issues and co-authored systemd support (#426, #441)</li>
+</ul>
+<p><a href="https://github.com/amantus-ai/vibetunnel/blob/main/CHANGELOG.md#100-beta14-20260616">View full changelog</a></p></div>
             ]]></description>
-            <pubDate>Mon, 21 Jul 2025 15:22:57 GMT</pubDate>
-            <enclosure url="https://github.com/amantus-ai/vibetunnel/releases/download/v1.0.0-beta.14/VibeTunnel-1.0.0-beta.14.dmg" 
-                       sparkle:version="203" 
-                       sparkle:shortVersionString="1.0.0-beta.14" 
-                       length="41684541" 
-                       type="application/x-apple-diskimage" 
-                       sparkle:edSignature="C8ozk/OXQUZL7aDm5EwrNWwyAWzQ0dPAvLGCWrcPFzZAEPFeXNpGtDb04iMiAQ/VHRUZPgn642BACylCnPj8DQ=="/>
+            <pubDate>Mon, 21 Jul 2025 15:21:36 +0100</pubDate>
+            <enclosure
+                url="https://github.com/amantus-ai/vibetunnel/releases/download/v1.0.0-beta.14/VibeTunnel-1.0.0-beta.14.dmg"
+                length="41684541"
+                type="application/octet-stream"
+                sparkle:edSignature="C8ozk/OXQUZL7aDm5EwrNWwyAWzQ0dPAvLGCWrcPFzZAEPFeXNpGtDb04iMiAQ/VHRUZPgn642BACylCnPj8DQ=="
+            />
+            <sparkle:minimumSystemVersion>15.0</sparkle:minimumSystemVersion>
         </item>
         <item>
             <title>VibeTunnel 1.0.0-beta.13</title>
@@ -192,54 +479,53 @@
             <sparkle:version>202</sparkle:version>
             <sparkle:shortVersionString>1.0.0-beta.13</sparkle:shortVersionString>
             <description><![CDATA[
-                <h2>VibeTunnel 1.0.0-beta.13</h2>
-                <p><strong>Pre-release version</strong></p>
-                
-                <h3><strong>Terminal Performance Mode (Experimental) </strong></h3>
-                <ul>
-                <li>New binary WebSocket mode for terminal sessions dramatically improves performance for high-throughput operations (#412)</li>
-                <li>Binary mode significantly reduces latency and CPU usage when running commands with heavy output</li>
-                <li>Seamless switching between modes without losing your session</li>
-                </ul>
-                
-                <h3><strong>Enhanced Terminal Control</strong> </h3>
-                <ul>
-                <li>Uninstall option for the <code>vt</code> command line tool now available in settings (#407)</li>
-                <li>Simple trash icon button to cleanly remove the CLI tool when needed</li>
-                <li>Proper cleanup of both standard and Homebrew installation paths</li>
-                </ul>
-                
-                <h3><strong>Screen Sharing Removed</strong></h3>
-                <ul>
-                <li>Removed screen sharing feature to focus on core terminal functionality (#415)</li>
-                <li>Eliminated ~17,000 lines of WebRTC and screen capture code</li>
-                <li>No longer requests screen recording permissions</li>
-                <li>Screen Sharing is out of scope for the 1.0 release</li>
-                </ul>
-                
-                <h3>🐛 Bug Fixes</h3>
-                <ul>
-                <li>Fixed server crashes when using special characters (like <code>*</code>) in terminal status messages (#398)</li>
-                <li>Resolved "Kill All Sessions" button failing silently in compact/sidebar view (#418)</li>
-                <li>Fixed network bind address reverting to localhost after server restarts (#404)</li>
-                <li>Ghostty terminal now properly spawns and executes commands if there are no windows (#408)</li>
-                </ul>
-                
-                <h3>📚 Documentation</h3>
-                <ul>
-                <li>Added complete HQ mode documentation covering distributed deployments</li>
-                <li>Organized all documentation into logical categories with Mintlify</li>
-                </ul>
-                
-                <p><a href="https://github.com/amantus-ai/vibetunnel/blob/main/CHANGELOG.md#100-beta13-20250719">View full changelog</a></p>
+                <h2>VibeTunnel 1.0.0-beta.13</h2><p><strong>Pre-release version</strong></p><div><h3><strong>Terminal Performance Mode (Experimental) </strong></h3>
+<ul>
+<li>New binary WebSocket mode for terminal sessions dramatically improves performance for high-throughput operations (#412)</li>
+<li>Toggle between standard SSE mode and high-performance binary mode in terminal settings</li>
+<li>Binary mode significantly reduces latency and CPU usage when running commands with heavy output</li>
+<li>Seamless switching between modes without losing your session</li>
+</ul>
+<h3><strong>Enhanced Terminal Control</strong> </h3>
+<ul>
+<li>Uninstall option for the <code>vt</code> command line tool now available in settings (#407)</li>
+<li>Simple trash icon button to cleanly remove the CLI tool when needed</li>
+<li>Proper cleanup of both standard and Homebrew installation paths</li>
+</ul>
+<h3><strong>Screen Sharing Removed</strong></h3>
+<ul>
+<li>Removed screen sharing feature to focus on core terminal functionality (#415)</li>
+<li>Eliminated ~17,000 lines of WebRTC and screen capture code</li>
+<li>No longer requests screen recording permissions</li>
+<li>Screen Sharing is out of scope for the 1.0 release</li>
+</ul>
+<h3>🐛 Bug Fixes</h3>
+<ul>
+<li>Fixed server crashes when using special characters (like <code>*</code>) in terminal status messages (#398)</li>
+<li>Resolved "Kill All Sessions" button failing silently in compact/sidebar view (#418)</li>
+<li>Fixed network bind address reverting to localhost after server restarts (#404)</li>
+<li>Ghostty terminal now properly spawns and executes commands if there are no windows (#408)</li>
+</ul>
+<h3>📚 Documentation</h3>
+<ul>
+<li>Added complete HQ mode documentation covering distributed deployments</li>
+<li>Organized all documentation into logical categories with Mintlify</li>
+</ul>
+<h3>👥 Contributors</h3>
+First-time contributors to VibeTunnel:
+<ul>
+<li><a href="https://github.com/hewigovens">@hewigovens</a> - Added systemd service management for Linux deployments, refactored installer for user-level services with improved security (#419)</li>
+</ul>
+<p><a href="https://github.com/amantus-ai/vibetunnel/blob/main/CHANGELOG.md#100-beta13-20260616">View full changelog</a></p></div>
             ]]></description>
-            <pubDate>Sat, 19 Jul 2025 02:00:00 +0200</pubDate>
-            <enclosure url="https://github.com/amantus-ai/vibetunnel/releases/download/v1.0.0-beta.13/VibeTunnel-1.0.0-beta.13.dmg" 
-                       sparkle:version="202" 
-                       sparkle:shortVersionString="1.0.0-beta.13" 
-                       length="41475580" 
-                       type="application/x-apple-diskimage" 
-                       sparkle:edSignature="/2SJK3K5kG9NEVz3iOtQAVgmPESH5HV8DGVc828/wViunW2V7SZQYdBMvcHnZThJdGNu5DBho2F0Gd4mfwb0Cw=="/>
+            <pubDate>Sat, 19 Jul 2025 00:11:47 +0100</pubDate>
+            <enclosure
+                url="https://github.com/amantus-ai/vibetunnel/releases/download/v1.0.0-beta.13/VibeTunnel-1.0.0-beta.13.dmg"
+                length="41475580"
+                type="application/octet-stream"
+                sparkle:edSignature="/2SJK3K5kG9NEVz3iOtQAVgmPESH5HV8DGVc828/wViunW2V7SZQYdBMvcHnZThJdGNu5DBho2F0Gd4mfwb0Cw=="
+            />
+            <sparkle:minimumSystemVersion>15.0</sparkle:minimumSystemVersion>
         </item>
         <item>
             <title>VibeTunnel 1.0.0-beta.12</title>
@@ -247,614 +533,498 @@
             <sparkle:version>201</sparkle:version>
             <sparkle:shortVersionString>1.0.0-beta.12</sparkle:shortVersionString>
             <description><![CDATA[
-                <h2>VibeTunnel 1.0.0-beta.12</h2>
-                <p><strong>Pre-release version</strong></p>
-                
-                <h4>Welcome Screen Performance</h4>
-                <ul>
-                <li>Background folder scanning eliminates UI freeze when opening the welcome screen (#394)</li>
-                <li>Improved startup performance with optimized web directory structure</li>
-                <li>Much smoother experience when working with large project directories</li>
-                </ul>
-                
-                <h4>SSH Agent Reliability</h4>
-                <ul>
-                <li>Fixed SSH key generation errors on non-localhost HTTP connections (#392)</li>
-                <li>SSH agent now works correctly when accessing VibeTunnel via ngrok or from another device</li>
-                <li>Improved security and reliability for remote access scenarios</li>
-                </ul>
-                
-                <h4>npm Package Stability</h4>
-                <ul>
-                <li>Fixed critical installation issues on Linux systems (#393)</li>
-                <li><code>authenticate-pam</code> now properly handled as optional dependency</li>
-                <li>Enhanced cross-platform compatibility for Ubuntu and other distributions</li>
-                <li>Comprehensive vt command tests ensure reliability across environments</li>
-                </ul>
-                
-                <h4>Developer Experience</h4>
-                <ul>
-                <li>Fixed missing public directory in Mac app bundle (#392)</li>
-                <li>Resolved TypeScript type annotations throughout codebase</li>
-                <li>Improved lint compliance and code quality</li>
-                <li>Streamlined CI/CD workflow for more reliable builds</li>
-                </ul>
-                
-                <h3>🐛 Bug Fixes</h3>
-                <ul>
-                <li>Fixed vt command syntax errors on Linux systems (#393)</li>
-                <li>Fixed welcome screen lag during folder scanning (#394)</li>
-                <li>Resolved missing icons and resources in Mac app</li>
-                <li>Fixed lint and type errors across the codebase</li>
-                <li>Cleaned up duplicate and stray files from web directory</li>
-                </ul>
+                <h2>VibeTunnel 1.0.0-beta.12</h2><p><strong>Pre-release version</strong></p><div>#### <strong>Welcome Screen Performance</strong>
+<ul>
+<li>Background folder scanning eliminates UI freeze when opening the welcome screen (#394)</li>
+<li>Improved startup performance with optimized web directory structure</li>
+<li>Much smoother experience when working with large project directories</li>
+</ul>
+#### <strong>SSH Agent Reliability</strong>
+<ul>
+<li>Fixed SSH key generation errors on non-localhost HTTP connections (#392)</li>
+<li>SSH agent now works correctly when accessing VibeTunnel via ngrok or from another device</li>
+<li>Improved security and reliability for remote access scenarios</li>
+</ul>
+#### <strong>npm Package Stability</strong>
+<ul>
+<li>Fixed critical installation issues on Linux systems (#393)</li>
+<li><code>authenticate-pam</code> now properly handled as optional dependency</li>
+<li>Enhanced cross-platform compatibility for Ubuntu and other distributions</li>
+<li>Comprehensive vt command tests ensure reliability across environments</li>
+</ul>
+#### <strong>Developer Experience</strong>
+<ul>
+<li>Fixed missing public directory in Mac app bundle (#392)</li>
+<li>Resolved TypeScript type annotations throughout codebase</li>
+<li>Improved lint compliance and code quality</li>
+<li>Streamlined CI/CD workflow for more reliable builds</li>
+</ul>
+<h3>🐛 Bug Fixes</h3>
+<ul>
+<li>Fixed vt command syntax errors on Linux systems (#393)</li>
+<li>Fixed welcome screen lag during folder scanning (#394)</li>
+<li>Resolved missing icons and resources in Mac app</li>
+<li>Fixed lint and type errors across the codebase</li>
+<li>Cleaned up duplicate and stray files from web directory</li>
+</ul>
+<h3>👥 Contributors</h3>
+First-time contributors to VibeTunnel:
+<ul>
+<li><a href="https://github.com/amazanov">@amazanov</a> - Fixed PAM module and npm_config_prefix issues on Ubuntu, improving Linux compatibility (#380)</li>
+</ul>
+<p><a href="https://github.com/amantus-ai/vibetunnel/blob/main/CHANGELOG.md#100-beta12-20260616">View full changelog</a></p></div>
             ]]></description>
-            <pubDate>Thu, 17 Jul 2025 19:35:43 +0200</pubDate>
-            <enclosure url="https://github.com/amantus-ai/vibetunnel/releases/download/v1.0.0-beta.12/VibeTunnel-1.0.0-beta.12.dmg" 
-                       sparkle:version="201" 
-                       sparkle:shortVersionString="1.0.0-beta.12" 
-                       length="51126870" 
-                       type="application/x-apple-diskimage" 
-                       sparkle:edSignature="anyeSJmQ36B3lPaQmsWbVPKZMbn9Fk+hBXHK1/ghHzOoEWGLO32DsreDdr5tmBBEwRIlI7019byHkcmAFYSxBg=="/>
+            <pubDate>Thu, 17 Jul 2025 17:34:11 +0100</pubDate>
+            <enclosure
+                url="https://github.com/amantus-ai/vibetunnel/releases/download/v1.0.0-beta.12/VibeTunnel-1.0.0-beta.12.dmg"
+                length="51126870"
+                type="application/octet-stream"
+                sparkle:edSignature="anyeSJmQ36B3lPaQmsWbVPKZMbn9Fk+hBXHK1/ghHzOoEWGLO32DsreDdr5tmBBEwRIlI7019byHkcmAFYSxBg=="
+            />
+            <sparkle:minimumSystemVersion>15.0</sparkle:minimumSystemVersion>
         </item>
         <item>
-            <title>VibeTunnel 1.0.0-beta.11</title>
+            <title>VibeTunnel 1.0.0 Beta 11</title>
             <link>https://github.com/amantus-ai/vibetunnel/releases/download/v1.0.0-beta.11/VibeTunnel-1.0.0-beta.11.dmg</link>
             <sparkle:version>200</sparkle:version>
             <sparkle:shortVersionString>1.0.0-beta.11</sparkle:shortVersionString>
             <description><![CDATA[
-                <h2>VibeTunnel 1.0.0-beta.11</h2>
-                <p><strong>Pre-release version</strong></p>
-                
-                <h4><strong>Better Settings Organization</strong></h4>
-                <ul>
-                <li>Reorganized settings into logical tabs for easier navigation (#359)</li>
-                <li>Repository base path now syncs automatically between Mac app and web UI (#358)</li>
-                <li>Simplified welcome screen repository display (#372)</li>
-                </ul>
-                
-                <h4><strong>Improved WebRTC Support</strong></h4>
-                <ul>
-                <li>Fixed threading issues in WebRTC screen capture (#375, #378)</li>
-                <li>Resolved screen capture authentication problems (#264, #374)</li>
-                <li>More stable screen sharing with proper main thread dispatch</li>
-                </ul>
-                
-                <h4><strong>UI Context Awareness</strong></h4>
-                <ul>
-                <li>Screen sharing button only appears when Mac app is connected (#367)</li>
-                <li>Spawn window toggle shows only when relevant (#357)</li>
-                </ul>
-                
-                <h4><strong>NPM Package Now Available</strong></h4>
-                <ul>
-                <li>vibetunnel (server) is now available as an npm package for easy installation on macOS and Linux (#360, #377)</li>
-                <li>Install with <code>npm install -g vibetunnel</code> - no build tools required!</li>
-                <li>Includes prebuilt binaries for Node.js 20, 22, 23, and 24</li>
-                <li>Supports macOS (Intel and Apple Silicon) and Linux (x64 and arm64) (#344)</li>
-                </ul>
-                
-                <h4><strong>Enhanced Git Diff Tool Support</strong></h4>
-                <ul>
-                <li>Added JuxtaCode to the list of supported Git diff tools with automatic detection</li>
-                </ul>
-                
-                <h4><strong>Improved <code>vt</code> Command</strong></h4>
-                <ul>
-                <li>Added verbosity control with <code>-q</code> (quiet), <code>-v</code> (verbose), <code>-vv</code> (extra verbose) flags (#356)</li>
-                <li>New <code>vt title</code> command to update session names from within a VibeTunnel session</li>
-                </ul>
-                
-                <h3>🐛 Bug Fixes</h3>
-                <ul>
-                <li>Fixed npm package installation issues (#360, #377)</li>
-                <li>Fixed control message processing loop (#372)</li>
-                <li>Fixed file browser constant refresh issue (#354)</li>
-                <li>Replaced bell icon with settings icon for better clarity (#366)</li>
-                <li>Resolved Tailwind CSS performance warning</li>
-                <li>Fixed repeated screen recording permission dialogs</li>
-                </ul>
+                <h2>VibeTunnel 1.0.0 Beta 11</h2><p><strong>Pre-release version</strong></p><div>#### <strong>Better Settings Organization</strong>
+<ul>
+<li>Reorganized settings into logical tabs for easier navigation (#359)</li>
+<li>Repository base path now syncs automatically between Mac app and web UI (#358)</li>
+<li>Simplified welcome screen repository display (#372)</li>
+</ul>
+#### <strong>UI Context Awareness</strong>
+<ul>
+<li>Spawn window toggle shows only when relevant (#357)</li>
+</ul>
+#### <strong>NPM Package Now Available</strong>
+<ul>
+<li>vibetunnel (server) is now available as an npm package for easy installation on macOS and Linux (#360, #377)</li>
+<li>Install with <code>npm install -g vibetunnel</code> - no build tools required!</li>
+<li>Includes prebuilt binaries for Node.js 20, 22, 23, and 24</li>
+<li>Supports macOS (Intel and Apple Silicon) and Linux (x64 and arm64) (#344)</li>
+</ul>
+#### <strong>Enhanced Git Diff Tool Support</strong>
+<ul>
+<li>Added JuxtaCode to the list of supported Git diff tools with automatic detection</li>
+</ul>
+#### <strong>Improved <code>vt</code> Command</strong>
+<ul>
+<li>Added verbosity control with <code>-q</code> (quiet), <code>-v</code> (verbose), <code>-vv</code> (extra verbose) flags (#356)</li>
+<li>New <code>vt title</code> command to update session names from within a VibeTunnel session (via @tarasenko)</li>
+</ul>
+<h3>🐛 Bug Fixes</h3>
+<ul>
+<li>Fixed npm package installation issues (#360, #377)</li>
+<li>Fixed control message processing loop (#372)</li>
+<li>Fixed file browser constant refresh issue (#354)</li>
+<li>Replaced bell icon with settings icon for better clarity (#366)</li>
+<li>Resolved Tailwind CSS performance warning</li>
+</ul>
+<h3>👥 Contributors</h3>
+First-time contributors to VibeTunnel:
+<ul>
+<li><a href="https://github.com/janremes">@janremes</a> - Implemented Git repository discovery with folder selection and automatic repo detection (#274)</li>
+<li><a href="https://github.com/lukeswitz">@lukeswitz</a> - Fixed duplicate session creation with intelligent detection logic (#345)</li>
+</ul>
+<p><a href="https://github.com/amantus-ai/vibetunnel/blob/main/CHANGELOG.md#100-beta11-20260616">View full changelog</a></p></div>
             ]]></description>
-            <pubDate>Thu, 16 Jan 2025 23:30:00 +0000</pubDate>
-            <enclosure url="https://github.com/amantus-ai/vibetunnel/releases/download/v1.0.0-beta.11/VibeTunnel-1.0.0-beta.11.dmg" 
-                       sparkle:version="200" 
-                       sparkle:shortVersionString="1.0.0-beta.11" 
-                       length="51131803" 
-                       type="application/x-apple-diskimage" 
-                       sparkle:edSignature="JqMb4XkC55rQ0mLmvCGbVmH8HuGrRPhm2eAyYyEgtF7iPqWGpSd5gscYKEE9im+yRt8CN1jijauuBpy+Pw+dAw=="/>
+            <pubDate>Wed, 16 Jul 2025 23:25:27 +0100</pubDate>
+            <enclosure
+                url="https://github.com/amantus-ai/vibetunnel/releases/download/v1.0.0-beta.11/VibeTunnel-1.0.0-beta.11.dmg"
+                length="51131803"
+                type="application/octet-stream"
+                sparkle:edSignature="JqMb4XkC55rQ0mLmvCGbVmH8HuGrRPhm2eAyYyEgtF7iPqWGpSd5gscYKEE9im+yRt8CN1jijauuBpy+Pw+dAw=="
+            />
+            <sparkle:minimumSystemVersion>15.0</sparkle:minimumSystemVersion>
         </item>
         <item>
-            <title>VibeTunnel 1.0.0-beta.10</title>
+            <title>VibeTunnel 1.0.0 Beta 10</title>
             <link>https://github.com/amantus-ai/vibetunnel/releases/download/v1.0.0-beta.10/VibeTunnel-1.0.0-beta.10.dmg</link>
             <sparkle:version>190</sparkle:version>
             <sparkle:shortVersionString>1.0.0-beta.10</sparkle:shortVersionString>
             <description><![CDATA[
-                <h2>VibeTunnel 1.0.0-beta.10</h2>
-                <p><strong>Pre-release version</strong></p>
-                
-                <h3>🎯 Major Features</h3>
-                
-                <h4><strong>Repository Discovery</strong></h4>
-                <ul>
-                <li>Automatic Git repository detection when creating new sessions</li>
-                <li>Recently modified repositories are displayed in the new session dialog</li>
-                <li>Quick project access with one-click repository selection</li>
-                </ul>
-                
-                <h4><strong>Keyboard Shortcut Handling</strong></h4>
-                <ul>
-                <li>Redesigned keyboard capture system with intelligent priority handling</li>
-                <li>Browser shortcuts now work naturally: Cmd+Shift+A (tab search), Cmd+1-9 (tab switching), Alt+Arrow keys (browser navigation)</li>
-                <li>Visual keyboard capture indicator with detailed tooltips</li>
-                <li>Double-Escape toggle for switching between browser and terminal keyboard modes</li>
-                </ul>
-                
-                <h4><strong>Theme System</strong></h4>
-                <ul>
-                <li>Dracula theme is now the default for new users</li>
-                <li>Professional light mode with improved contrast and modern styling</li>
-                <li>Easy theme switching between light and dark modes</li>
-                <li>Enhanced terminal color schemes and theme management</li>
-                </ul>
-                
-                <h3>🚀 Performance & Developer Experience</h3>
-                
-                <h4><strong>Development Server Mode</strong></h4>
-                <ul>
-                <li>New "Development Server" mode in Debug Settings enables hot reload for web changes</li>
-                <li>Significantly faster iteration when developing the web interface</li>
-                <li>Hot reload works with full VibeTunnel functionality</li>
-                </ul>
-                
-                <h3>🛠️ Bug Fixes & Improvements</h3>
-                
-                <h4><strong>Cross-Platform Compatibility</strong></h4>
-                <ul>
-                <li><strong>FIXED</strong>: Safari clipboard paste now works reliably on iOS and macOS</li>
-                <li>Improved mobile experience with better responsive behavior</li>
-                <li>Enhanced cross-browser compatibility</li>
-                </ul>
-                
-                <h4><strong>Session Management</strong></h4>
-                <ul>
-                <li><strong>FIXED</strong>: Prevented duplicate session creation with intelligent detection</li>
-                <li>Added keyboard navigation in session grid (arrow keys, Enter, etc.)</li>
-                <li>Improved session organization and list management</li>
-                </ul>
-                
-                <h4><strong>Network & SSH</strong></h4>
-                <ul>
-                <li><strong>FIXED</strong>: Race conditions in network access mode that caused connection failures</li>
-                <li>More robust network configuration handling and error recovery</li>
-                <li>Improved SSH key manager with better modal layout and responsive design</li>
-                </ul>
-                
-                <h3>🔧 Under the Hood</h3>
-                <ul>
-                <li>Updated all dependencies to latest stable versions</li>
-                <li>Enhanced TypeScript configuration with better type safety</li>
-                <li>Simplified CI workflow and improved build reliability</li>
-                <li>More comprehensive test suite with better coverage</li>
-                </ul>
-                
-                <p><a href="https://github.com/amantus-ai/vibetunnel/blob/main/CHANGELOG.md#100-beta10-20250715">View full changelog</a></p>
+                <h2>VibeTunnel 1.0.0 Beta 10</h2><p><strong>Pre-release version</strong></p><div>#### <strong>Repository Discovery</strong>
+<ul>
+<li>Automatic Git repository detection when creating new sessions (#301) (via @mrshu)</li>
+<li>Recently modified repositories displayed in new session dialog</li>
+<li>Quick project access with one-click repository selection</li>
+</ul>
+#### <strong>Keyboard Shortcut Handling</strong>
+<ul>
+<li>Redesigned keyboard capture system with intelligent priority handling (#298) (via @tarasenko)</li>
+<li>Browser shortcuts work naturally: Cmd+Shift+A (tab search), Cmd+1-9 (tab switching), Alt+Arrow keys</li>
+<li>Visual keyboard capture indicator with detailed tooltips</li>
+<li>Double-Escape toggle for switching between browser and terminal keyboard modes</li>
+</ul>
+#### <strong>Theme System</strong>
+<ul>
+<li>Dracula theme is now the default for new users (#349)</li>
+<li>Professional light mode with improved contrast (#314)</li>
+<li>Easy theme switching between light and dark modes</li>
+<li>Enhanced terminal color schemes (#332)</li>
+</ul>
+#### <strong>Development Server Mode</strong>
+<ul>
+<li>New "Development Server" mode in Debug Settings enables hot reload (#316)</li>
+<li>Significantly faster iteration when developing the web interface</li>
+<li>Hot reload works with full VibeTunnel functionality</li>
+</ul>
+<h3>🐛 Bug Fixes</h3>
+<ul>
+<li>Fixed Safari clipboard paste on iOS and macOS (#336)</li>
+<li>Fixed duplicate session creation with intelligent detection (#345) (via @lukeswitz)</li>
+<li>Added keyboard navigation in session grid (arrow keys, Enter, etc.) (#322)</li>
+<li>Fixed race conditions in network access mode (#347)</li>
+<li>Improved SSH key manager modal layout (#325) (via @hewigovens)</li>
+<li>Updated all dependencies to latest stable versions</li>
+<li>Enhanced TypeScript configuration with better type safety</li>
+</ul>
+<h3>👥 Contributors</h3>
+First-time contributors to VibeTunnel:
+<ul>
+<li><a href="https://github.com/davidgomesdev">@davidgomesdev</a> - Transformed SessionListView to clean MVVM architecture for better maintainability (#217)</li>
+<li><a href="https://github.com/jeffhurray">@jeffhurray</a> - Consolidated z-index management to prevent UI layer conflicts (#291)</li>
+<li><a href="https://github.com/hewigovens">@hewigovens</a> - Fixed SSH key manager modal layout and improved test compatibility (#325)</li>
+<li><a href="https://github.com/tarasenko">@tarasenko</a> - Added browser keyboard shortcut support with intelligent priority handling (#298)</li>
+</ul>
+<p><a href="https://github.com/amantus-ai/vibetunnel/blob/main/CHANGELOG.md#100-beta10-20260616">View full changelog</a></p></div>
             ]]></description>
-            <pubDate>Tue, 15 Jul 2025 09:38:40 +0200</pubDate>
-            <enclosure url="https://github.com/amantus-ai/vibetunnel/releases/download/v1.0.0-beta.10/VibeTunnel-1.0.0-beta.10.dmg" 
-                       sparkle:version="190" 
-                       sparkle:shortVersionString="1.0.0-beta.10" 
-                       length="50989458" 
-                       type="application/x-apple-diskimage" 
-                       sparkle:edSignature="adyG4vZSIVp9OfLxY50PEm7wRr+/l0bryvGL3xWELDIHO5Zy9pqyKQ5ohRZkqrEnzLg2It5uzUYCIU76E2GhBw=="/>
+            <pubDate>Tue, 15 Jul 2025 07:37:43 +0100</pubDate>
+            <enclosure
+                url="https://github.com/amantus-ai/vibetunnel/releases/download/v1.0.0-beta.10/VibeTunnel-1.0.0-beta.10.dmg"
+                length="50989458"
+                type="application/octet-stream"
+                sparkle:edSignature="adyG4vZSIVp9OfLxY50PEm7wRr+/l0bryvGL3xWELDIHO5Zy9pqyKQ5ohRZkqrEnzLg2It5uzUYCIU76E2GhBw=="
+            />
+            <sparkle:minimumSystemVersion>15.0</sparkle:minimumSystemVersion>
         </item>
         <item>
-            <title>VibeTunnel 1.0.0-beta.9</title>
+            <title>VibeTunnel 1.0.0 Beta 9</title>
             <link>https://github.com/amantus-ai/vibetunnel/releases/download/v1.0.0-beta.9/VibeTunnel-1.0.0-beta.9.dmg</link>
             <sparkle:version>173</sparkle:version>
             <sparkle:shortVersionString>1.0.0-beta.9</sparkle:shortVersionString>
             <description><![CDATA[
-                <h2>VibeTunnel 1.0.0-beta.9</h2>
-                <p><strong>Pre-release version</strong></p>
-                
-                <h3>🛡️ Stability & Reliability</h3>
-                
-                <h4><strong>Critical Crash Fix</strong></h4>
-                <ul>
-                <li><strong>FIXED</strong>: Eliminated random terminal crashes by replacing Microsoft's node-pty with a custom fork that provides thread-safe operations and better resource management. This resolves critical stability issues that affected VS Code and other Electron applications.</li>
-                </ul>
-                
-                <h4><strong>Server Crash Detection</strong></h4>
-                <ul>
-                <li><strong>NEW</strong>: Intelligent crash detection and recovery system that automatically detects server failures and provides immediate feedback with specific error codes, dramatically reducing troubleshooting time.</li>
-                </ul>
-                
-                <h3>📱 Mobile Experience</h3>
-                
-                <h4><strong>Terminal Stability on Mobile</strong></h4>
-                <ul>
-                <li><strong>FIXED</strong>: Resolved the continuous resize loop that made terminals unusable on mobile devices. The terminal now maintains a stable view without jumping or unexpected scrolling.</li>
-                <li><strong>IMPROVED</strong>: Better mobile terminal width management - user preferences are now properly respected throughout the session.</li>
-                <li><strong>ENHANCED</strong>: Support for smaller grid sizes on compact mobile devices, providing better visibility on phones.</li>
-                </ul>
-                
-                <h4><strong>Mobile Keyboard Support</strong></h4>
-                <ul>
-                <li><strong>NEW</strong>: Added Alt+Delete/Left/Right keyboard shortcuts specifically for mobile users, improving text editing capabilities.</li>
-                <li><strong>FIXED</strong>: Mobile header no longer overflows when using dropdown menus, providing a cleaner interface.</li>
-                </ul>
-                
-                <h3>🚀 Features & Improvements</h3>
-                
-                <h4><strong>Cloudflare Integration</strong></h4>
-                <ul>
-                <li><strong>ENHANCED</strong>: Significantly improved Cloudflare tunnel setup with faster, more reliable stream-based monitoring instead of polling. Setup is now smoother with better error handling.</li>
-                </ul>
-                
-                <h4><strong>Git Repository Discovery</strong></h4>
-                <ul>
-                <li><strong>IMPROVED</strong>: Enhanced folder selection when creating new sessions - VibeTunnel now intelligently discovers Git repositories in your selected folder, making project navigation easier.</li>
-                <li><strong>FIXED</strong>: Several bugs in repository discovery that could cause incorrect folder detection or errors.</li>
-                </ul>
-                
-                <h3>🎨 UI Polish</h3>
-                
-                <h4><strong>Visual Stability</strong></h4>
-                <ul>
-                <li><strong>FIXED</strong>: Terminal titles no longer jump around due to activity indicators, providing a stable and professional interface.</li>
-                <li><strong>IMPROVED</strong>: Consolidated z-index management throughout the interface, preventing UI elements from appearing in incorrect layers.</li>
-                </ul>
-                
-                <h3>🔧 Under the Hood</h3>
-                
-                <ul>
-                <li>Enhanced event handling for better cross-platform compatibility</li>
-                <li>Improved file browser functionality with better click handling</li>
-                <li>Updated documentation with expanded specifications and data flow diagrams</li>
-                <li>Various test improvements for better code quality</li>
-                </ul>
+                <h2>VibeTunnel 1.0.0 Beta 9</h2><p><strong>Pre-release version</strong></p><div>#### <strong>Terminal Crash Fix</strong>
+<ul>
+<li>Replaced Microsoft's node-pty with custom fork to resolve random terminal crashes (#304)</li>
+<li>Improved thread-safe operations and resource management</li>
+<li>Addresses stability issues affecting VS Code and other Electron applications</li>
+</ul>
+#### <strong>Server Crash Detection</strong>
+<ul>
+<li>Added crash detection and recovery system for server failures (#308)</li>
+<li>Provides immediate feedback with specific error codes</li>
+<li>Improved troubleshooting and error reporting</li>
+</ul>
+#### <strong>Mobile Experience</strong>
+<ul>
+<li>Fixed continuous resize loop on mobile devices (#305)</li>
+<li>Improved mobile terminal width management</li>
+<li>Added support for smaller grid sizes on compact devices</li>
+<li>Added Alt+Delete/Left/Right keyboard shortcuts for mobile users (#290)</li>
+<li>Fixed mobile header overflow when using dropdown menus (#295)</li>
+</ul>
+#### <strong>Cloudflare Integration</strong>
+<ul>
+<li>Improved tunnel setup with stream-based monitoring (#306)</li>
+<li>Enhanced error handling and more reliable setup process</li>
+</ul>
+#### <strong>Git Repository Discovery</strong>
+<ul>
+<li>Enhanced folder selection when creating new sessions (#274) (via @janremes)</li>
+<li>Added intelligent Git repository discovery in selected folders</li>
+<li>Fixed multiple bugs in repository discovery (#282)</li>
+</ul>
+<h3>🐛 Bug Fixes</h3>
+<ul>
+<li>Fixed terminal titles jumping due to activity indicators (#309)</li>
+<li>Consolidated z-index management to prevent UI layer conflicts (#291) (via @jeffhurray)</li>
+<li>Enhanced event handling for better cross-platform compatibility</li>
+<li>Improved file browser functionality with better click handling</li>
+</ul>
+<h3>👥 Contributors</h3>
+First-time contributors to VibeTunnel:
+<ul>
+<li><a href="https://github.com/claywarren">@claywarren</a> - Fixed infinite scroll loop that could freeze the browser (#206)</li>
+<li><a href="https://github.com/luisnell">@luisnell</a> - Added Apple Silicon Homebrew path check for VT tool installation</li>
+</ul>
+<p><a href="https://github.com/amantus-ai/vibetunnel/blob/main/CHANGELOG.md#100-beta9-20260616">View full changelog</a></p></div>
             ]]></description>
-            <pubDate>Fri, 11 Jul 2025 10:48:00 +0200</pubDate>
-            <enclosure url="https://github.com/amantus-ai/vibetunnel/releases/download/v1.0.0-beta.9/VibeTunnel-1.0.0-beta.9.dmg" 
-                       sparkle:version="173" 
-                       sparkle:shortVersionString="1.0.0-beta.9" 
-                       length="44821464" 
-                       type="application/x-apple-diskimage" 
-                       sparkle:edSignature="xAzHFZ1FYtncpZx1xKMAIMT9kDkEiZfH1uuY80weKzi7JE8Yd673/7919f3D3g4j/B7fTMs88TVlTxocL9zRCw=="/>
+            <pubDate>Fri, 11 Jul 2025 08:28:38 +0100</pubDate>
+            <enclosure
+                url="https://github.com/amantus-ai/vibetunnel/releases/download/v1.0.0-beta.9/VibeTunnel-1.0.0-beta.9.dmg"
+                length="44821464"
+                type="application/octet-stream"
+                sparkle:edSignature="xAzHFZ1FYtncpZx1xKMAIMT9kDkEiZfH1uuY80weKzi7JE8Yd673/7919f3D3g4j/B7fTMs88TVlTxocL9zRCw=="
+            />
+            <sparkle:minimumSystemVersion>15.0</sparkle:minimumSystemVersion>
         </item>
         <item>
-            <title>VibeTunnel 1.0.0-beta.8</title>
+            <title>VibeTunnel 1.0.0 Beta 8</title>
             <link>https://github.com/amantus-ai/vibetunnel/releases/download/v1.0.0-beta.8/VibeTunnel-1.0.0-beta.8.dmg</link>
             <sparkle:version>172</sparkle:version>
             <sparkle:shortVersionString>1.0.0-beta.8</sparkle:shortVersionString>
             <description><![CDATA[
-                <h2>VibeTunnel 1.0.0-beta.8</h2>
-                <p><strong>Pre-release version</strong></p>
-                
-                <h4><strong>Homebrew Library Dependencies</strong></h4>
-                <ul>
-                <li><strong>FIXED</strong>: Release builds now correctly bundle all Homebrew library dependencies</li>
-                <li><strong>FIXED</strong>: App launches reliably on systems without developer tools installed</li>
-                <li>Updated build scripts to handle dynamic library dependencies properly</li>
-                </ul>
-                
-                <h4><strong>File Browser Enhancements</strong></h4>
-                <ul>
-                <li><strong>FIXED</strong>: File browser going dark due to event bubbling issues with modal handling</li>
-                </ul>
+                <h2>VibeTunnel 1.0.0 Beta 8</h2><p><strong>Pre-release version</strong></p><div><h3>🐛 Bug Fixes</h3>
+<ul>
+<li>Fixed release builds to correctly bundle all Homebrew library dependencies (#269)</li>
+<li>Fixed app launch on systems without developer tools installed</li>
+<li>Fixed file browser going dark due to event bubbling issues with modal handling</li>
+<li>Updated build scripts to handle dynamic library dependencies properly</li>
+</ul>
+<p><a href="https://github.com/amantus-ai/vibetunnel/blob/main/CHANGELOG.md#100-beta8-20260616">View full changelog</a></p></div>
             ]]></description>
-            <pubDate>Tue, 08 Jul 2025 10:18:00 +0100</pubDate>
-            <enclosure url="https://github.com/amantus-ai/vibetunnel/releases/download/v1.0.0-beta.8/VibeTunnel-1.0.0-beta.8.dmg" 
-                       sparkle:version="172" 
-                       sparkle:shortVersionString="1.0.0-beta.8" 
-                       length="44748347" 
-                       type="application/x-apple-diskimage" 
-                       sparkle:edSignature="/538z6L/qhhnHkfWU1hVoqeKvFdHubFRobfq6Vfmwz4UCpDVhJrqG+W28xW1wU4W9+xt41NMgei+DLJr1JV8Cg=="/>
+            <pubDate>Tue, 08 Jul 2025 09:41:34 +0100</pubDate>
+            <enclosure
+                url="https://github.com/amantus-ai/vibetunnel/releases/download/v1.0.0-beta.8/VibeTunnel-1.0.0-beta.8.dmg"
+                length="44748347"
+                type="application/octet-stream"
+                sparkle:edSignature="/538z6L/qhhnHkfWU1hVoqeKvFdHubFRobfq6Vfmwz4UCpDVhJrqG+W28xW1wU4W9+xt41NMgei+DLJr1JV8Cg=="
+            />
+            <sparkle:minimumSystemVersion>15.0</sparkle:minimumSystemVersion>
         </item>
         <item>
-            <title>VibeTunnel 1.0.0-beta.7</title>
+            <title>VibeTunnel 1.0.0 Beta 7</title>
             <link>https://github.com/amantus-ai/vibetunnel/releases/download/v1.0.0-beta.7/VibeTunnel-1.0.0-beta.7.dmg</link>
             <sparkle:version>170</sparkle:version>
             <sparkle:shortVersionString>1.0.0-beta.7</sparkle:shortVersionString>
             <description><![CDATA[
-                <h2>VibeTunnel 1.0.0-beta.7</h2>
-                <p><strong>Pre-release version</strong></p>
-                
-                <h3>🎯 Major Features</h3>
-                
-                <h4>🖥️ <strong>Remote Screen Sharing (Beta)</strong></h4>
-                <ul>
-                <li>Share your Mac screen remotely through any web browser - perfect for demonstrations, pair programming, or remote support</li>
-                <li>Ultra-low latency using WebRTC technology with automatic quality adjustment based on network conditions</li>
-                <li>Privacy-focused with deferred permission requests (only asks for screen recording when you actually start sharing)</li>
-                <li>Automatic 4K resolution capping for 5K+ displays to prevent web interface clipping</li>
-                <li>Clear visual indicators when screen sharing is active</li>
-                </ul>
-                
-                <h4>🪄 <strong>Magic Wand for AI Sessions</strong></h4>
-                <ul>
-                <li>Instantly inject helpful context into Claude.ai sessions with a single click</li>
-                <li>Automatically detects Claude browser windows and adds project information</li>
-                <li>Includes git repository details, current branch, and recent commit history</li>
-                <li>Configurable prompts to match your workflow</li>
-                <li>More forceful prompt injection to prevent AI from directly using the injected title</li>
-                </ul>
-                
-                <h3>🚀 Performance &amp; Stability Improvements</h3>
-                
-                <h4><strong>Terminal Performance</strong></h4>
-                <ul>
-                <li><strong>FIXED</strong>: Critical flow control issue that caused web terminal buffer overflow and terminal freezing</li>
-                <li><strong>FIXED</strong>: Infinite scroll loop in terminal output that could freeze the browser</li>
-                <li><strong>FIXED</strong>: Race conditions in terminal output handling causing corrupted or out-of-order text</li>
-                <li>Improved memory management for long-running sessions</li>
-                <li>Better handling of high-volume terminal output</li>
-                </ul>
-                
-                <h4><strong>UI Performance</strong></h4>
-                <ul>
-                <li>Removed all UI animations that were causing 1-2 second delays when reopening sessions</li>
-                <li>Disabled View Transitions API for instant session navigation</li>
-                <li>Fixed modal backdrop pointer-events issues preventing interaction</li>
-                <li>Smoother menu bar UI without jumping when copy icon appears</li>
-                </ul>
-                
-                <h3>📱 Touch Device &amp; Mobile Improvements</h3>
-                
-                <h4><strong>iPad/Tablet Support</strong></h4>
-                <ul>
-                <li>Unified keyboard layout for all mobile devices (removed separate iPad layout)</li>
-                <li>Universal touch device detection for better keyboard mode handling</li>
-                <li>Inline-edit pencil now always visible on touch devices</li>
-                <li>Reorganized touch device layout with better button placement</li>
-                <li>Fixed touch interaction issues with modals and overlays</li>
-                </ul>
-                
-                <h4><strong>Mobile Keyboard</strong></h4>
-                <ul>
-                <li>New compact keyboard layout optimized for tablets</li>
-                <li>Better handling of keyboard shortcuts on touch devices</li>
-                <li>Improved responsiveness for mobile web browsers</li>
-                </ul>
-                
-                <h3>🐚 Shell Support Enhancements</h3>
-                
-                <h4><strong>Fish Shell Integration</strong></h4>
-                <ul>
-                <li>Full support for Fish shell command expansion and completions</li>
-                <li>Proper handling of Fish-specific syntax and features</li>
-                <li>Fixed shell configuration files not being loaded correctly</li>
-                </ul>
-                
-                <h3>🔧 Developer Experience</h3>
-                
-                <h4><strong>Build System Improvements</strong></h4>
-                <ul>
-                <li>Preserve Swift package resolution in build.sh for faster builds</li>
-                <li>Better Node.js detection that handles fnm/homebrew conflicts</li>
-                </ul>
-                
-                <h4><strong>Version Management</strong></h4>
-                <ul>
-                <li>Implemented hash-based vt script version detection</li>
-                <li>Delete old sessions automatically when VibeTunnel version changes</li>
-                <li>Better handling of version mismatches between components</li>
-                </ul>
-                
-                <h3>🐛 Bug Fixes</h3>
-                
-                <h4><strong>Session Management</strong></h4>
-                <ul>
-                <li>Fixed session state synchronization between web and native clients</li>
-                <li>Resolved memory leaks in long-running sessions</li>
-                <li>Fixed connection timeout issues on slower networks</li>
-                <li>Better cleanup of terminal processes and resources</li>
-                </ul>
-                
-                <h4><strong>UI/UX Fixes</strong></h4>
-                <ul>
-                <li>Fixed various UI glitches and visual artifacts</li>
-                <li>Resolved sidebar animation issues</li>
-                <li>Fixed file browser problems</li>
-                <li>Corrected ngrok documentation about free static domains</li>
-                </ul>
-                
-                <h3>🔍 Other Improvements</h3>
-                
-                <h4><strong>Control Protocol</strong></h4>
-                <ul>
-                <li>Unified control protocol for better terminal and screen sharing integration</li>
-                <li>Improved Unix socket handling with better error recovery</li>
-                <li>Enhanced WebRTC connection management</li>
-                </ul>
-                
-                <h4><strong>Documentation</strong></h4>
-                <ul>
-                <li>Updated ngrok docs to clarify one free static domain per user</li>
-                <li>Added comprehensive ScreenCaptureKit documentation</li>
-                <li>Removed outdated debug documentation</li>
-                </ul>
+                <h2>VibeTunnel 1.0.0 Beta 7</h2><p><strong>Pre-release version</strong></p><div>#### <strong>AI Session Context Injection</strong>
+<ul>
+<li>Inject project context into Claude.ai sessions with a single click (#210, #218)</li>
+<li>Automatically detects Claude browser windows</li>
+<li>Includes git repository details, current branch, and recent commits</li>
+<li>Configurable prompts to match workflow</li>
+</ul>
+#### <strong>Terminal Performance</strong>
+<ul>
+<li>Fixed critical flow control issue causing xterm.js buffer overflow (#223)</li>
+<li>Fixed infinite scroll loop that could freeze the browser</li>
+<li>Fixed race conditions in terminal output handling</li>
+<li>Improved memory management for long-running sessions</li>
+<li>Better handling of high-volume terminal output</li>
+</ul>
+#### <strong>UI Performance</strong>
+<ul>
+<li>Removed UI animations causing 1-2 second delays</li>
+<li>Disabled View Transitions API for instant session navigation</li>
+<li>Fixed modal backdrop pointer-events issues (#195)</li>
+<li>Smoother menu bar UI without jumping</li>
+</ul>
+#### <strong>Touch Device & Mobile</strong>
+<ul>
+<li>Unified keyboard layout for all mobile devices</li>
+<li>Universal touch device detection</li>
+<li>Inline-edit pencil always visible on touch devices</li>
+<li>New compact keyboard layout optimized for tablets</li>
+<li>Fixed touch interaction issues with modals</li>
+</ul>
+#### <strong>Fish Shell Integration</strong>
+<ul>
+<li>Full support for Fish shell command expansion and completions (#228, #242)</li>
+<li>Proper handling of Fish-specific syntax</li>
+<li>Fixed shell configuration files not being loaded</li>
+</ul>
+#### <strong>Developer Experience</strong>
+<ul>
+<li>Preserve Swift package resolution for faster builds</li>
+<li>Better Node.js detection handling fnm/homebrew conflicts (#246, #253)</li>
+<li>Hash-based vt script version detection</li>
+<li>Delete old sessions when VibeTunnel version changes (#254)</li>
+</ul>
+<h3>🐛 Bug Fixes</h3>
+<ul>
+<li>Fixed session state synchronization between web and native clients</li>
+<li>Resolved memory leaks in long-running sessions</li>
+<li>Fixed connection timeout issues on slower networks</li>
+<li>Better cleanup of terminal processes and resources</li>
+<li>Fixed various UI glitches and visual artifacts</li>
+<li>Resolved sidebar animation issues</li>
+<li>Fixed file browser problems</li>
+<li>Unified control protocol for terminal sessions (#239)</li>
+<li>Improved Unix socket handling with better error recovery</li>
+</ul>
+<h3>👥 Contributors</h3>
+First-time contributors to VibeTunnel:
+<ul>
+<li><a href="https://github.com/deveshseth">@deveshseth</a> - Fixed responsive layout issues preventing proper desktop mode transition (#201)</li>
+<li><a href="https://github.com/raghavsethi">@raghavsethi</a> - Added fish shell expansion support with proper syntax handling (#228, #242)</li>
+<li><a href="https://github.com/raghavsethi">@raghavsethi</a> - Fixed Xcode Node.js detection issues with fnm/homebrew conflicts (#246, #253)</li>
+<li><a href="https://github.com/sandeepjak2007">@sandeepjak2007</a> - Added paste button to quick keyboard for improved iOS usability (#227)</li>
+<li><a href="https://github.com/Dimillian">@Dimillian</a> - Fixed WebSocket and terminal resize loop on iOS devices (#224)</li>
+</ul>
+<p><a href="https://github.com/amantus-ai/vibetunnel/blob/main/CHANGELOG.md#100-beta7-20260616">View full changelog</a></p></div>
             ]]></description>
-            <pubDate>Tue, 08 Jul 2025 02:35:00 +0100</pubDate>
-            <enclosure url="https://github.com/amantus-ai/vibetunnel/releases/download/v1.0.0-beta.7/VibeTunnel-1.0.0-beta.7.dmg" 
-                       sparkle:version="170" 
-                       sparkle:shortVersionString="1.0.0-beta.7" 
-                       length="33195103" 
-                       type="application/x-apple-diskimage" 
-                       sparkle:edSignature="T8R0fG2cY7zyKDIOVAEGk02Su+mj7JKk//dyGBHmMC4o8QtUVCL24ASbKZiRa1fVey79+MCWdIVs79DG+sb7AQ=="/>
+            <pubDate>Tue, 08 Jul 2025 01:35:43 +0100</pubDate>
+            <enclosure
+                url="https://github.com/amantus-ai/vibetunnel/releases/download/v1.0.0-beta.7/VibeTunnel-1.0.0-beta.7.dmg"
+                length="33195103"
+                type="application/octet-stream"
+                sparkle:edSignature="T8R0fG2cY7zyKDIOVAEGk02Su+mj7JKk//dyGBHmMC4o8QtUVCL24ASbKZiRa1fVey79+MCWdIVs79DG+sb7AQ=="
+            />
+            <sparkle:minimumSystemVersion>15.0</sparkle:minimumSystemVersion>
         </item>
         <item>
-            <title>VibeTunnel 1.0.0-beta.6</title>
+            <title>VibeTunnel 1.0.0 Beta 6</title>
             <link>https://github.com/amantus-ai/vibetunnel/releases/download/v1.0.0-beta.6/VibeTunnel-1.0.0-beta.6.dmg</link>
             <sparkle:version>160</sparkle:version>
             <sparkle:shortVersionString>1.0.0-beta.6</sparkle:shortVersionString>
             <description><![CDATA[
-                <h2>VibeTunnel 1.0.0-beta.6</h2><p><strong>Pre-release version</strong></p><div>
-<h3>✨ New Features</h3>
-
-<h4><strong>Git Repository Monitoring</strong> 🆕</h4>
+                <h2>VibeTunnel 1.0.0 Beta 6</h2><p><strong>Pre-release version</strong></p><div>#### <strong>Git Repository Monitoring</strong>
 <ul>
-<li><strong>Real-time Git Status</strong> - Session rows now display git information including branch name and change counts</li>
-<li><strong>Visual Indicators</strong> - Color-coded status: orange for branches, yellow for uncommitted changes</li>
-<li><strong>Quick Navigation</strong> - Click folder icons to open repositories in Finder</li>
-<li><strong>GitHub Integration</strong> - Context menu option to open repositories directly on GitHub</li>
-<li><strong>Smart Caching</strong> - 5-second cache prevents excessive git commands while keeping info fresh</li>
-<li><strong>Repository Detection</strong> - Automatically finds git repositories in parent directories</li>
+<li>Real-time Git status in session rows with branch name and change counts (#200)</li>
+<li>Color-coded status: orange for branches, yellow for uncommitted changes</li>
+<li>Click folder icons to open repositories in Finder</li>
+<li>Context menu option to open repositories on GitHub</li>
+<li>5-second cache prevents excessive git commands</li>
+<li>Automatically finds git repositories in parent directories</li>
 </ul>
-
-<h4><strong>Enhanced Command-Line Tool</strong></h4>
+#### <strong>Enhanced Command-Line Tool</strong>
 <ul>
-<li><strong>Terminal Title Management</strong> - `vt title` can set the title of your Terminal. Even Claude can use it!</li>
-<li><strong>Version Information</strong> - `vt help` now displays binary path, version, build date, and platform information for easier troubleshooting</li>
-<li><strong>Apple Silicon Support</strong> - Automatic detection of Homebrew installations on ARM Macs (/opt/homebrew path)</li>
+<li><code>vt title</code> can set terminal title - even Claude can use it! (#153)</li>
+<li><code>vt help</code> displays binary path, version, build date, and platform info</li>
+<li>Automatic detection of Homebrew installations on ARM Macs</li>
 </ul>
-
-<h4><strong>Menu Bar Enhancements</strong></h4>
+#### <strong>Menu Bar Enhancements</strong>
 <ul>
-<li><strong>Rich Session Interface</strong> - Powerful new menu bar with visual activity indicators and real-time status tracking</li>
-<li><strong>Native Session Overview</strong> - See all open terminal sessions and even Claude Code status right from the menu bar.</li>
-<li><strong>Sleep Prevention</strong> - Mac stays awake when running terminal sessions</li>
+<li>Powerful menu bar with visual activity indicators (#176)</li>
+<li>See all terminal sessions and Claude Code status (#160)</li>
+<li>Mac stays awake when running terminal sessions</li>
 </ul>
-
-<h4><strong>Web Interface Improvements</strong></h4>
+#### <strong>Web Interface Improvements</strong>
 <ul>
-<li><strong>Modern Visual Design</strong> - Complete UI overhaul with improved color scheme, animations, and visual hierarchy</li>
-<li><strong>Collapsible Sidebar</strong> - New toggle button to maximize terminal viewing space (preference is remembered)</li>
-<li><strong>Better Session Loading</strong> - Fixed race conditions that caused sessions to appear as "missing"</li>
-<li><strong>Responsive Enhancements</strong> - Improved adaptation to different screen sizes with better touch targets</li>
+<li>Complete UI overhaul with improved color scheme and animations (#179)</li>
+<li>Collapsible sidebar to maximize terminal viewing space (#175)</li>
+<li>Fixed race conditions causing sessions to appear as "missing"</li>
+<li>Improved responsive design with better touch targets</li>
 </ul>
-
-<h3>🚀 Performance &amp; Stability</h3>
-
-<h4><strong>Terminal Output Reliability</strong></h4>
+<h3>🐛 Bug Fixes</h3>
 <ul>
-<li><strong>Fixed Output Corruption</strong> - Resolved race conditions causing out-of-order or corrupted terminal output</li>
-<li><strong>Stable Title Updates</strong> - Terminal titles now update smoothly without flickering or getting stuck</li>
+<li>Fixed terminal output corruption from race conditions</li>
+<li>Fixed terminal titles jumping or getting stuck</li>
+<li>Fixed double logger initialization deleting log files</li>
+<li>Improved PTY manager cleanup and timer management</li>
+<li>Enhanced error handling throughout server stack</li>
 </ul>
-
-<h4><strong>Server Improvements</strong></h4>
+#### <strong>Simplified Tailscale Setup</strong>
 <ul>
-<li><strong>Logger Fix</strong> - Fixed double initialization that was deleting log files</li>
-<li><strong>Better Resource Cleanup</strong> - Improved PTY manager cleanup and timer management</li>
-<li><strong>Enhanced Error Handling</strong> - More robust error handling throughout the server stack</li>
-</ul>
-
-<h4><strong>Simplified Tailscale Setup</strong></h4>
-<ul>
-<li>Switched to Tailscale's local API for easier configuration</li>
+<li>Switched to Tailscale's local API for easier configuration (#184)</li>
 <li>Removed manual token management requirements</li>
-<li>Streamlined connection UI for minimal setup</li>
+<li>Streamlined connection UI</li>
 </ul>
-</div>
+<h3>👥 Contributors</h3>
+First-time contributors to VibeTunnel:
+<ul>
+<li><a href="https://github.com/noppe">@noppe</a> - Enabled scrolling in ConnectionView for narrow windows, improving UI accessibility</li>
+<li><a href="https://github.com/tarasenko">@tarasenko</a> - Added title mode support and enhanced CLI installation verification (#153)</li>
+</ul>
+<p><a href="https://github.com/amantus-ai/vibetunnel/blob/main/CHANGELOG.md#100-beta6-20260616">View full changelog</a></p></div>
             ]]></description>
-            <pubDate>Wed, 03 Jul 2025 00:46:29 +0100</pubDate>
-            <enclosure url="https://github.com/amantus-ai/vibetunnel/releases/download/v1.0.0-beta.6/VibeTunnel-1.0.0-beta.6.dmg" sparkle:version="160" sparkle:shortVersionString="1.0.0-beta.6" type="application/octet-stream" sparkle:edSignature="kFaJj5tSahAMZ1Sj5p3q7YkQ3n7G6yCLXpUAvcqjjOLV9r9vW2k4ByPUXdKQkHujuDmGhElk2oMucv/jp0QPDg==" length="35747713"/>
+            <pubDate>Wed, 02 Jul 2025 23:46:29 +0100</pubDate>
+            <enclosure
+                url="https://github.com/amantus-ai/vibetunnel/releases/download/v1.0.0-beta.6/VibeTunnel-1.0.0-beta.6.dmg"
+                length="35747713"
+                type="application/octet-stream"
+                sparkle:edSignature="kFaJj5tSahAMZ1Sj5p3q7YkQ3n7G6yCLXpUAvcqjjOLV9r9vW2k4ByPUXdKQkHujuDmGhElk2oMucv/jp0QPDg=="
+            />
+            <sparkle:minimumSystemVersion>15.0</sparkle:minimumSystemVersion>
         </item>
         <item>
-            <title>VibeTunnel 1.0.0-beta.5</title>
+            <title>VibeTunnel 1.0.0 Beta 5</title>
             <link>https://github.com/amantus-ai/vibetunnel/releases/download/v1.0.0-beta.5/VibeTunnel-1.0.0-beta.5.dmg</link>
             <sparkle:version>150</sparkle:version>
             <sparkle:shortVersionString>1.0.0-beta.5</sparkle:shortVersionString>
             <description><![CDATA[
-                <h2>VibeTunnel 1.0.0-beta.5</h2><p><strong>Pre-release version</strong></p><div>
-<h3>🎯 Features</h3>
-
-<p><strong>Real-time Claude Activity Monitoring</strong></p>
+                <h2>VibeTunnel 1.0.0 Beta 5</h2><p><strong>Pre-release version</strong></p><div>#### <strong>UI Improvements</strong>
 <ul>
-<li><strong>See Claude's live status directly in the VibeTunnel sidebar</strong> - Know exactly what Claude is "Thinking", "Crafting", or "Searching" with real-time progress indicators showing duration and token counts.</li>
-<li><strong>Activity status persists across browser refreshes</strong> - Works seamlessly with external terminal sessions.</li>
-<li><strong>Faster sidebar updates</strong> - Sidebar now refreshes every second (previously 3 seconds) for more responsive activity tracking.</li>
+<li>Web interface now shows full version including beta suffix</li>
+<li>Cleaner build output by filtering non-actionable Xcode warnings</li>
+<li>Fixed scrolling issues on mobile web browsers</li>
 </ul>
-
-<p><strong>Comprehensive Terminal Title Management</strong></p>
+#### <strong>Infrastructure</strong>
 <ul>
-                <li><strong>Context-aware terminal titles</strong> - Terminal windows display your current directory, running command, and live activity status.</li>
-<li><strong>Choose your title mode</strong> - Select between static titles (path + command), filter, or none.</li>
-<li><strong>Automatic directory tracking</strong> - Terminal titles update automatically when you change directories with <code>cd</code> commands.</li>
-<li><strong>Session name integration</strong> - Custom session names are reflected in terminal titles for better organization.</li>
+<li>Web version automatically reads from package.json at build time</li>
+<li>Build process validates version consistency between macOS and web</li>
+<li>Tests only run when relevant files change (iOS/Mac/Web)</li>
+<li>Comprehensive Playwright tests for web frontend reliability (#120)</li>
 </ul>
-
-<h3>🌏 International Input Support</h3>
+<h3>🐛 Bug Fixes</h3>
 <ul>
-<li><strong>Fixed Japanese/CJK input duplication on iOS</strong> - Typing Japanese, Chinese, or Korean text on mobile browsers no longer produces duplicate characters. IME composition is now handled correctly.</li>
+<li>Fixed authentication-related error messages when running with <code>--no-auth</code></li>
+<li>Fixed frontend log streaming in no-auth mode</li>
+<li>Resolved flaky tests and improved test infrastructure (#205)</li>
+<li>Enhanced release process documentation with version sync requirements</li>
+<li>Better test fixtures, helpers, and debugging capabilities (#73)</li>
+<li>Cleaner logs when running in development mode</li>
 </ul>
-
-<h3>⌨️ Enhanced Terminal Experience</h3>
+<h3>👥 Contributors</h3>
+First-time contributors to VibeTunnel:
 <ul>
-<li><strong>Shell aliases now work properly</strong> - Commands like <code>claude</code>, <code>ll</code>, and other custom aliases from your <code>.zshrc</code>/<code>.bashrc</code> are now recognized when launching terminals through VibeTunnel.</li>
-<li><strong>Prevented recursive VibeTunnel sessions</strong> - Running <code>vt</code> inside a VibeTunnel session now shows a helpful error instead of creating confusing nested sessions.</li>
-<li><strong>Fixed critical race condition in terminal output</strong> - Terminal sessions now handle high-volume output without corruption or out-of-order text.</li>
+<li><a href="https://github.com/manuelmaly">@manuelmaly</a> - Added gemini quick start button and slash commands for enhanced workflow (#128, #138)</li>
+<li><a href="https://github.com/billyb2">@billyb2</a> - Fixed repeated screen recording permission dialogs for better user experience</li>
 </ul>
-
-<h3>🤖 Claude Code Integration</h3>
-<ul>
-<li><strong>Added Shift+Tab support</strong> - Full support for Claude Code's mode switching (regular/planning/autoaccept modes) on both desktop and mobile.</li>
-<li><strong>Mobile quick keyboard enhancement</strong> - Added dedicated Shift+Tab button (⇤) to the mobile keyboard for easy mode switching.</li>
-<li><strong>Fixed keyboard input conflicts</strong> - Typing in Monaco Editor or other code editors no longer triggers unintended shortcuts.</li>
-</ul>
-
-<h3>🚀 Quick Start Enhancements</h3>
-<ul>
-<li><strong>Added Gemini as quickstart entry</strong> - Google's Gemini AI assistant is now available as a one-click option when creating new terminal sessions, alongside Claude and other common commands.</li>
-</ul>
-</div>
+<p><a href="https://github.com/amantus-ai/vibetunnel/blob/main/CHANGELOG.md#100-beta5-20260616">View full changelog</a></p></div>
             ]]></description>
-            <pubDate>Sun, 30 Jun 2025 03:26:47 +0000</pubDate>
-            <enclosure url="https://github.com/amantus-ai/vibetunnel/releases/download/v1.0.0-beta.5/VibeTunnel-1.0.0-beta.5.dmg" sparkle:version="150" sparkle:shortVersionString="1.0.0-beta.5" length="35714742" type="application/x-apple-diskimage" sparkle:edSignature="Kn1lcwGww8okqRz83fX3RpaFKXVbk2x7fV0mnuVzHRKvqJEcQeD7vQDoI+Yd5WAWyueVK9E+LPZ3ycjr5ufICw=="/>
+            <pubDate>Mon, 30 Jun 2025 03:26:57 +0100</pubDate>
+            <enclosure
+                url="https://github.com/amantus-ai/vibetunnel/releases/download/v1.0.0-beta.5/VibeTunnel-1.0.0-beta.5.dmg"
+                length="35714742"
+                type="application/octet-stream"
+                sparkle:edSignature="Kn1lcwGww8okqRz83fX3RpaFKXVbk2x7fV0mnuVzHRKvqJEcQeD7vQDoI+Yd5WAWyueVK9E+LPZ3ycjr5ufICw=="
+            />
+            <sparkle:minimumSystemVersion>15.0</sparkle:minimumSystemVersion>
         </item>
         <item>
-            <title>VibeTunnel 1.0.0-beta.4</title>
+            <title>VibeTunnel 1.0.0 Beta 4</title>
             <link>https://github.com/amantus-ai/vibetunnel/releases/download/v1.0.0-beta.4/VibeTunnel-1.0.0-beta.4.dmg</link>
             <sparkle:version>114</sparkle:version>
             <sparkle:shortVersionString>1.0.0-beta.4</sparkle:shortVersionString>
             <description><![CDATA[
-                <h2>VibeTunnel 1.0.0-beta.4</h2><p><strong>Pre-release version</strong></p><div><h3>✨ Highlights</h3>
-<ul>
-<li>Completely revamped mobile keyboard</li>
-<li>Mobile and Mac UI polish</li>
-<li>Fixes issues with Terminal app</li>
-<li>New security model: OS password or SSH keys</li>
+                <h2>VibeTunnel 1.0.0 Beta 4</h2><p><strong>Pre-release version</strong></p><div><ul>
+<li>We replaced HTTP Basic auth with System Login or SSH Keys for better security (#43).</li>
+<li>Sessions now show exited terminals by default - no more hunting for terminated sessions</li>
+<li>Reorganized sidebar with cleaner, more compact header and better button placement</li>
+<li>Added user menu in sidebar for quick access to settings and logout</li>
+<li>Enhanced responsive design with better adaptation to different screen sizes</li>
+<li>Improved touch targets and spacing for mobile users</li>
+<li>Leverages View Transitions API for smoother animations with CSS fallbacks</li>
+<li>More intuitive default settings for better out-of-box experience</li>
 </ul>
-
-<h3>🎨 Improvements</h3>
+<h3>👥 Contributors</h3>
+First-time contributors to VibeTunnel:
 <ul>
-<li>Enhanced terminal session handling and stability</li>
-<li>Fixed various edge cases in terminal rendering and performance</li>
-<li>Resolved session management issues</li>
-<li>Fixed URL link detection for wrapped URLs on mobile terminals (#85)</li>
-<li>Split session view file for better code organization (#89)</li>
+<li><a href="https://github.com/hjanuschka">@hjanuschka</a> - Implemented authentication system with SSH key management for better security (#43)</li>
+<li><a href="https://github.com/hjanuschka">@hjanuschka</a> - Added screen sharing functionality with WebRTC (later removed in beta.13) (#209)</li>
+<li><a href="https://github.com/chrisreyn">@chrisreyn</a> - Fixed double shell-wrapping issues for aliases in vt script (#132)</li>
 </ul>
-<p><a href="https://github.com/amantus-ai/vibetunnel/blob/main/CHANGELOG.md#100-beta4---2025-06-27">View full changelog</a></p></div>
+<p><a href="https://github.com/amantus-ai/vibetunnel/blob/main/CHANGELOG.md#100-beta4-20260616">View full changelog</a></p></div>
             ]]></description>
-            <pubDate>Thu, 27 Jun 2025 00:31:41 +0000</pubDate>
-            <enclosure 
+            <pubDate>Fri, 27 Jun 2025 00:31:41 +0100</pubDate>
+            <enclosure
                 url="https://github.com/amantus-ai/vibetunnel/releases/download/v1.0.0-beta.4/VibeTunnel-1.0.0-beta.4.dmg"
                 length="35449335"
                 type="application/octet-stream"
                 sparkle:edSignature="dE/g2OqA2Gv/ZexRG43WudUWWhoKUi3XldlkZjR4kfgMaCIwvbtv4LyCVDRsJ094hqYZThomfGow6MgghsW6Dw=="
             />
-            <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
+            <sparkle:minimumSystemVersion>15.0</sparkle:minimumSystemVersion>
         </item>
         <item>
-            <title>VibeTunnel 1.0.0-beta.3</title>
+            <title>VibeTunnel 1.0.0 Beta 3</title>
             <link>https://github.com/amantus-ai/vibetunnel/releases/download/v1.0.0-beta.3/VibeTunnel-1.0.0-beta.3.dmg</link>
             <sparkle:version>110</sparkle:version>
             <sparkle:shortVersionString>1.0.0-beta.3</sparkle:shortVersionString>
             <description><![CDATA[
-                <h2>VibeTunnel 1.0.0-beta.3</h2><p><strong>Pre-release version</strong></p><div><h3>🎉 Beta 3 Release</h3>
-<p>There's too much to list! This is the version you've been waiting for.</p>
-
-<h3>✨ Highlights</h3>
+                <h2>VibeTunnel 1.0.0 Beta 3</h2><p><strong>Pre-release version</strong></p><div>There's too much to list! This is the version you've been waiting for.
 <ul>
-<li>Redesigned, responsive, animated frontend</li>
-<li>File-Picker to see files on-the-go</li>
-<li>Creating new Terminals is now much more reliable</li>
-<li>Fresh new icon for Progressive Web App installations</li>
-</ul>
-
-<h3>🎨 Improvements</h3>
-<ul>
+<li>Redesigned, responsive, animated frontend.</li>
 <li>Improved terminal width spanning and layout optimization</li>
+<li>File-Picker to see files on-the-go.</li>
+<li>Creating new Terminals is now much more reliable.</li>
 <li>Added terminal font size adjustment in the settings dropdown</li>
+<li>Fresh new icon for Progressive Web App installations</li>
 <li>Refined bounce animations for a more subtle, professional feel</li>
 <li>Added retro CRT-style phosphor decay visual effect for closed terminals</li>
 <li>Fixed buffer aggregator message handling for smoother terminal updates</li>
@@ -865,24 +1035,31 @@
 <li>More resilient vt command-line tool with better error handling</li>
 <li>Ensured vibetunnel server properly terminates when Mac app is killed</li>
 </ul>
-<p><a href="https://github.com/amantus-ai/vibetunnel/blob/main/CHANGELOG.md#100-beta3---2025-06-23">View full changelog</a></p></div>
+<h3>👥 Contributors</h3>
+First-time contributors to VibeTunnel:
+<ul>
+<li><a href="https://github.com/tarasenko">@tarasenko</a> - Added Bonjour/mDNS service discovery for iOS app connectivity (#226)</li>
+<li><a href="https://github.com/PiotrBosak">@PiotrBosak</a> - Updated README documentation for clarity</li>
+<li><a href="https://github.com/zhouzhuojie">@zhouzhuojie</a> - Added Cloudflare Quick Tunnel as a new access option</li>
+</ul>
+<p><a href="https://github.com/amantus-ai/vibetunnel/blob/main/CHANGELOG.md#100-beta3-20260616">View full changelog</a></p></div>
             ]]></description>
-            <pubDate>Sun, 23 Jun 2025 04:30:00 +0000</pubDate>
-            <enclosure 
+            <pubDate>Mon, 23 Jun 2025 02:30:55 +0100</pubDate>
+            <enclosure
                 url="https://github.com/amantus-ai/vibetunnel/releases/download/v1.0.0-beta.3/VibeTunnel-1.0.0-beta.3.dmg"
                 length="20156342"
                 type="application/octet-stream"
                 sparkle:edSignature="d4G5pUTLuoRUMVg+SSHHaupV2QycU3fEXJhzFjXNSB79htcVo3mGn+oaABL1suvCMJTBK7shJJQS3mf7yDFQDg=="
             />
-            <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
+            <sparkle:minimumSystemVersion>15.0</sparkle:minimumSystemVersion>
         </item>
         <item>
-            <title>VibeTunnel 1.0.0-beta.2</title>
+            <title>VibeTunnel 1.0.0 Beta 2</title>
             <link>https://github.com/amantus-ai/vibetunnel/releases/download/v1.0-beta.2/VibeTunnel-1.0.0-beta.2.dmg</link>
             <sparkle:version>107</sparkle:version>
             <sparkle:shortVersionString>1.0-beta.2</sparkle:shortVersionString>
             <description><![CDATA[
-                <h2>VibeTunnel 1.0.0-beta.2</h2><p><strong>Pre-release version</strong></p><div><h3>🎨 Improvements</h3>
+                <h2>VibeTunnel 1.0.0 Beta 2</h2><p><strong>Pre-release version</strong></p><div><h3>🎨 Improvements</h3>
 <ul>
 <li>Redesigned slick new web frontend</li>
 <li>Faster terminal rendering in the web frontend</li>
@@ -898,10 +1075,15 @@
 <li>Fixed PTY service enhancements with proper async operations</li>
 <li>Fixed race condition in session creation that caused frontend to open previous session</li>
 </ul>
-<p><a href="https://github.com/amantus-ai/vibetunnel/blob/main/CHANGELOG.md#100-beta2-20250619">View full changelog</a></p></div>
+<h3>👥 Contributors</h3>
+First-time contributors to VibeTunnel:
+<ul>
+<li><a href="https://github.com/moffmann">@moffmann</a> - Updated CONTRIBUTING.md documentation</li>
+</ul>
+<p><a href="https://github.com/amantus-ai/vibetunnel/blob/main/CHANGELOG.md#100-beta2-20260616">View full changelog</a></p></div>
             ]]></description>
-            <pubDate>Thu, 19 Jun 2025 12:50:59 +0200</pubDate>
-            <enclosure 
+            <pubDate>Thu, 19 Jun 2025 12:50:59 +0100</pubDate>
+            <enclosure
                 url="https://github.com/amantus-ai/vibetunnel/releases/download/v1.0-beta.2/VibeTunnel-1.0.0-beta.2.dmg"
                 length="19720948"
                 type="application/octet-stream"
@@ -910,12 +1092,12 @@
             <sparkle:minimumSystemVersion>15.0</sparkle:minimumSystemVersion>
         </item>
         <item>
-            <title>VibeTunnel 1.0-beta.1</title>
+            <title>VibeTunnel 1.0.0 Beta 1</title>
             <link>https://github.com/amantus-ai/vibetunnel/releases/download/v1.0-beta.1/VibeTunnel-1.0-beta.1.dmg</link>
             <sparkle:version>103</sparkle:version>
             <sparkle:shortVersionString>1.0-beta.1</sparkle:shortVersionString>
             <description><![CDATA[
-                <h2>VibeTunnel 1.0-beta.1</h2><p><strong>Pre-release version</strong></p><div><h3>🎉 First Public Beta Release</h3>
+                <h2>VibeTunnel 1.0.0 Beta 1</h2><p><strong>Pre-release version</strong></p><div><h3>🎉 First Public Beta Release</h3>
 This is the first public beta release of VibeTunnel, ready for testing by early adopters.
 <h3>✨ What's Included</h3>
 <ul>
@@ -960,10 +1142,10 @@ This is the first public beta release of VibeTunnel, ready for testing by early 
 <li>Auto-update functionality is fully enabled</li>
 <li>All core features are stable and ready for daily use</li>
 </ul>
-<p><a href="https://github.com/amantus-ai/vibetunnel/blob/main/CHANGELOG.md#100-beta1-20250619">View full changelog</a></p></div>
+<p><a href="https://github.com/amantus-ai/vibetunnel/blob/main/CHANGELOG.md#100-beta1-20260616">View full changelog</a></p></div>
             ]]></description>
-            <pubDate>Tue, 17 Jun 2025 01:09:18 +0200</pubDate>
-            <enclosure 
+            <pubDate>Tue, 17 Jun 2025 01:09:18 +0100</pubDate>
+            <enclosure
                 url="https://github.com/amantus-ai/vibetunnel/releases/download/v1.0-beta.1/VibeTunnel-1.0-beta.1.dmg"
                 length="17928597"
                 type="application/octet-stream"
