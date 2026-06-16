@@ -14,6 +14,19 @@ YELLOW='\033[1;33m'
 RED='\033[0;31m'
 NC='\033[0m' # No Color
 
+# Functions to print colored output
+print_info() {
+    echo -e "${GREEN}[INFO]${NC} $1" >&2
+}
+
+print_warning() {
+    echo -e "${YELLOW}[WARNING]${NC} $1" >&2
+}
+
+print_error() {
+    echo -e "${RED}[ERROR]${NC} $1" >&2
+}
+
 # Add Sparkle tools to PATH
 export PATH="$HOME/.local/bin:$PATH"
 
@@ -72,19 +85,6 @@ print_warning "⚠️  IMPORTANT: This script uses the file-based private key at
 print_warning "⚠️  DO NOT use sign_update without the -f flag!"
 print_warning "⚠️  The keychain may contain a different key that produces incompatible signatures!"
 echo -e "${YELLOW}[WARNING]${NC} Expected public key in Info.plist: AGCY8w5vHirVfGGDGc8Szc5iuOqupZSh9pMj/Qs67XI=" >&2
-
-# Function to print colored output
-print_info() {
-    echo -e "${GREEN}[INFO]${NC} $1" >&2
-}
-
-print_warning() {
-    echo -e "${YELLOW}[WARNING]${NC} $1" >&2
-}
-
-print_error() {
-    echo -e "${RED}[ERROR]${NC} $1" >&2
-}
 
 # Function to get file size from URL
 get_file_size() {
