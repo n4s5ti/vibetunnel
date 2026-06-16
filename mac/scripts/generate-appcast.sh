@@ -27,6 +27,13 @@ print_error() {
     echo -e "${RED}[ERROR]${NC} $1" >&2
 }
 
+trim_trailing_whitespace() {
+    local file=$1
+    local temp_file="${file}.tmp"
+    awk '{ sub(/[[:space:]]+$/, ""); print }' "$file" > "$temp_file"
+    mv "$temp_file" "$file"
+}
+
 # Add Sparkle tools to PATH
 export PATH="$HOME/.local/bin:$PATH"
 
@@ -349,7 +356,7 @@ create_appcast_item() {
                 $description
             ]]></description>
             <pubDate>$(format_date "$published_at")</pubDate>
-            <enclosure 
+            <enclosure
                 url="$dmg_url"
                 length="$dmg_size"
                 type="application/octet-stream"
@@ -519,6 +526,9 @@ EOF
     
     echo "    </channel>" >> appcast-prerelease.xml
     echo "</rss>" >> appcast-prerelease.xml
+
+    trim_trailing_whitespace appcast.xml
+    trim_trailing_whitespace appcast-prerelease.xml
     
     print_info "✅ Appcast files generated successfully!"
     print_info "  - appcast.xml (stable releases only)"
