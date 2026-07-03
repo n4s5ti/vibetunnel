@@ -6,6 +6,36 @@
         <description>VibeTunnel pre-release and beta updates feed</description>
         <language>en</language>
         <item>
+            <title>VibeTunnel 1.0.0 Beta 17</title>
+            <link>https://github.com/amantus-ai/vibetunnel/releases/download/v1.0.0-beta.17/VibeTunnel-1.0.0-beta.17.dmg</link>
+            <sparkle:version>207</sparkle:version>
+            <sparkle:shortVersionString>1.0.0-beta.17</sparkle:shortVersionString>
+            <description><![CDATA[
+                <h2>VibeTunnel 1.0.0 Beta 17</h2><p><strong>Pre-release version</strong></p><div><h3>Added</h3>
+<ul>
+<li>Let HQ remotes advertise a reachable callback origin with <code>--remote-url</code>, including validated IPv6 and tailnet addresses (thanks <a href="https://github.com/Ebonsignori">@Ebonsignori</a>) (#699).</li>
+</ul>
+<h3>Fixed</h3>
+<ul>
+<li>Require the web session form to select a registered HQ machine, without exposing remote callback tokens or the HQ router's filesystem as machine-local data (thanks <a href="https://github.com/Ebonsignori">@Ebonsignori</a>).</li>
+<li>Updated file-upload dependencies, rebuilt Monaco against a patched sanitizer, and removed an unused vulnerable proxy dependency.</li>
+<li>Kept Tailscale CLI status timeouts responsive when the Swift concurrency executor is saturated.</li>
+<li>Let HQ remotes rejoin automatically after sleep or a network interruption without restarting VibeTunnel (thanks <a href="https://github.com/Ebonsignori">@Ebonsignori</a>) (#698).</li>
+<li>Stopped HQ registration diagnostics from logging Basic or bearer authentication material.</li>
+<li>Restored macOS Release builds on Xcode 16.4 by making Pangolin connection-state handling compatible with Swift 6.1.</li>
+</ul>
+<p><a href="https://github.com/amantus-ai/vibetunnel/blob/main/CHANGELOG.md#100-beta17-20260703">View full changelog</a></p></div>
+            ]]></description>
+            <pubDate>Fri, 03 Jul 2026 19:09:07 +0100</pubDate>
+            <enclosure
+                url="https://github.com/amantus-ai/vibetunnel/releases/download/v1.0.0-beta.17/VibeTunnel-1.0.0-beta.17.dmg"
+                length="26107814"
+                type="application/octet-stream"
+                sparkle:edSignature="NeBzmT9fTsQ2bTLuYJYDBiN6l97laCNaqvP4gMA/6+nta6HeXPshJHxL7Dx4PlUhe+2IYrdgpyrVItWFabSQAw=="
+            />
+            <sparkle:minimumSystemVersion>15.0</sparkle:minimumSystemVersion>
+        </item>
+        <item>
             <title>VibeTunnel 1.0.0 Beta 16</title>
             <link>https://github.com/amantus-ai/vibetunnel/releases/download/v1.0.0-beta.16/VibeTunnel-1.0.0-beta.16.dmg</link>
             <sparkle:version>206</sparkle:version>
@@ -132,7 +162,7 @@
 <li>Thanks <a href="https://github.com/nikolasdehor">@nikolasdehor</a> for fixing narrow mobile session headers, <code>vt --title-mode</code>, and shell fallback argument forwarding, preserving terminal link taps, and adding remote health-check regression coverage.</li>
 <li>Thanks <a href="https://github.com/rothnic">@rothnic</a> for defaulting to universal macOS binaries.</li>
 </ul>
-<p><a href="https://github.com/amantus-ai/vibetunnel/blob/main/CHANGELOG.md#100-beta16-20260616">View full changelog</a></p></div>
+<p><a href="https://github.com/amantus-ai/vibetunnel/blob/main/CHANGELOG.md#100-beta16-20260703">View full changelog</a></p></div>
             ]]></description>
             <pubDate>Tue, 16 Jun 2026 00:16:01 +0100</pubDate>
             <enclosure
@@ -318,7 +348,7 @@ Additional contributors:
 <li><a href="https://github.com/fal3">@fal3</a> - Fixed Test Notification Button to VibeTunnel Mac App (#483)</li>
 <li><a href="https://github.com/hewigovens">@hewigovens</a> - Fixed mobile keyboard layout and text sizing issues (#441) and contributed CJK (Chinese, Japanese, Korean) IME input support (#447, refined in #480)</li>
 </ul>
-<p><a href="https://github.com/amantus-ai/vibetunnel/blob/main/CHANGELOG.md#100-beta15-20260616">View full changelog</a></p></div>
+<p><a href="https://github.com/amantus-ai/vibetunnel/blob/main/CHANGELOG.md#100-beta15-20260703">View full changelog</a></p></div>
             ]]></description>
             <pubDate>Sat, 02 Aug 2025 00:21:24 +0100</pubDate>
             <enclosure
@@ -462,7 +492,7 @@ Additional contributors:
 <ul>
 <li><a href="https://github.com/hewigovens">@hewigovens</a> - Fixed mobile keyboard issues and co-authored systemd support (#426, #441)</li>
 </ul>
-<p><a href="https://github.com/amantus-ai/vibetunnel/blob/main/CHANGELOG.md#100-beta14-20260616">View full changelog</a></p></div>
+<p><a href="https://github.com/amantus-ai/vibetunnel/blob/main/CHANGELOG.md#100-beta14-20260703">View full changelog</a></p></div>
             ]]></description>
             <pubDate>Mon, 21 Jul 2025 15:21:36 +0100</pubDate>
             <enclosure
@@ -516,7 +546,7 @@ First-time contributors to VibeTunnel:
 <ul>
 <li><a href="https://github.com/hewigovens">@hewigovens</a> - Added systemd service management for Linux deployments, refactored installer for user-level services with improved security (#419)</li>
 </ul>
-<p><a href="https://github.com/amantus-ai/vibetunnel/blob/main/CHANGELOG.md#100-beta13-20260616">View full changelog</a></p></div>
+<p><a href="https://github.com/amantus-ai/vibetunnel/blob/main/CHANGELOG.md#100-beta13-20260703">View full changelog</a></p></div>
             ]]></description>
             <pubDate>Sat, 19 Jul 2025 00:11:47 +0100</pubDate>
             <enclosure
@@ -572,7 +602,7 @@ First-time contributors to VibeTunnel:
 <ul>
 <li><a href="https://github.com/amazanov">@amazanov</a> - Fixed PAM module and npm_config_prefix issues on Ubuntu, improving Linux compatibility (#380)</li>
 </ul>
-<p><a href="https://github.com/amantus-ai/vibetunnel/blob/main/CHANGELOG.md#100-beta12-20260616">View full changelog</a></p></div>
+<p><a href="https://github.com/amantus-ai/vibetunnel/blob/main/CHANGELOG.md#100-beta12-20260703">View full changelog</a></p></div>
             ]]></description>
             <pubDate>Thu, 17 Jul 2025 17:34:11 +0100</pubDate>
             <enclosure
@@ -629,7 +659,7 @@ First-time contributors to VibeTunnel:
 <li><a href="https://github.com/janremes">@janremes</a> - Implemented Git repository discovery with folder selection and automatic repo detection (#274)</li>
 <li><a href="https://github.com/lukeswitz">@lukeswitz</a> - Fixed duplicate session creation with intelligent detection logic (#345)</li>
 </ul>
-<p><a href="https://github.com/amantus-ai/vibetunnel/blob/main/CHANGELOG.md#100-beta11-20260616">View full changelog</a></p></div>
+<p><a href="https://github.com/amantus-ai/vibetunnel/blob/main/CHANGELOG.md#100-beta11-20260703">View full changelog</a></p></div>
             ]]></description>
             <pubDate>Wed, 16 Jul 2025 23:25:27 +0100</pubDate>
             <enclosure
@@ -690,7 +720,7 @@ First-time contributors to VibeTunnel:
 <li><a href="https://github.com/hewigovens">@hewigovens</a> - Fixed SSH key manager modal layout and improved test compatibility (#325)</li>
 <li><a href="https://github.com/tarasenko">@tarasenko</a> - Added browser keyboard shortcut support with intelligent priority handling (#298)</li>
 </ul>
-<p><a href="https://github.com/amantus-ai/vibetunnel/blob/main/CHANGELOG.md#100-beta10-20260616">View full changelog</a></p></div>
+<p><a href="https://github.com/amantus-ai/vibetunnel/blob/main/CHANGELOG.md#100-beta10-20260703">View full changelog</a></p></div>
             ]]></description>
             <pubDate>Tue, 15 Jul 2025 07:37:43 +0100</pubDate>
             <enclosure
@@ -751,7 +781,7 @@ First-time contributors to VibeTunnel:
 <li><a href="https://github.com/claywarren">@claywarren</a> - Fixed infinite scroll loop that could freeze the browser (#206)</li>
 <li><a href="https://github.com/luisnell">@luisnell</a> - Added Apple Silicon Homebrew path check for VT tool installation</li>
 </ul>
-<p><a href="https://github.com/amantus-ai/vibetunnel/blob/main/CHANGELOG.md#100-beta9-20260616">View full changelog</a></p></div>
+<p><a href="https://github.com/amantus-ai/vibetunnel/blob/main/CHANGELOG.md#100-beta9-20260703">View full changelog</a></p></div>
             ]]></description>
             <pubDate>Fri, 11 Jul 2025 08:28:38 +0100</pubDate>
             <enclosure
@@ -775,7 +805,7 @@ First-time contributors to VibeTunnel:
 <li>Fixed file browser going dark due to event bubbling issues with modal handling</li>
 <li>Updated build scripts to handle dynamic library dependencies properly</li>
 </ul>
-<p><a href="https://github.com/amantus-ai/vibetunnel/blob/main/CHANGELOG.md#100-beta8-20260616">View full changelog</a></p></div>
+<p><a href="https://github.com/amantus-ai/vibetunnel/blob/main/CHANGELOG.md#100-beta8-20260703">View full changelog</a></p></div>
             ]]></description>
             <pubDate>Tue, 08 Jul 2025 09:41:34 +0100</pubDate>
             <enclosure
@@ -856,7 +886,7 @@ First-time contributors to VibeTunnel:
 <li><a href="https://github.com/sandeepjak2007">@sandeepjak2007</a> - Added paste button to quick keyboard for improved iOS usability (#227)</li>
 <li><a href="https://github.com/Dimillian">@Dimillian</a> - Fixed WebSocket and terminal resize loop on iOS devices (#224)</li>
 </ul>
-<p><a href="https://github.com/amantus-ai/vibetunnel/blob/main/CHANGELOG.md#100-beta7-20260616">View full changelog</a></p></div>
+<p><a href="https://github.com/amantus-ai/vibetunnel/blob/main/CHANGELOG.md#100-beta7-20260703">View full changelog</a></p></div>
             ]]></description>
             <pubDate>Tue, 08 Jul 2025 01:35:43 +0100</pubDate>
             <enclosure
@@ -921,7 +951,7 @@ First-time contributors to VibeTunnel:
 <li><a href="https://github.com/noppe">@noppe</a> - Enabled scrolling in ConnectionView for narrow windows, improving UI accessibility</li>
 <li><a href="https://github.com/tarasenko">@tarasenko</a> - Added title mode support and enhanced CLI installation verification (#153)</li>
 </ul>
-<p><a href="https://github.com/amantus-ai/vibetunnel/blob/main/CHANGELOG.md#100-beta6-20260616">View full changelog</a></p></div>
+<p><a href="https://github.com/amantus-ai/vibetunnel/blob/main/CHANGELOG.md#100-beta6-20260703">View full changelog</a></p></div>
             ]]></description>
             <pubDate>Wed, 02 Jul 2025 23:46:29 +0100</pubDate>
             <enclosure
@@ -966,7 +996,7 @@ First-time contributors to VibeTunnel:
 <li><a href="https://github.com/manuelmaly">@manuelmaly</a> - Added gemini quick start button and slash commands for enhanced workflow (#128, #138)</li>
 <li><a href="https://github.com/billyb2">@billyb2</a> - Fixed repeated screen recording permission dialogs for better user experience</li>
 </ul>
-<p><a href="https://github.com/amantus-ai/vibetunnel/blob/main/CHANGELOG.md#100-beta5-20260616">View full changelog</a></p></div>
+<p><a href="https://github.com/amantus-ai/vibetunnel/blob/main/CHANGELOG.md#100-beta5-20260703">View full changelog</a></p></div>
             ]]></description>
             <pubDate>Mon, 30 Jun 2025 03:26:57 +0100</pubDate>
             <enclosure
@@ -1000,7 +1030,7 @@ First-time contributors to VibeTunnel:
 <li><a href="https://github.com/hjanuschka">@hjanuschka</a> - Added screen sharing functionality with WebRTC (later removed in beta.13) (#209)</li>
 <li><a href="https://github.com/chrisreyn">@chrisreyn</a> - Fixed double shell-wrapping issues for aliases in vt script (#132)</li>
 </ul>
-<p><a href="https://github.com/amantus-ai/vibetunnel/blob/main/CHANGELOG.md#100-beta4-20260616">View full changelog</a></p></div>
+<p><a href="https://github.com/amantus-ai/vibetunnel/blob/main/CHANGELOG.md#100-beta4-20260703">View full changelog</a></p></div>
             ]]></description>
             <pubDate>Fri, 27 Jun 2025 00:31:41 +0100</pubDate>
             <enclosure
@@ -1042,7 +1072,7 @@ First-time contributors to VibeTunnel:
 <li><a href="https://github.com/PiotrBosak">@PiotrBosak</a> - Updated README documentation for clarity</li>
 <li><a href="https://github.com/zhouzhuojie">@zhouzhuojie</a> - Added Cloudflare Quick Tunnel as a new access option</li>
 </ul>
-<p><a href="https://github.com/amantus-ai/vibetunnel/blob/main/CHANGELOG.md#100-beta3-20260616">View full changelog</a></p></div>
+<p><a href="https://github.com/amantus-ai/vibetunnel/blob/main/CHANGELOG.md#100-beta3-20260703">View full changelog</a></p></div>
             ]]></description>
             <pubDate>Mon, 23 Jun 2025 02:30:55 +0100</pubDate>
             <enclosure
@@ -1080,7 +1110,7 @@ First-time contributors to VibeTunnel:
 <ul>
 <li><a href="https://github.com/moffmann">@moffmann</a> - Updated CONTRIBUTING.md documentation</li>
 </ul>
-<p><a href="https://github.com/amantus-ai/vibetunnel/blob/main/CHANGELOG.md#100-beta2-20260616">View full changelog</a></p></div>
+<p><a href="https://github.com/amantus-ai/vibetunnel/blob/main/CHANGELOG.md#100-beta2-20260703">View full changelog</a></p></div>
             ]]></description>
             <pubDate>Thu, 19 Jun 2025 12:50:59 +0100</pubDate>
             <enclosure
@@ -1142,7 +1172,7 @@ This is the first public beta release of VibeTunnel, ready for testing by early 
 <li>Auto-update functionality is fully enabled</li>
 <li>All core features are stable and ready for daily use</li>
 </ul>
-<p><a href="https://github.com/amantus-ai/vibetunnel/blob/main/CHANGELOG.md#100-beta1-20260616">View full changelog</a></p></div>
+<p><a href="https://github.com/amantus-ai/vibetunnel/blob/main/CHANGELOG.md#100-beta1-20260703">View full changelog</a></p></div>
             ]]></description>
             <pubDate>Tue, 17 Jun 2025 01:09:18 +0100</pubDate>
             <enclosure
